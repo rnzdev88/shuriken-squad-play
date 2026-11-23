@@ -70,7 +70,10 @@ button.card .ev.ready{color:#ffd84d;font-weight:900}
 .pn ul{list-style:none;margin:0;padding:0}
 .pn li{display:flex;gap:8px;font-size:13px;color:#b8c2cc;line-height:1.4;margin:6px 0}
 .pn li span:first-child{flex:none;width:20px;text-align:center}
-button.link{background:none;color:#9aa6b2;font-size:12px;font-weight:700;padding:8px 10px;margin-top:8px}
+button.link{background:none;color:#9aa6b2;font-size:12px;font-weight:700;padding:8px 6px}
+.foot{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:8px;color:#5c6875;font-size:12px}
+.up .ai{font-size:18px;flex:none}
+.revt{font-size:44px;font-weight:900;color:#ff6b6b;margin:-4px 0 12px;line-height:1}
 </style>
 </head>
 <body>
@@ -117,8 +120,14 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- patch notes ----------
 // Newest first. Bump GAME_VERSION and add an entry for every player-facing update;
 // returning players see the notes once, new players only see the "What's New" button.
-const GAME_VERSION = '1.5';
+const GAME_VERSION = '1.6';
 const PATCH_NOTES = [
+  { v: '1.6', title: 'Second Wind & Daily Missions', date: 'Nov 2026', notes: [
+    ['❤️', '<b>Revive:</b> once per run, when your squad falls you can get back up with 60% of your squad. A shockwave clears nearby enemies, guardians and bosses get knocked back, and you\'re untouchable for a moment.'],
+    ['📋', '<b>Daily Missions:</b> 3 new goals every day (easy, medium, hard), like defeating enemies, dodging charges or shooting gates up. Each one pays coins, and finishing all 3 opens the <b>🎁 Daily Chest</b>.'],
+    ['✅', 'The results screen tells you when a run completes a mission. Claim your rewards from Daily Missions on the home screen.'],
+    ['🔊', 'Sound on/off moved to the bottom of the home screen.'],
+  ] },
   { v: '1.5', title: 'The Armory', date: 'Nov 2026', notes: [
     ['🔓', '<b>Earn your arsenal:</b> you now start with a small kit (Shuriken Volley, Kunai Line, Headband, Whetstone, Iron Tabi). Every other weapon and skill is unlocked by completing a challenge, like dodging charges, shooting gates, or clearing a chapter after a sacrifice.'],
     ['⚔️', '<b>Armory</b> (home menu): see every skill, what unlocks the locked ones, your progress, and the evolutions you\'ve discovered.'],
@@ -465,7 +474,7 @@ function newGame(seed) {
         count: Math.round((8 + u.troops * 3) * Gs(lv)), cap: capFor(lv, 1), sx: MID,
         rate: Math.min(15, 3 * (1 + .06 * u.rate)), dmg: 1 + .15 * u.dmg, spread: 0, fireT: 0, flash: 0,
         bullets: [], ebullets: [], proj: [], bolts: [], smoke: 0, fire: 0, parts: [], pops: [], bossMode: false, shake: 0, hurt: 0, coins: 0,
-        kills: 0, st: { gateBumps: 0, rallies: 0, dodges: 0, evolves: 0, sac: 0, fullBoss: 0 }, xp: 0, xpLv: 1, xpNeed: xpNeed(1), dq: [], draft: null, sk: { volley: 1 }, evo: {}, toriiFor: {}, wt: {}, chainA: 0, regenT: 4, won: false,
+        kills: 0, st: { gateBumps: 0, rallies: 0, dodges: 0, evolves: 0, sac: 0, fullBoss: 0, choices: 0, guardians: 0, stages: 0 }, revived: false, invuln: 0, xp: 0, xpLv: 1, xpNeed: xpNeed(1), dq: [], draft: null, sk: { volley: 1 }, evo: {}, toriiFor: {}, wt: {}, chainA: 0, regenT: 4, won: false,
         slow: 0, evoFlash: 0,
         banner: { txt: 'CHAPTER ' + c + (c % 10 === 0 ? ' ★' : ''), t: 1.8 } };
   running = true; ui.innerHTML = '';
@@ -475,6 +484,7 @@ function enterStage(o) {
   const lanesBefore = g.lanes;
   g.stage = o.s; g.lv = o.lv; g.G = Gs(o.lv); g.D = Dr(o.lv); g.speed = SPEED * (1 + .3 * g.D); g.lanes = lanesFor(o.lv); g.cap = capFor(o.lv, o.s);
   if (o.s === 1) return;
+  g.st.stages++; // a stage counts as cleared when you cross into the next one
   g.banner = g.lanes > lanesBefore ? { txt: 'STAGE ' + o.s + ' · ' + g.lanes + ' LANES!', t: 2, small: true }
                                    : { txt: 'STAGE ' + o.s + ' / ' + STAGES, t: 1.6 };
   SFX.good();
@@ -519,6 +529,7 @@ function applyGate(s) {
   else if (s.t === 'rally') { addNinjas(g.cap); g.st.rallies++; }
   else if (s.t === 'sac') { g.count = Math.max(1, Math.floor(g.count / 2)); g.dmg *= 1.5; g.st.sac++; }
   else if (s.t === 'gold') g.coins += s.v;
+  if (s.ch) g.st.choices++;
   const good = isGood(s), grow = s.t === 'mul' || s.t === 'rally' || (s.t === 'add' && s.v >= 0);
   pop(g.sx, y, grow && wasFull ? 'SQUAD FULL' : label(s), good ? (grow && wasFull ? '#cfd6e0' : s.ch ? '#ffd84d' : '#5cf0ff') : '#ff5c5c', true);
   if (s.t === 'sac') { SFX.boom(); g.shake = .3; spark(g.sx, SQY, '#c79bff', 24, 160); return; }
@@ -536,6 +547,7 @@ function powerUp(c) {
 }
 // tabi: projectile and spike damage can be reduced by Iron Tabi
 function hurtSquad(n, x, y, tabi) {
+  if (g.invuln > 0) return; // just revived
   if (g.smoke > 0) { spark(x, y, '#cfd6e0', 4); return; }
   if (tabi && skl('tabi')) n = Math.max(1, Math.round(n * (1 - .12 * skl('tabi'))));
   g.count -= n; pop(x, SQY - 40, '-' + n, '#ff5c5c'); spark(x, y, '#ff5c5c', 6);
@@ -575,7 +587,7 @@ function kill(o) {
     g.coins += 25; SFX.boom(); pop(o.x, oy, o.split ? 'TWIN DOWN!' : 'GUARDIAN DOWN!', '#ffd84d', true);
     if (o.t === 2 && !o.split) for (const dx of [-30, 30]) g.objs.push({ k: 'mini', t: 2, split: true, d: o.d + 150, x: clamp(o.x + dx, RL + 25, RR - 25), hp: o.max * .4, max: o.max * .4, r: 20, ph: 0, atkT: 2, seen: true });
     else powerUp({ x: o.x, d: o.d, pu: pick(['spread', 'fire', 'smoke', 'troops']) });
-    if (!o.split) { gainXp(6); g.dq.push('GUARDIAN REWARD'); }
+    if (!o.split) { gainXp(6); g.dq.push('GUARDIAN REWARD'); g.st.guardians++; }
   } else if (o.k === 'boss') { g.coins += 30 + g.lv * ECON.bossPer; SFX.boom(); g.won = true; }
 }
 function gainXp(n) {
@@ -718,7 +730,7 @@ function update(dt) {
   const scroll = g.bossMode ? 0 : g.speed * (miniNear ? .3 : 1) * dt;
   g.dist += scroll;
   spawnStream(dt);
-  for (const k of ['spread', 'shake', 'hurt', 'flash', 'smoke', 'fire', 'evoFlash']) if (g[k] > 0) g[k] -= dt;
+  for (const k of ['spread', 'shake', 'hurt', 'flash', 'smoke', 'fire', 'evoFlash', 'invuln']) if (g[k] > 0) g[k] -= dt;
   if (g.banner) { g.banner.t -= dt; if (g.banner.t <= 0) g.banner = null; }
 
   // fire
@@ -828,7 +840,7 @@ function update(dt) {
     if (o.k === 'stage') { if (y >= SQY) { o.dead = true; enterStage(o); } continue; }
     if (o.k === 'torii') { if (y >= SQY) { o.dead = true; evolve(o.evo); } continue; }
     if (o.k === 'gate' && !o.used && y >= SQY) { o.used = true; applyGate(o.opts[laneOf(g.sx, o.opts.length)]); }
-    else if (o.k === 'mini' && Math.abs(y - SQY) < r * .7 + o.r && Math.abs(o.x - g.sx) < r + o.r) {
+    else if (o.k === 'mini' && g.invuln <= 0 && Math.abs(y - SQY) < r * .7 + o.r && Math.abs(o.x - g.sx) < r + o.r) {
       // one touch from a guardian (or the boss) ends the run, smoke bomb or not
       g.count = 0; g.lossCause = 'Caught by the ' + MINIS[o.t].name.toLowerCase().replace(/\b\w/g, ch => ch.toUpperCase());
       spark(o.x, y, '#ff4d4d', 30, 180); g.shake = .4;
@@ -837,7 +849,7 @@ function update(dt) {
       o.dead = true; hurtSquad(loss(o.big ? 6 : o.smax ? 2 : 1, g.lv), o.x, y);
     } else if (o.k === 'spike' && !o.hit && Math.abs(y - SQY) < 14 && g.sx + r * .6 > o.x0 && g.sx - r * .6 < o.x1) {
       o.hit = true; hurtSquad(Math.max(2, Math.ceil(g.count * .15)), g.sx, SQY, true);
-    } else if (o.k === 'boss' && y + o.r >= SQY - r * 0.6 &&
+    } else if (o.k === 'boss' && g.invuln <= 0 && y + o.r >= SQY - r * 0.6 &&
                // a charge only hits if it's in your lane; a berserk boss reaching your row overruns everyone
                (o.state === 'charge' || o.state === 'return' ? Math.abs(o.x - g.sx) < o.r + r * .8 : true)) {
       g.count = 0; g.lossCause = 'Crushed by the ' + bossName(o.bt);
@@ -846,7 +858,7 @@ function update(dt) {
   }
   g.objs = g.objs.filter(o => !o.dead);
   g.count = Math.max(0, Math.floor(g.count));
-  if (g.count <= 0) { lose(); return; }
+  if (g.count <= 0) { if (!g.revived) offerRevive(); else lose(); return; }
 
   for (const p of g.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 300 * dt; p.t -= dt; }
   g.parts = g.parts.filter(p => p.t > 0);
@@ -1130,6 +1142,12 @@ function draw() {
   for (const e of g.ebullets) drawEnemyShot(e);
 
   drawSquad();
+  if (g.invuln > 0) {
+    // revive shield: pulsing gold ring while nothing can hurt the squad
+    const rr = squadR() + 18, a = .35 + .25 * Math.sin(performance.now() / 60);
+    cx.strokeStyle = `rgba(255,236,150,${a})`; cx.lineWidth = 4;
+    cx.beginPath(); cx.ellipse(g.sx, SQY, rr, rr * .65, 0, 0, 7); cx.stroke();
+  }
   if (g.smoke > 0) {
     const r = squadR() + 14, t = performance.now() / 300;
     cx.globalAlpha = Math.min(.55, g.smoke * .4);
@@ -1556,13 +1574,14 @@ function drawHUD() {
 }
 
 // ---------- menus ----------
-// foot: optional small text link under the buttons, as [label, onClick]
+// foot: optional small text links under the buttons, as [label, onClick] or a list of them
 function panel(html, buttons, foot) {
+  const feet = !foot ? [] : Array.isArray(foot[0]) ? foot : [foot];
   ui.innerHTML = '<div class="panel">' + html + '<div class="btns">' +
     buttons.map((b, i) => `<button id="b${i}" class="${b[2] || ''}">${b[0]}</button>`).join('') + '</div>' +
-    (foot ? `<button id="bf" class="link">${foot[0]}</button>` : '') + '</div>';
-  const all = foot ? [...buttons.map((b, i) => ['b' + i, b[1]]), ['bf', foot[1]]] : buttons.map((b, i) => ['b' + i, b[1]]);
-  all.forEach(([id, fn]) => document.getElementById(id).onclick = () => { initAudio(); SFX.click(); fn(); });
+    (feet.length ? `<div class="foot">${feet.map((f, i) => `<button id="bf${i}" class="link">${f[0]}</button>`).join('<span>·</span>')}</div>` : '') + '</div>';
+  [...buttons.map((b, i) => ['b' + i, b[1]]), ...feet.map((f, i) => ['bf' + i, f[1]])]
+    .forEach(([id, fn]) => document.getElementById(id).onclick = () => { initAudio(); SFX.click(); fn(); });
 }
 const coinTag = () => `<div class="coins">🪙 ${save.coins}</div>`;
 
@@ -1583,13 +1602,15 @@ function home() {
   const btns = [];
   if (dailyReady()) btns.push(['🎁 Claim Daily Reward', claimDaily]);
   const c = save.chapter;
+  const ms = ensureMissions(), mDone = ms.list.filter(m => m.prog >= m.goal).length, claim = missionsClaimable();
   btns.push(['▶ Play Chapter ' + c + (c > MAX_CHAPTER ? ' (Endless)' : ' / ' + MAX_CHAPTER), () => newGame()],
-     ['Upgrades', () => shop(home), 'sec third'], [(save.armoryNew ? '🔔 ' : '') + 'Armory', armory, 'sec third'], ['Skins', skins, 'sec third'],
-     ['Sound: ' + (save.sound ? 'On' : 'Off'), () => { save.sound = !save.sound; persist(); home(); }, 'sec']);
+     [`📋 Daily Missions ${mDone}/3${claim ? ' · 🎁 ' + claim + ' to claim' : ''}`, missions, claim ? '' : 'sec'],
+     ['Upgrades', () => shop(home), 'sec third'], [(save.armoryNew ? '🔔 ' : '') + 'Armory', armory, 'sec third'], ['Skins', skins, 'sec third']);
   const best = save.bestStage ? ` · Best: <b>stage ${save.bestStage}/${STAGES}</b>` : '';
   panel(`<h1>SHURIKEN <span>SQUAD</span></h1>${coinTag()}
     <div class="help">Drag to steer · Your ninjas throw stars automatically<br>Take <b style="color:#5cc8ff">blue</b> gates, dodge <b style="color:#ff6b6b">red</b> ones and spikes<br>Hit gates with stars to raise their number<br>Kill enemies to <b style="color:#5cc8ff">level up</b> and pick new skills<br>${STAGES} stages per chapter · Boss: <b>${bossName((c - 1) % 3)}</b>${best}</div>`, btns,
-    [`v${GAME_VERSION} · 📜 What's New`, patchNotes]);
+    [[(save.sound ? '🔊' : '🔇') + ' Sound ' + (save.sound ? 'on' : 'off'), () => { save.sound = !save.sound; persist(); home(); }],
+     [`v${GAME_VERSION} · 📜 What's New`, patchNotes]]);
 }
 
 function patchNotes() {
@@ -1637,7 +1658,67 @@ function armory() {
     <div class="sect">Evolutions</div>${Object.keys(EVOS).map(evoRow).join('')}</div>`, [['Back', home, 'sec']]);
 }
 
-// Fold a finished run into lifetime stats and return any skills it unlocked.
+// ---------- daily missions ----------
+// Three a day (easy / medium / hard), the same all day and seeded by the date. Progress comes from finished runs.
+// Rewards scale with the player's chapter; claiming all three opens the Daily Chest.
+const MISSIONS = [
+  { stat: 'kills',     goals: [600, 1200, 2000], txt: n => `Defeat ${fmtN(n)} enemies` },
+  { stat: 'stages',    goals: [4, 8, 12],        txt: n => `Clear ${n} stages` },
+  { stat: 'dodges',    goals: [2, 4, 6],         txt: n => `Dodge ${n} guardian or boss charges` },
+  { stat: 'choices',   goals: [3, 5, 8],         txt: n => `Take ${n} Choice Gate lanes` },
+  { stat: 'gateBumps', goals: [8, 15, 25],       txt: n => `Raise gates ${n} times by shooting them` },
+  { stat: 'guardians', goals: [3, 6, 10],        txt: n => `Defeat ${n} guardians` },
+  { stat: 'levelups',  goals: [10, 20, 30],      txt: n => `Level up ${n} times` },
+  { stat: 'evolves',   goals: [1, 2, 3],         txt: n => `Evolve ${n} weapon${n > 1 ? 's' : ''}` },
+];
+const MISSION_PAY = [100, 150, 220], CHEST_PAY = 300;
+const missionG = () => Gs(tierOf(save.chapter, 3)); // rewards grow with the chapter like everything else
+const missionReward = m => Math.round(MISSION_PAY[m.tier] * missionG());
+const chestReward = () => Math.round(CHEST_PAY * missionG());
+function hashStr(s) { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; }
+function ensureMissions() {
+  const day = dayKey(Date.now());
+  if (save.missions && save.missions.day === day) return save.missions;
+  // evolving needs a complete pair unlocked; don't hand brand-new players an impossible mission
+  const canEvolve = Object.keys(EVOS).some(a => isUnlocked(a) && isUnlocked(EVOS[a].with));
+  const pool = MISSIONS.filter(m => m.stat !== 'evolves' || canEvolve), rng = makeRng(hashStr(day)), picks = [];
+  while (picks.length < 3) picks.push(pool.splice(Math.floor(rng() * pool.length), 1)[0]);
+  save.missions = { day, list: picks.map((m, i) => ({ stat: m.stat, goal: m.goals[i], prog: 0, claimed: false, tier: i })), chest: false };
+  persist();
+  return save.missions;
+}
+function missionsClaimable() {
+  const ms = ensureMissions();
+  return ms.list.filter(m => m.prog >= m.goal && !m.claimed).length + (ms.list.every(m => m.claimed) && !ms.chest ? 1 : 0);
+}
+function missions() {
+  const ms = ensureMissions();
+  const rows = ms.list.map((m, i) => {
+    const def = MISSIONS.find(d => d.stat === m.stat), done = m.prog >= m.goal, rw = fmtN(missionReward(m));
+    const btn = m.claimed ? '<button disabled>✓</button>' : done ? `<button data-m="${i}">🪙${rw}</button>` : `<button class="sec" disabled>🪙${rw}</button>`;
+    return `<div class="up"><span class="ai">${['🟢', '🟡', '🔴'][m.tier]}</span><div class="info"><div class="n">${def.txt(m.goal)}</div>
+      <div class="pbar"><i style="width:${m.prog / m.goal * 100}%"></i></div><div class="d">${fmtN(m.prog)} / ${fmtN(m.goal)}</div></div>${btn}</div>`;
+  }).join('');
+  const allClaimed = ms.list.every(m => m.claimed);
+  const chest = `<div class="up"><span class="ai">🎁</span><div class="info"><div class="n">Daily Chest</div><div class="d">Claim all 3 missions to open it</div></div>
+    ${ms.chest ? '<button disabled>✓</button>' : `<button id="chestb" ${allClaimed ? '' : 'disabled class="sec"'}>🪙${fmtN(chestReward())}</button>`}</div>`;
+  const mid = new Date(); mid.setHours(24, 0, 0, 0);
+  const mins = Math.max(1, Math.round((mid - Date.now()) / 60000));
+  panel(`<h2>📋 Daily Missions</h2>${coinTag()}${rows}${chest}<div class="help">New missions in ${Math.floor(mins / 60)}h ${mins % 60}m. Unclaimed rewards expire at midnight.</div>`,
+    [['Back', home, 'sec']]);
+  ui.querySelectorAll('button[data-m]').forEach(b => b.onclick = () => {
+    const m = ms.list[+b.dataset.m];
+    if (m.claimed || m.prog < m.goal) return;
+    m.claimed = true; save.coins += missionReward(m); persist(); initAudio(); SFX.daily(); missions();
+  });
+  const cb = document.getElementById('chestb');
+  if (cb) cb.onclick = () => {
+    if (ms.chest || !ms.list.every(m => m.claimed)) return;
+    ms.chest = true; save.coins += chestReward(); persist(); initAudio(); SFX.win(); missions();
+  };
+}
+
+// Fold a finished run into lifetime stats and today's missions; return new unlocks and missions just completed.
 function commitRun(won) {
   const st = save.stats, before = new Set(save.unlocked);
   st.kills += g.kills;
@@ -1647,11 +1728,21 @@ function commitRun(won) {
   for (const id in UNLOCKS) if (!isUnlocked(id) && st[UNLOCKS[id].stat] >= UNLOCKS[id].goal) save.unlocked.push(id);
   const fresh = save.unlocked.filter(id => !before.has(id));
   if (fresh.length) save.armoryNew = true;
-  return fresh;
+  // today's missions
+  const ms = ensureMissions(), done = [];
+  const runSt = { kills: g.kills, stages: g.st.stages + (won ? 1 : 0), dodges: g.st.dodges, choices: g.st.choices,
+                  gateBumps: g.st.gateBumps, guardians: g.st.guardians, levelups: g.xpLv - 1, evolves: g.st.evolves };
+  for (const m of ms.list) {
+    const was = m.prog >= m.goal;
+    m.prog = Math.min(m.goal, m.prog + (runSt[m.stat] || 0));
+    if (!was && m.prog >= m.goal) done.push(m);
+  }
+  return { fresh, done };
 }
-// results-screen block: what just unlocked, and the closest next unlock to chase
-function unlockHtml(fresh) {
-  let h = fresh.map(id => `<div class="unl">🔓 NEW ${SK[id].a ? 'WEAPON' : 'SKILL'} UNLOCKED<b>${SK[id].icon} ${SK[id].name}</b></div>`).join('');
+// results-screen block: missions just completed, what just unlocked, and the closest next unlock to chase
+function resultsExtras({ fresh, done }) {
+  let h = done.map(m => `<div class="nextu" style="color:#7dffa0">📋 Mission complete: <b>${MISSIONS.find(d => d.stat === m.stat).txt(m.goal)}</b>. Claim it in Daily Missions!</div>`).join('');
+  h += fresh.map(id => `<div class="unl">🔓 NEW ${SK[id].a ? 'WEAPON' : 'SKILL'} UNLOCKED<b>${SK[id].icon} ${SK[id].name}</b></div>`).join('');
   const next = Object.keys(UNLOCKS).filter(id => !isUnlocked(id)).map(id => ({ id, ...unlockProgress(id) })).sort((a, b) => b.p - a.p)[0];
   if (next) h += `<div class="nextu">Next unlock: <b>${SK[next.id].icon} ${SK[next.id].name}</b><br>${UNLOCKS[next.id].cond}${next.goal > 1 ? ` (${fmtN(next.cur)} / ${fmtN(next.goal)})` : ''}</div>`;
   return h;
@@ -1689,6 +1780,51 @@ function shop(back) {
   });
 }
 
+// ---------- revive (once per run) ----------
+// Placeholder for a rewarded-ad SDK. When the game ships as an app, show the ad here and call
+// done(true) only if it was watched to the end. In the browser build the revive is free.
+function showRewardedAd(placement, done) { done(true); }
+const REVIVE_SECS = 7, REVIVE_SQUAD = .6, REVIVE_INVULN = 2.5;
+function offerRevive() {
+  running = false; dragX = null; g.reviveOpen = true; SFX.hurt();
+  let left = REVIVE_SECS;
+  panel(`<h2>💀 So close!</h2><p><b style="color:#ff6b6b">${g.lossCause || 'Your squad was wiped out'}.</b><br>
+    Get back up with <b>${Math.round(g.cap * REVIVE_SQUAD)}</b> ninjas? (once per run)</p><div class="revt" id="revt">${left}</div>`,
+    [['❤️ Revive', () => showRewardedAd('revive', ok => ok ? revive() : declineRevive())], ['Give up', declineRevive, 'sec']]);
+  g.reviveTimer = setInterval(() => {
+    const el = document.getElementById('revt'); if (el) el.textContent = --left;
+    if (left <= 0) declineRevive();
+  }, 1000);
+}
+function declineRevive() {
+  if (!g || !g.reviveOpen) return;
+  clearInterval(g.reviveTimer); g.reviveOpen = false; lose();
+}
+function revive() {
+  if (!g || !g.reviveOpen) return;
+  clearInterval(g.reviveTimer); g.reviveOpen = false; g.revived = true;
+  g.count = Math.max(1, Math.round(g.cap * REVIVE_SQUAD)); g.lossCause = null; g.invuln = REVIVE_INVULN;
+  // shockwave: wipe nearby enemies (no rewards) and every enemy shot; knock guardians and the boss back
+  for (const o of g.objs) {
+    if (o.dead) continue;
+    const y = sy(o);
+    if (o.k === 'en' && Math.abs(y - SQY) < 260) { o.dead = true; spark(o.x, y, '#ffffff', 6, 140); }
+    else if (o.k === 'mini' && y > SQY - GUARD_Y_OFF - 60) {
+      o.d = g.dist + GUARD_Y_OFF + 140; // back above the standoff line; it has to approach and hold again
+      o.charging = false; o.warned = false; o.hold = undefined;
+    } else if (o.k === 'boss' && g.bossMode && o.homeY !== undefined) { // only once the fight has started
+      if (o.berserk) o.homeY = Math.min(o.homeY, 170); // undo the berserk advance
+      o.state = 'idle'; o.d = g.dist + SQY - o.homeY; o.specT = Math.max(o.specT || 0, 3);
+    }
+  }
+  g.objs = g.objs.filter(o => !o.dead);
+  g.ebullets = [];
+  g.evoFlash = .7; g.shake = .3; spark(g.sx, SQY, '#ffffff', 50, 260);
+  g.banner = { txt: '❤️ REVIVED!', t: 1.4, gold: true };
+  SFX.evolve();
+  ui.innerHTML = ''; running = true;
+}
+
 function pauseGame() {
   if (!running) return;
   running = false; dragX = null;
@@ -1702,21 +1838,21 @@ function bank(extra) {
 
 function win() {
   running = false; SFX.win();
-  const c = g.c, left = g.count, kills = g.kills, sk = g.sk, evo = g.evo, fresh = commitRun(true), earned = bank(ECON.clearPer * g.lv + left);
+  const c = g.c, left = g.count, kills = g.kills, sk = g.sk, evo = g.evo, run = commitRun(true), earned = bank(ECON.clearPer * g.lv + left);
   save.chapter = c + 1; save.bestStage = 0; persist();
-  if (fresh.length) setTimeout(() => SFX.daily(), 600);
+  if (run.fresh.length || run.done.length) setTimeout(() => SFX.daily(), 600);
   const champ = c === MAX_CHAPTER ? `<p style="color:#ffd84d"><b>🏆 You beat all ${MAX_CHAPTER} chapters! You are a true ninja master. Endless mode unlocked.</b></p>` : '';
-  const after = () => panel(`<h1>CHAPTER ${c} <span>CLEARED</span></h1>${champ}<p>${bossName((c - 1) % 3)} defeated with <b>${left}</b> ninjas left.<br>⚔ <b>${kills}</b> enemies defeated<br>You earned <b style="color:#ffd84d">🪙 ${earned}</b></p>${buildHtml(sk, evo)}${unlockHtml(fresh)}${coinTag()}`,
+  const after = () => panel(`<h1>CHAPTER ${c} <span>CLEARED</span></h1>${champ}<p>${bossName((c - 1) % 3)} defeated with <b>${left}</b> ninjas left.<br>⚔ <b>${kills}</b> enemies defeated<br>You earned <b style="color:#ffd84d">🪙 ${earned}</b></p>${buildHtml(sk, evo)}${resultsExtras(run)}${coinTag()}`,
     [['▶ Next Chapter', () => newGame()], ['Upgrades', () => shop(after), 'sec'], ['Menu', home, 'sec']]);
   after();
 }
 
 function lose() {
   running = false; SFX.lose();
-  const c = g.c, stage = g.stage, kills = g.kills, sk = g.sk, evo = g.evo, cause = g.lossCause || 'Your squad was wiped out', fresh = commitRun(false), earned = bank(0);
+  const c = g.c, stage = g.stage, kills = g.kills, sk = g.sk, evo = g.evo, cause = g.lossCause || 'Your squad was wiped out', run = commitRun(false), earned = bank(0);
   save.bestStage = Math.max(save.bestStage, stage); persist();
-  if (fresh.length) setTimeout(() => SFX.daily(), 900);
-  const after = () => panel(`<h1>CLAN <span>DEFEATED</span></h1><p><b style="color:#ff6b6b">${cause}.</b><br>Chapter <b>${c}</b> · reached <b>stage ${stage}/${STAGES}</b> · ⚔ <b>${kills}</b> defeated<br>You still earned <b style="color:#ffd84d">🪙 ${earned}</b> — spend it on upgrades.</p>${buildHtml(sk, evo)}${unlockHtml(fresh)}${coinTag()}`,
+  if (run.fresh.length || run.done.length) setTimeout(() => SFX.daily(), 900);
+  const after = () => panel(`<h1>CLAN <span>DEFEATED</span></h1><p><b style="color:#ff6b6b">${cause}.</b><br>Chapter <b>${c}</b> · reached <b>stage ${stage}/${STAGES}</b> · ⚔ <b>${kills}</b> defeated<br>You still earned <b style="color:#ffd84d">🪙 ${earned}</b> — spend it on upgrades.</p>${buildHtml(sk, evo)}${resultsExtras(run)}${coinTag()}`,
     [['↻ Try Again', () => newGame()], ['Upgrades', () => shop(after), 'sec'], ['Menu', home, 'sec']]);
   after();
 }
