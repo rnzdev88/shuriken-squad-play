@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Shuriken Squad</title>
+<style>
+html,body{margin:0;height:100%;background:#0d1117;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+canvas{display:block;margin:0 auto;touch-action:none}
+#ui{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#ui:empty{display:none}
+.panel{pointer-events:auto;background:rgba(12,16,24,.92);color:#fff;border-radius:20px;padding:24px 22px;text-align:center;width:min(300px,84vw);box-shadow:0 12px 40px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.08)}
+.panel h1{margin:0 0 4px;font-size:32px;letter-spacing:1px;font-weight:900}
+.panel h1 span{color:#ffb020}
+.panel h2{margin:0 0 12px;font-size:22px;font-weight:900}
+.panel p{margin:8px 0 16px;color:#b8c2cc;font-size:15px;line-height:1.45}
+.panel b{color:#fff}
+.coins{display:inline-block;background:#2a2410;color:#ffd84d;font-weight:800;border-radius:20px;padding:5px 14px;margin:6px 0 14px;font-size:15px}
+.btns{display:flex;flex-direction:column;gap:10px}
+button{font:inherit;font-weight:800;font-size:17px;border:0;border-radius:12px;padding:13px 20px;background:#ffb020;color:#1a1200;cursor:pointer}
+button.sec{background:#273142;color:#fff}
+button:disabled{opacity:.4}
+button:active{transform:scale(.97)}
+.up{display:flex;align-items:center;gap:10px;text-align:left;background:#1a2230;border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.up .info{flex:1}
+.up .n{font-weight:800;font-size:15px}
+.up .d{font-size:12px;color:#9aa6b2;margin-top:2px}
+.dots{margin-top:5px;display:flex;gap:3px}
+.dots i{width:9px;height:5px;border-radius:2px;background:#334}
+.dots i.on{background:#ffb020}
+.up button{font-size:14px;padding:9px 10px;min-width:72px}
+.help{font-size:13px;color:#9aa6b2;line-height:1.5;margin:4px 0 14px}
+.cards{display:flex;flex-direction:column;gap:9px}
+button.card{display:flex;align-items:center;gap:12px;text-align:left;background:#1a2230;color:#fff;border:2px solid #2c3a50;border-radius:14px;padding:11px 12px;font-size:14px}
+button.card.new{border-color:#5cc8ff}
+button.card .ic{font-size:28px;width:36px;text-align:center;flex:none}
+button.card .nm{font-weight:900;font-size:15px}
+button.card .lv{font-size:11px;font-weight:800;color:#ffb020;margin-left:6px}
+button.card .ds{font-size:12px;color:#b8c2cc;font-weight:600;margin-top:3px;line-height:1.35}
+button.card .ev{font-size:11px;color:#d9b54a;font-weight:700;margin-top:4px;line-height:1.3}
+button.card .ev.ready{color:#ffd84d;font-weight:900}
+.build{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:0 0 14px}
+.build span{background:#1a2230;border-radius:8px;padding:4px 7px;font-size:13px;font-weight:800}
+.notes{max-height:min(420px,58vh);overflow-y:auto;text-align:left;margin:0 -6px 14px;padding:0 6px;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.pn{background:#1a2230;border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.pnh{display:flex;align-items:center;gap:6px;font-size:14px;margin-bottom:6px}
+.pnh .pnd{margin-left:auto;font-size:11px;color:#9aa6b2;font-weight:600}
+.tagnew{background:#ffb020;color:#1a1200;font-size:10px;font-weight:900;border-radius:6px;padding:2px 6px}
+.pn ul{list-style:none;margin:0;padding:0}
+.pn li{display:flex;gap:8px;font-size:13px;color:#b8c2cc;line-height:1.4;margin:6px 0}
+.pn li span:first-child{flex:none;width:20px;text-align:center}
+button.link{background:none;color:#9aa6b2;font-size:12px;font-weight:700;padding:8px 10px;margin-top:8px}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui"></div>
+<script>
+(() => {
+const cv = document.getElementById('c'), cx = cv.getContext('2d'), ui = document.getElementById('ui');
+const W = 400; let H = 700, S = 1;
+const RL = 40, RR = 360, MID = 200, SPEED = 130;
+let SQY = 550;
+
+function resize() {
+  const iw = innerWidth, ih = innerHeight;
+  H = Math.max(620, Math.min(900, W * ih / iw));
+  S = Math.min(iw / W, ih / H);
+  const d = window.devicePixelRatio || 1;
+  cv.width = Math.round(W * S * d); cv.height = Math.round(H * S * d);
+  cv.style.width = W * S + 'px'; cv.style.height = H * S + 'px';
+  cv.style.marginTop = Math.max(0, (ih - H * S) / 2) + 'px';
+  cx.setTransform(S * d, 0, 0, S * d, 0, 0);
+  SQY = H - 150;
+}
+addEventListener('resize', resize); resize();
+
+// Gameplay randomness goes through R, which newGame() seeds so a seed always rebuilds the same chapter.
+// Purely visual randomness (particles, shake) uses frnd so it never shifts the gameplay sequence.
+function makeRng(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+let R = Math.random;
+const rnd = (a, b) => a + R() * (b - a);
+const ri = (a, b) => Math.floor(rnd(a, b + 1));
+const pick = a => a[Math.floor(R() * a.length)];
+const frnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+// ---------- patch notes ----------
+// Newest first. Bump GAME_VERSION and add an entry for every player-facing update;
+// returning players see the notes once, new players only see the "What's New" button.
+const GAME_VERSION = '1.3';
+const PATCH_NOTES = [
+  { v: '1.3', title: 'Endless Waves', date: 'Nov 2026', notes: [
+    ['🌊', '<b>Endless waves:</b> enemies now pour in nonstop during every stage, and the flood gets thicker toward the end.'],
+    ['👹', '<b>Guardians are deadly:</b> one touch from a guardian or the boss ends your run. Guardians stop in front of you and attack, which is your chance to take them down. If one flashes red and shouts <b>CHARGE!</b>, dodge sideways.'],
+    ['🐛', 'Fixed: guardians and enemies could hide behind gates where your stars couldn\'t reach them. Stars now fly through gates (and still raise their number on the way).'],
+    ['🐛', 'Fixed: Shadow Twins no longer split right on top of your squad.'],
+    ['⚔️', 'The results screen now shows how many enemies you defeated.'],
+    ['⚖️', 'Leveling up takes a bit more XP, since there are far more enemies now. Enemies are slightly tougher.'],
+  ] },
+  { v: '1.2', title: 'Choice Gates & Evolutions', date: 'Nov 2026', notes: [
+    ['✨', '<b>Evolutions!</b> Max out a weapon while you own its partner skill and a <b>Golden Torii</b> appears. Run through it to evolve. 5 evolutions to discover, and skill cards show which skills go together.'],
+    ['🟪', '<b>Choice Gates:</b> gold gates where every lane is good. Recruit ninjas, refill your squad, grab a new skill (costs 30% of your squad), sacrifice half your squad for ×1.5 damage, or take coins.'],
+    ['🚩', '<b>War Banner</b> (new skill): a bigger squad, and extra damage while it\'s full.'],
+    ['⚔️', '<b>Ronin Spirit</b> (new skill): fallen ninjas keep fighting as ghosts. Small squads hit hard!'],
+    ['⚖️', 'Enemies are tougher to match your new powers. The first few bosses are gentler.'],
+  ] },
+  { v: '1.1', title: 'Chapters & Skills', date: 'Nov 2026', notes: [
+    ['📖', '<b>Levels are now Chapters:</b> 5 stages, then a boss. Your squad and skills carry through the whole chapter. Your progress was converted (5 old levels = 1 chapter).'],
+    ['🃏', '<b>Level up mid-run:</b> defeat enemies to earn XP, then pick 1 of 3 skills. 5 weapons and 6 passive skills to mix.'],
+    ['🛡️', '<b>Guardians</b> block the end of each stage. Beat one for a bonus skill pick.'],
+    ['🥷', '<b>Squad size cap:</b> once your squad is full, POWER and SPEED gates are the smart pick. The Starting Ninjas upgrade now raises the cap too.'],
+    ['⚖️', 'POWER and SPEED gates now stack all chapter long. You start with 8 ninjas instead of 5.'],
+    ['🐛', 'SPEED gates no longer lower your throw speed when upgrades have already made it very high.'],
+  ] },
+];
+
+// ---------- save data ----------
+const STAGES = 5, MAX_CHAPTER = 100;
+const SAVE_KEY = 'gatesquad_v1';
+let save = { chapter: 1, bestStage: 0, coins: 0, sound: true, up: { troops: 0, rate: 0, dmg: 0, coin: 0 },
+             skins: ['azure'], skin: 'azure', daily: { last: '', streak: 0 }, seenVersion: '' };
+let hadSave = false;
+try {
+  const s = JSON.parse(localStorage.getItem(SAVE_KEY));
+  if (s) {
+    hadSave = true;
+    save = Object.assign(save, s, { up: Object.assign(save.up, s.up || {}) });
+    // v1 saves counted single levels; 5 old levels make one chapter
+    if (s.chapter == null && s.level) save.chapter = Math.max(1, Math.ceil(s.level / STAGES));
+    delete save.level; delete save.best;
+  }
+  if (!Array.isArray(save.skins)) save.skins = ['azure'];
+} catch (e) {}
+// brand-new players have nothing to catch up on, so don't pop the notes at them
+if (!hadSave) save.seenVersion = GAME_VERSION;
+
+const SKINS = [
+  { id: 'azure',  name: 'Azure',  col: '#2a7de1', body: '#121218', cost: 0 },
+  { id: 'jade',   name: 'Jade',   col: '#2fbf71', body: '#121218', cost: 150 },
+  { id: 'sakura', name: 'Sakura', col: '#ff7fb0', body: '#1a1218', cost: 250 },
+  { id: 'gold',   name: 'Gold',   col: '#f2c230', body: '#15130c', cost: 400 },
+  { id: 'shadow', name: 'Shadow', col: '#8a4dff', body: '#0b0b10', cost: 600 },
+  { id: 'ghost',  name: 'Ghost',  col: '#e8eef5', body: '#3a4250', cost: 900 },
+];
+const curSkin = () => SKINS.find(s => s.id === save.skin) || SKINS[0];
+
+const BOSSES = [
+  { name: 'ONI WARLORD',    hp: 1.0 },
+  { name: 'TENGU',          hp: 0.8 },
+  { name: 'IRON SAMURAI',   hp: 1.2 },
+];
+function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
+
+const UPG = {
+  troops: { name: 'Starting Ninjas', desc: '+3 starting ninjas, +4 squad size', base: 40, icon: '🥷' },
+  rate:   { name: 'Throw Speed',     desc: '+6% throw speed',         base: 60, icon: '⚡' },
+  dmg:    { name: 'Star Power',      desc: '+15% shuriken damage',    base: 80, icon: '✴️' },
+  coin:   { name: 'Coin Bonus',      desc: '+20% coins earned',       base: 70, icon: '🪙' },
+};
+const MAXUP = 50;
+const upCost = k => Math.round(UPG[k].base * Math.pow(1 + save.up[k], 1.7));
+
+// ---------- sound ----------
+let AC = null, lastShot = 0, lastHit = 0;
+function initAudio() {
+  try {
+    if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === 'suspended') AC.resume();
+  } catch (e) { AC = null; }
+}
+function tone(f, dur, type = 'square', vol = .05, slide = 0, delay = 0) {
+  if (!AC || !save.sound) return;
+  const t = AC.currentTime + delay, o = AC.createOscillator(), gn = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + dur);
+  gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(gn); gn.connect(AC.destination); o.start(t); o.stop(t + dur + .02);
+}
+function noise(dur, vol = .15) {
+  if (!AC || !save.sound) return;
+  const len = Math.floor(AC.sampleRate * dur), buf = AC.createBuffer(1, len, AC.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  const s = AC.createBufferSource(), gn = AC.createGain(); s.buffer = buf; gn.gain.value = vol;
+  s.connect(gn); gn.connect(AC.destination); s.start();
+}
+const SFX = {
+  shoot() { const n = performance.now(); if (n - lastShot > 110) { lastShot = n; tone(1500, .05, 'triangle', .012, -1000); } },
+  hit() { const n = performance.now(); if (n - lastHit > 60) { lastHit = n; tone(220, .05, 'square', .025, -120); } },
+  good() { tone(523, .1, 'triangle', .09); tone(784, .16, 'triangle', .09, 0, .08); },
+  bad() { tone(220, .3, 'sawtooth', .06, -140); },
+  hurt() { tone(140, .15, 'sawtooth', .07, -60); },
+  boom() { noise(.35, .2); },
+  power() { tone(660, .08, 'triangle', .08); tone(880, .08, 'triangle', .08, 0, .07); tone(1320, .14, 'triangle', .08, 0, .14); },
+  win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, .2, 'triangle', .1, 0, i * .12)); },
+  lose() { [392, 330, 262, 196].forEach((f, i) => tone(f, .25, 'triangle', .1, 0, i * .15)); },
+  click() { tone(600, .05, 'triangle', .06); },
+  boss() { tone(110, .6, 'sawtooth', .08, -40); tone(82, .8, 'sawtooth', .08, -20, .3); },
+  arrow() { tone(1800, .08, 'sine', .03, -1200); },
+  smoke() { noise(.5, .12); tone(300, .4, 'sine', .05, -200); },
+  fire() { noise(.25, .1); tone(400, .3, 'sawtooth', .05, 400); },
+  daily() { [659, 784, 988, 1319].forEach((f, i) => tone(f, .15, 'triangle', .09, 0, i * .09)); },
+  zap() { noise(.12, .08); tone(1200, .15, 'sawtooth', .04, -900); },
+  levelUp() { [523, 784, 1047, 1568].forEach((f, i) => tone(f, .12, 'square', .05, 0, i * .06)); },
+  evolve() { noise(.6, .12); [392, 523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, .35, 'triangle', .08, 0, i * .07)); tone(110, 1.2, 'sawtooth', .05, 220); },
+};
+
+// ---------- scenery (repeating tile) ----------
+const TILE = 2000, decor = [];
+for (let d = 0; d < TILE; d += frnd(45, 90)) {
+  decor.push({ d, x: frnd(6, RL - 12), t: Math.random() < .7 ? 0 : 1, s: frnd(.8, 1.2) });
+  decor.push({ d: d + frnd(0, 40), x: frnd(RR + 12, W - 6), t: Math.random() < .7 ? 0 : 1, s: frnd(.8, 1.2) });
+}
+let idleDist = 0;
+
+// ---------- difficulty curve ----------
+// Chapter c, stage s plays at tier lv = (c-1)*STAGES + s, so the original 500-level curve spans 100 chapters.
+const tierOf = (c, s) => (c - 1) * STAGES + s;
+// G: "scale" of the game in ninjas. Gate values, enemy HP and damage all grow with it.
+const Gs = lv => 1 + 0.15 * (lv - 1);
+// D: 0..1 difficulty ramp (density, speed, aggression) that maxes out at tier 300
+const Dr = lv => Math.min(1, (lv - 1) / 300);
+// Pw: the power a steady player has bought by this tier (damage × throw rate × squad cap upgrades), with 40% slack,
+// so a player who keeps up feels ahead of the curve. It depends only on the tier, never on what the player owns,
+// so replaying an old chapter after upgrading feels like crushing it.
+const upExp = lv => Math.min(50, (lv - 1) / 7);
+const Pw = lv => { const u = upExp(lv); return Math.max(1, (1 + .06 * u) * (1 + .15 * u) * (1 + .1 * u) * .6); };
+// The crowd and build snowball within a chapter, so later stages get a steep HP ramp (SR) to keep pace.
+const SR = s => .6 * Math.pow(1.9, s - 1);
+// gentle intro: tiers 1-15 ramp from 55% to full strength
+// HPK: global enemy-HP knob, retuned whenever in-run power changes (M3: choice gates + evolutions)
+const HPK = 1.8;
+const Hm = (lv, s = 1) => HPK * Gs(lv) * (1 + 0.7 * Dr(lv)) * Pw(lv) * (0.55 + 0.45 * Math.min(1, (lv - 1) / 15)) * SR(s);
+const lanesFor = lv => lv < 15 ? 2 : lv < 60 ? 3 : lv < 150 ? 4 : 5;
+// ninjas lost to a hit; grows with the stage at the same rate as the squad cap so late hits still sting
+const loss = (base, lv) => Math.max(1, Math.round(base * Gs(lv) * (g ? 1 + .3 * (g.stage - 1) : 1)));
+const stageLen = c => 3000 + Math.min(c - 1, 8) * 400;
+
+// guardian standoff: where it stops (screen y, relative to the squad), how long it holds, and the charge warning
+const GUARD_Y_OFF = 230, GUARD_HOLD = 6, CHARGE_WARN = 1.2;
+const MINIS = [
+  { id: 'blade', name: 'BLADE MASTER', col: '#2a4a8a' },
+  { id: 'monk',  name: 'BOMB MONK',    col: '#d9772b' },
+  { id: 'clone', name: 'SHADOW TWINS', col: '#6a3dbd' },
+];
+
+function gateSide(lv, good) {
+  const G = Gs(lv), D = Dr(lv);
+  if (good) {
+    const t = pick(['add', 'add', 'add', 'add', 'mul', 'rate', 'dmg']);
+    if (t === 'add') return { t, v: Math.round(ri(3, 8) * G), acc: 0 };
+    if (t === 'mul') return { t, v: R() < .2 ? 3 : 2 };
+    return { t };
+  }
+  if (R() < 0.75) return { t: 'add', v: -Math.round(ri(3, 8) * G * (1 + D)), acc: 0 };
+  return { t: 'div', v: R() < D * .5 ? 3 : 2 };
+}
+
+// Choice Gate: every lane is good, in a different situation. There is always a skill lane and a squad lane;
+// the rest are drawn from the remaining types.
+//  add (big +N) / rally (refill to cap): when the squad is low
+//  skill: a draft pick now, for 30% of the squad (best when the squad is near full)
+//  sac: halve the squad for ×1.5 damage (Elite / Ronin builds)
+//  gold: coins for upgrades (greed)
+function choiceGate(lv, lanes) {
+  const G = Gs(lv);
+  const make = t => t === 'add' ? { t, v: Math.round(ri(9, 15) * G), acc: 0, ch: 1 }
+    : t === 'gold' ? { t, v: ri(15, 25), ch: 1 } : { t, ch: 1 };
+  const types = ['skill', pick(['add', 'rally'])];
+  const rest = ['add', 'rally', 'sac', 'gold'].filter(t => !types.includes(t));
+  while (types.length < lanes) types.push(rest.length ? rest.splice(Math.floor(R() * rest.length), 1)[0] : 'skill');
+  for (let i = types.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [types[i], types[j]] = [types[j], types[i]]; }
+  return types.map(make);
+}
+
+// One stage of a chapter: a stage marker, then gates/enemies/spikes/chests, then a guardian (except the last stage).
+function genStage(c, s, d0, objs) {
+  const lv = tierOf(c, s), G = Gs(lv), D = Dr(lv), H = Hm(lv, s), lanes = lanesFor(lv), lw = (RR - RL) / lanes;
+  const pus = ['spread', 'troops', 'rate', 'smoke', 'fire'];
+  const end = d0 + stageLen(c);
+  objs.push({ k: 'stage', s, lv, d: d0 });
+  let d = d0 + 360, k = 0, gi = 0;
+  while (d < end) {
+    let kind = k % 3 === 0 ? 'gate' : (k % 3 === 1 ? 'enemies' : pick(['crate', 'enemies', 'gate']));
+    if (lv >= 2 && k % 3 === 2 && R() < Math.min(.55, .3 + D * .3)) kind = 'spike';
+    if (kind === 'gate' && gi++ % 3 === 1) {
+      objs.push({ k: 'gate', choice: true, d, opts: choiceGate(lv, lanes), used: false });
+    } else if (kind === 'gate') {
+      // at least one good lane; fewer good lanes as difficulty rises
+      const nGood = Math.max(1, Math.round((lanes - 1) * (1 - D * .6) * rnd(.5, 1)));
+      const goodIdx = new Set();
+      while (goodIdx.size < Math.min(nGood, lanes)) goodIdx.add(ri(0, lanes - 1));
+      const opts = Array.from({ length: lanes }, (_, i) => gateSide(lv, goodIdx.has(i)));
+      objs.push({ k: 'gate', d, opts, used: false });
+    } else if (kind === 'enemies') {
+      const n = ri(2, 4 + Math.floor(6 * D)), hp = 3.5 * H; // small escort: the endless stream supplies the bulk
+      for (let i = 0; i < n; i++) objs.push({ k: 'en', d: d + rnd(0, 140), x: rnd(RL + 15, RR - 15), hp, max: hp, r: 10, ph: rnd(0, 6) });
+      if (R() < Math.min(.9, .3 + lv * .03)) {
+        const nb = 1 + Math.floor(D * 3);
+        for (let i = 0; i < nb; i++) { const bh = 34 * H; objs.push({ k: 'en', big: true, d: d + 170 + i * 40, x: rnd(RL + 40, RR - 40), hp: bh, max: bh, r: 20, ph: 0 }); }
+      }
+      if (lv >= 2 && R() < Math.min(.9, .45 + lv * .01)) {
+        const na = Math.min(5, 1 + Math.floor(lv / 15)), ah = 6 * H;
+        for (let i = 0; i < na; i++) objs.push({ k: 'en', archer: true, d: d + 200 + i * 30, x: rnd(RL + 25, RR - 25), hp: ah, max: ah, r: 11, ph: rnd(0, 6), hold: 4.5, shotT: rnd(.6, 1.4) });
+      }
+      if (lv >= 5 && R() < Math.min(.8, .3 + lv * .01)) {
+        const ns = ri(1, Math.min(6, 1 + Math.floor(lv / 10))), sh = 8 * H;
+        for (let i = 0; i < ns; i++) objs.push({ k: 'en', shield: 18 * H, smax: 18 * H, d: d + 60 + i * 25, x: rnd(RL + 25, RR - 25), hp: sh, max: sh, r: 12, ph: rnd(0, 6) });
+      }
+    } else if (kind === 'spike') {
+      // spike whole lanes, always leaving at least one lane safe
+      const nSp = Math.max(1, Math.min(lanes - 1, Math.round((lanes - 1) * rnd(.4, .6 + D * .4))));
+      const idx = new Set(); while (idx.size < nSp) idx.add(ri(0, lanes - 1));
+      for (const i of idx) objs.push({ k: 'spike', d, x0: RL + i * lw + 2, x1: RL + (i + 1) * lw - 2 });
+      const safe = [...Array(lanes).keys()].filter(i => !idx.has(i));
+      if (R() < .5) { const s = pick(safe); objs.push({ k: 'crate', d: d + 120, x: RL + (s + .5) * lw, hp: 19 * H, max: 19 * H, pu: pick(pus) }); }
+    } else {
+      objs.push({ k: 'crate', d, x: rnd(RL + 40, RR - 40), hp: 19 * H, max: 19 * H, pu: pick(pus) });
+    }
+    d += rnd(300, 380) * (1 - .25 * D); k++;
+  }
+  if (s === STAGES) return end;
+  // stage guardian: beating it grants a bonus skill pick
+  const t = (c + s - 2) % 3, mh = Math.round(1750 * H * .28);
+  objs.push({ k: 'mini', t, d: end + 120, x: rnd(RL + 60, RR - 60), hp: mh, max: mh, r: 28, ph: 0, atkT: 2 });
+  return end + 560;
+}
+
+function genChapter(c) {
+  const objs = [], stageD = [];
+  let d = 260;
+  const waves = [];
+  for (let s = 1; s <= STAGES; s++) {
+    stageD.push(d);
+    // the endless enemy stream runs from just after the stage starts until the guardian (or boss) zone
+    waves.push({ s, from: d + 200, to: d + stageLen(c) });
+    d = genStage(c, s, d, objs);
+  }
+  const lv = tierOf(c, STAGES), bt = (c - 1) % 3;
+  // the first few bosses are softened so new players reach the build-up before the wall
+  const bh = Math.round(1750 * Hm(lv, STAGES) * BOSSES[bt].hp * (c % 10 === 0 ? 1.5 : 1) * Math.min(1, .45 + .15 * (c - 1)));
+  objs.push({ k: 'boss', bt, d: d + 520, x: MID, hp: bh, max: bh, r: 46, ph: 0, atkT: 2 });
+  return { objs, stageD, waves, L: d + 520 };
+}
+
+// ---------- skills (drafted during a run) ----------
+// Weapon damage is a fraction of T: one full volley from the whole squad (see power()).
+const KUNAI = l => ({ cd: 1.6 - .15 * l, n: 1 + Math.floor((l - 1) / 2), pierce: 2 + l, dmg: .35 + .1 * l });
+const CHAIN = l => ({ n: 1 + Math.ceil(l / 2), dmg: .12 + .05 * l });
+const TALIS = l => ({ cd: 2.4 - .25 * l, n: 1 + Math.floor((l - 1) / 2), dmg: .5 + .1 * l, burn: .15 + .05 * l });
+const SEAL = l => ({ cd: 2.6 - .25 * l, jumps: 2 + l, dmg: .6 + .15 * l });
+const gourdN = l => Math.max(1, Math.round(g.G * l * .6));
+const SK = {
+  volley:    { a: 1, max: 5, icon: '✴️', name: 'Shuriken Volley', d: l => `Your squad's throws hit ${20 * (l - 1)}% harder` },
+  kunai:     { a: 1, max: 5, icon: '🗡️', name: 'Kunai Line', d: l => { const s = KUNAI(l); return `${s.n} kunai every ${s.cd.toFixed(1)}s, each piercing ${s.pierce} enemies`; } },
+  chain:     { a: 1, max: 5, icon: '⛓️', name: 'Kusarigama', d: l => `${CHAIN(l).n} chain blades orbit the squad and shred anything that gets close` },
+  talisman:  { a: 1, max: 5, icon: '📜', name: 'Fire Talisman', d: l => { const s = TALIS(l); return `${s.n} homing talisman${s.n > 1 ? 's' : ''} every ${s.cd.toFixed(1)}s that set enemies on fire`; } },
+  seal:      { a: 1, max: 5, icon: '⚡', name: 'Lightning Seal', d: l => { const s = SEAL(l); return `Lightning every ${s.cd.toFixed(1)}s, chaining through ${s.jumps} enemies`; } },
+  headband:  { a: 0, max: 5, icon: '🎌', name: 'Headband', d: l => `+${10 * l}% throw speed` },
+  whetstone: { a: 0, max: 5, icon: '🪨', name: 'Whetstone', d: l => `+${15 * l}% damage for every weapon` },
+  abacus:    { a: 0, max: 5, icon: '🧮', name: 'Abacus', d: l => `+ gates give ${25 * l}% more ninjas, − gates take ${12 * l}% fewer` },
+  gourd:     { a: 0, max: 5, icon: '🍶', name: 'Sake Gourd', d: l => `Recruit ${gourdN(l)} ninja${gourdN(l) > 1 ? 's' : ''} every 4 seconds` },
+  mirror:    { a: 0, max: 3, icon: '🪞', name: 'Mirror', d: l => `+${l} kunai, talisman and lightning chain` },
+  tabi:      { a: 0, max: 5, icon: '🥾', name: 'Iron Tabi', d: l => `Lose ${12 * l}% fewer ninjas to arrows, rocks and spikes` },
+  // Swarm vs Elite: Banner rewards a full squad, Ronin lets a small squad hit like a full one
+  banner:    { a: 0, max: 5, icon: '🚩', name: 'War Banner', tag: 'Swarm', d: l => `+${12 * l}% squad size, and +${8 * l}% damage while the squad is full` },
+  ronin:     { a: 0, max: 5, icon: '⚔️', name: 'Ronin Spirit', tag: 'Elite', d: l => `Fallen ninjas fight on as ghosts: ${20 * l}% of your missing squad still deals damage` },
+};
+const SLOTS = 4;
+// Evolution: a max-level weapon plus its paired passive (any level) summons a Golden Torii
+const EVOS = {
+  volley:   { with: 'banner',   icon: '🌟', name: 'Thousand Stars', d: 'Almost every ninja throws. Stars pierce and hit 50% harder.' },
+  kunai:    { with: 'ronin',    icon: '🐉', name: 'Dragon Fang',    d: 'A giant fang that tears through everything in its lane' },
+  chain:    { with: 'tabi',     icon: '🌀', name: 'Iron Cyclone',   d: '7 huge blades that also smash arrows and rocks' },
+  talisman: { with: 'gourd',    icon: '☀️', name: 'Phoenix Seal',   d: 'Fire spreads on kill, and every burning kill recruits ninjas' },
+  seal:     { with: 'headband', icon: '🥁', name: "Raijin's Drum",  d: 'Lightning strikes twice as often and never weakens as it chains' },
+};
+const evoOf = passive => Object.keys(EVOS).find(a => EVOS[a].with === passive);
+const evoReady = id => EVOS[id] && !g.evo[id] && skl(id) >= SK[id].max && skl(EVOS[id].with) >= 1;
+const xpNeed = l => Math.round(8 + l * 7 + l * l * .6); // steeper since the endless stream gives far more kills
+const skl = id => g.sk[id] || 0;
+
+let g = null, running = false;
+
+function newGame(seed) {
+  g = null; // capFor() reads the live run, so clear the previous one first
+  const c = save.chapter, runSeed = (seed ?? Math.random() * 4294967296) >>> 0;
+  R = makeRng(runSeed);
+  const ch = genChapter(c);
+  R = makeRng(runSeed ^ 0x9E3779B9); // separate stream for in-run rolls (drafts, enemy AI)
+  const u = save.up, lv = tierOf(c, 1);
+  g = { c, seed: runSeed, stage: 1, lv, G: Gs(lv), D: Dr(lv), lanes: lanesFor(lv), speed: SPEED * (1 + .3 * Dr(lv)),
+        dist: 0, L: ch.L, stageD: ch.stageD, waves: ch.waves, spawnT: 1, objs: ch.objs,
+        count: Math.round((8 + u.troops * 3) * Gs(lv)), cap: capFor(lv, 1), sx: MID,
+        rate: Math.min(15, 3 * (1 + .06 * u.rate)), dmg: 1 + .15 * u.dmg, spread: 0, fireT: 0, flash: 0,
+        bullets: [], ebullets: [], proj: [], bolts: [], smoke: 0, fire: 0, parts: [], pops: [], bossMode: false, shake: 0, hurt: 0, coins: 0,
+        kills: 0, xp: 0, xpLv: 1, xpNeed: xpNeed(1), dq: [], draft: null, sk: { volley: 1 }, evo: {}, toriiFor: {}, wt: {}, chainA: 0, regenT: 4, won: false,
+        slow: 0, evoFlash: 0,
+        banner: { txt: 'CHAPTER ' + c + (c % 10 === 0 ? ' ★' : ''), t: 1.8 } };
+  running = true; ui.innerHTML = '';
+}
+
+function enterStage(o) {
+  const lanesBefore = g.lanes;
+  g.stage = o.s; g.lv = o.lv; g.G = Gs(o.lv); g.D = Dr(o.lv); g.speed = SPEED * (1 + .3 * g.D); g.lanes = lanesFor(o.lv); g.cap = capFor(o.lv, o.s);
+  if (o.s === 1) return;
+  g.banner = g.lanes > lanesBefore ? { txt: 'STAGE ' + o.s + ' · ' + g.lanes + ' LANES!', t: 2, small: true }
+                                   : { txt: 'STAGE ' + o.s + ' / ' + STAGES, t: 1.6 };
+  SFX.good();
+}
+
+// ---------- helpers ----------
+const sy = o => SQY - (o.d - g.dist);
+const squadR = () => Math.min(80, 10 + Math.sqrt(g.count) * 4.6);
+function pop(x, y, txt, col, big) { g.pops.push({ x, y, txt, col, t: 1.1, big }); }
+function spark(x, y, col, n = 4, sp = 90) { for (let i = 0; i < n; i++) g.parts.push({ x, y, vx: frnd(-sp, sp), vy: frnd(-sp * 1.3, sp * .4), t: frnd(.25, .55), col, s: frnd(2, 5) }); }
+function isGood(s) { return s.ch || (s.t === 'add' && s.v >= 0) || s.t === 'mul' || s.t === 'rate' || s.t === 'dmg'; }
+// gate "+N / -N" value after the Abacus passive
+function gateV(s) { const a = skl('abacus'); return Math.round(s.v * (s.v >= 0 ? 1 + .25 * a : 1 - .12 * a)); }
+function label(s, short) {
+  if (s.t === 'add') { const v = gateV(s); return (v >= 0 ? '+' : '') + v; }
+  if (s.t === 'mul') return '×' + s.v;
+  if (s.t === 'div') return '÷' + s.v;
+  if (s.t === 'rate') return short ? '⚡↑' : 'SPEED ↑';
+  if (s.t === 'dmg') return short ? '💥↑' : 'POWER ↑';
+  if (s.t === 'skill') return short ? '📜' : '📜 SKILL';  // costs 30% of the squad (see applyGate)
+  if (s.t === 'rally') return short ? '⛺' : '⛺ RALLY';
+  if (s.t === 'sac') return short ? '÷2💥' : '÷2 → 💥×1.5';
+  if (s.t === 'gold') return '+' + Math.round(s.v * g.G) + (short ? '' : ' 🪙');
+}
+// small caption under choice-gate lanes so the trade-off is readable at a glance
+function caption(s) {
+  return { add: 'RECRUIT', skill: 'SKILL · −30%', rally: 'REFILL SQUAD', sac: 'SACRIFICE', gold: 'COINS' }[s.t] || '';
+}
+const laneOf = (x, n = g.lanes) => clamp(Math.floor((x - RL) / ((RR - RL) / n)), 0, n - 1);
+// The squad has a size cap per stage. Without it, ×2/×3 gates compound across a 5-stage chapter
+// into crowds of millions and no enemy matters. At the cap, POWER and SPEED gates become the better pick.
+const capFor = (lv, s) => Math.round((40 + 4 * save.up.troops) * Gs(lv) * (1 + .3 * (s - 1)) * (g ? 1 + .12 * skl('banner') : 1));
+function addNinjas(n) { const before = g.count; g.count = Math.min(g.cap, g.count + n); return g.count - before; }
+function applyGate(s) {
+  const y = SQY - 70, wasFull = g.count >= g.cap;
+  if (s.t === 'add') { const v = gateV(s); if (v >= 0) addNinjas(v); else g.count += v; }
+  else if (s.t === 'mul') addNinjas(g.count * (s.v - 1));
+  else if (s.t === 'div') g.count = Math.floor(g.count / s.v);
+  else if (s.t === 'rate') g.rate = Math.max(g.rate, Math.min(12, g.rate * 1.12));
+  else if (s.t === 'dmg') g.dmg *= 1.15;
+  else if (s.t === 'skill') { g.count = Math.max(1, Math.ceil(g.count * .7)); g.dq.push('SKILL GATE'); }
+  else if (s.t === 'rally') addNinjas(g.cap);
+  else if (s.t === 'sac') { g.count = Math.max(1, Math.floor(g.count / 2)); g.dmg *= 1.5; }
+  else if (s.t === 'gold') g.coins += s.v;
+  const good = isGood(s), grow = s.t === 'mul' || s.t === 'rally' || (s.t === 'add' && s.v >= 0);
+  pop(g.sx, y, grow && wasFull ? 'SQUAD FULL' : label(s), good ? (grow && wasFull ? '#cfd6e0' : s.ch ? '#ffd84d' : '#5cf0ff') : '#ff5c5c', true);
+  if (s.t === 'sac') { SFX.boom(); g.shake = .3; spark(g.sx, SQY, '#c79bff', 24, 160); return; }
+  if (good) { SFX.good(); spark(g.sx, SQY, '#5cf0ff', 14, 140); }
+  else { SFX.bad(); g.shake = 0.25; g.hurt = .35; }
+}
+function powerUp(c) {
+  const y = sy(c);
+  if (c.pu === 'spread') { g.spread = 8; pop(c.x, y, 'FAN THROW!', '#ffd84d', true); }
+  else if (c.pu === 'troops') { const n = addNinjas(Math.round(11 * g.G)); pop(c.x, y, n ? '+' + n + ' NINJAS' : 'SQUAD FULL', '#5cf0ff', true); }
+  else if (c.pu === 'smoke') { g.smoke = 5; pop(c.x, y, 'SMOKE BOMB!', '#cfd6e0', true); SFX.smoke(); return; }
+  else if (c.pu === 'fire') { g.fire = 8; pop(c.x, y, 'FIRE STARS!', '#ff8a3d', true); SFX.fire(); return; }
+  else { g.rate = Math.max(g.rate, Math.min(12, g.rate * 1.12)); pop(c.x, y, 'SPEED ↑', '#ffd84d', true); }
+  SFX.power();
+}
+// tabi: projectile and spike damage can be reduced by Iron Tabi
+function hurtSquad(n, x, y, tabi) {
+  if (g.smoke > 0) { spark(x, y, '#cfd6e0', 4); return; }
+  if (tabi && skl('tabi')) n = Math.max(1, Math.round(n * (1 - .12 * skl('tabi'))));
+  g.count -= n; pop(x, SQY - 40, '-' + n, '#ff5c5c'); spark(x, y, '#ff5c5c', 6);
+  g.shake = 0.2; g.hurt = .25; SFX.hurt();
+}
+
+// ---------- damage, kills, XP ----------
+// T: damage of one full volley from the whole squad; every weapon scales off it.
+// Ronin counts part of the missing squad (up to the cap) as still fighting; Banner rewards a full squad.
+const fighters = () => g.count + Math.max(0, g.cap - g.count) * Math.min(1, .2 * skl('ronin'));
+const power = () => g.dmg * (1 + .15 * skl('whetstone')) * fighters() * (g.count >= g.cap ? 1 + .08 * skl('banner') : 1);
+function damage(o, amt, x, y, quiet) {
+  if (o.dead) return;
+  o.hitT = .06;
+  if (o.shield > 0) { o.shield -= amt; if (!quiet) { spark(x, y, '#9fb4c8', 2); SFX.hit(); } return; }
+  o.hp -= amt;
+  if (!quiet) { spark(x, y, o.k === 'crate' ? '#d9a066' : '#ff7a5c', 2); SFX.hit(); }
+  if (o.hp <= 0) kill(o);
+}
+function kill(o) {
+  const oy = sy(o);
+  if (o.k !== 'crate') g.kills++;
+  o.dead = true; spark(o.x, oy, '#ffcc66', o.k === 'boss' ? 60 : 14, o.k === 'boss' ? 220 : 110);
+  if (o.burn && g.evo.talisman && o.k !== 'boss') {
+    // Phoenix Seal: the fire jumps to nearby enemies and the fallen rise to join you
+    for (const n of g.objs) if (!n.dead && !n.burn && (n.k === 'en' || n.k === 'mini') && Math.hypot(n.x - o.x, sy(n) - oy) < 70) n.burn = { t: 3, dps: o.burn.dps };
+    addNinjas(Math.max(1, Math.round(g.G * .4)));
+    spark(o.x, oy, '#ff8a3d', 10, 150);
+  }
+  if (o.k === 'en') {
+    const c = o.big ? 5 : (o.archer || o.smax) ? 3 : 1;
+    g.coins += c; if (c > 1) pop(o.x, oy, '+' + c + ' 🪙', '#ffd84d'); if (o.big) SFX.boom();
+    gainXp(o.big ? 4 : (o.archer || o.smax) ? 2 : 1);
+  } else if (o.k === 'crate') { g.coins += 10; gainXp(2); powerUp(o); }
+  else if (o.k === 'mini') {
+    g.coins += 25; SFX.boom(); pop(o.x, oy, o.split ? 'TWIN DOWN!' : 'GUARDIAN DOWN!', '#ffd84d', true);
+    if (o.t === 2 && !o.split) for (const dx of [-30, 30]) g.objs.push({ k: 'mini', t: 2, split: true, d: o.d + 150, x: clamp(o.x + dx, RL + 25, RR - 25), hp: o.max * .4, max: o.max * .4, r: 20, ph: 0, atkT: 2, seen: true });
+    else powerUp({ x: o.x, d: o.d, pu: pick(['spread', 'fire', 'smoke', 'troops']) });
+    if (!o.split) { gainXp(6); g.dq.push('GUARDIAN REWARD'); }
+  } else if (o.k === 'boss') { g.coins += 30 + g.lv * 10; SFX.boom(); g.won = true; }
+}
+function gainXp(n) {
+  g.xp += n;
+  while (g.xp >= g.xpNeed) { g.xp -= g.xpNeed; g.xpLv++; g.xpNeed = xpNeed(g.xpLv); g.dq.push('LEVEL ' + g.xpLv + '!'); }
+}
+const hittable = o => { if (o.dead) return false; const y = sy(o);
+  return (o.k === 'en' || o.k === 'crate' || o.k === 'boss' || (o.k === 'mini' && y >= 60)) && y > 30 && y < SQY + 30; };
+function nearest(x, y, list, skip, maxD = Infinity) {
+  let best = null, bd = maxD;
+  for (const o of list) { if (o.dead || o.k === 'crate' || (skip && skip.has(o))) continue; const d = Math.hypot(o.x - x, sy(o) - y); if (d < bd) { bd = d; best = o; } }
+  return best;
+}
+
+// ---------- draft ----------
+function draftOptions() {
+  const own = g.sk, nA = Object.keys(own).filter(id => SK[id].a).length, nP = Object.keys(own).length - nA;
+  const pool = [];
+  for (const id in SK) {
+    const l = own[id] || 0;
+    if (l >= SK[id].max) continue;
+    if (!l && (SK[id].a ? nA : nP) >= SLOTS) continue;
+    pool.push({ id, w: l ? 1.6 : 1 });
+  }
+  const out = [];
+  while (out.length < 3 && pool.length) {
+    let r = R() * pool.reduce((t, p) => t + p.w, 0), i = 0;
+    while ((r -= pool[i].w) > 0) i++;
+    out.push(pool.splice(i, 1)[0].id);
+  }
+  if (!out.length) out.push('_troops', '_gold');
+  return out;
+}
+function takeSkill(id) {
+  if (id === '_troops') { const n = addNinjas(Math.round(15 * g.G)); pop(g.sx, SQY - 70, n ? '+' + n + ' NINJAS' : 'SQUAD FULL', '#5cf0ff', true); return; }
+  if (id === '_gold') { g.coins += 40; pop(g.sx, SQY - 70, '+40 🪙', '#ffd84d', true); return; }
+  g.sk[id] = (g.sk[id] || 0) + 1;
+  if (id === 'banner') g.cap = capFor(g.lv, g.stage);
+  pop(g.sx, SQY - 70, SK[id].icon + ' ' + SK[id].name.toUpperCase(), '#ffd84d', true);
+}
+// one line telling the player where this card leads (evolutions are the long-term goal of a run)
+function evoHint(id, nextLv) {
+  const after = id2 => id2 === id ? nextLv : skl(id2);
+  const act = EVOS[id] ? id : evoOf(id);
+  if (!act || g.evo[act]) return '';
+  const e = EVOS[act], partner = SK[e.with], weapon = SK[act];
+  if (after(act) >= weapon.max && after(e.with) >= 1) return `<div class="ev ready">✨ Evolves into ${e.icon} ${e.name}!</div>`;
+  return EVOS[id] ? `<div class="ev">⟳ Max it + ${partner.icon} ${partner.name} → ${e.icon} ${e.name}</div>`
+                  : `<div class="ev">⟳ Evolves ${weapon.icon} ${weapon.name} at Lv ${weapon.max} → ${e.icon} ${e.name}</div>`;
+}
+function cardHtml(id, i) {
+  if (id === '_troops') return `<button class="card" data-i="${i}"><span class="ic">🥷</span><span><span class="nm">Reinforcements</span><div class="ds">+${Math.round(15 * g.G)} ninjas right now</div></span></button>`;
+  if (id === '_gold') return `<button class="card" data-i="${i}"><span class="ic">🪙</span><span><span class="nm">Pouch of Coins</span><div class="ds">+40 coins</div></span></button>`;
+  const s = SK[id], l = skl(id) + 1;
+  const tag = s.tag ? `<span class="lv" style="color:${s.tag === 'Elite' ? '#c79bff' : '#7dffa0'}">${s.tag.toUpperCase()}</span>` : '';
+  return `<button class="card${l === 1 ? ' new' : ''}" data-i="${i}"><span class="ic">${s.icon}</span><span><span class="nm">${s.name}</span><span class="lv">${l === 1 ? 'NEW' : 'Lv ' + l + (l === s.max ? ' MAX' : '')}</span>${tag}<div class="ds">${s.d(l)}</div>${evoHint(id, l)}</span></button>`;
+}
+function openDraft() {
+  const title = g.dq.shift(); running = false; dragX = null;
+  g.draft = draftOptions(); SFX.levelUp();
+  ui.innerHTML = `<div class="panel"><h2>${title}</h2><p style="margin:0 0 12px">Pick a skill</p><div class="cards">${g.draft.map(cardHtml).join('')}</div></div>`;
+  const cards = ui.querySelectorAll('.card');
+  // brief lockout so a finger that was steering doesn't pick a card by accident
+  cards.forEach(b => { b.disabled = true; b.onclick = () => { initAudio(); chooseDraft(+b.dataset.i); }; });
+  setTimeout(() => cards.forEach(b => b.disabled = false), 350);
+}
+function chooseDraft(i) {
+  if (!g || !g.draft) return;
+  takeSkill(g.draft[i]); g.draft = null; SFX.power();
+  if (g.dq.length) openDraft(); else { ui.innerHTML = ''; running = true; checkEvolutions(); }
+}
+
+// ---------- evolutions ----------
+// When a pair is complete, a Golden Torii descends; running through it evolves the weapon.
+// During the boss fight the path stops scrolling, so the evolution happens on the spot instead.
+function checkEvolutions() {
+  for (const id in EVOS) {
+    if (!evoReady(id) || g.toriiFor[id]) continue;
+    g.toriiFor[id] = true;
+    if (g.bossMode) { evolve(id); continue; }
+    let d = g.dist + SQY + 80;
+    for (const o of g.objs) if ((o.k === 'torii' && Math.abs(o.d - d) < 160) || (o.k === 'gate' && Math.abs(o.d - d) < 70)) d = o.d + 160;
+    g.objs.push({ k: 'torii', evo: id, d });
+    g.banner = { txt: '✨ GOLDEN TORII AHEAD ✨', t: 1.6, gold: true, small: true };
+    SFX.power();
+  }
+}
+function evolve(id) {
+  if (g.evo[id]) return;
+  const e = EVOS[id];
+  g.evo[id] = true; g.slow = 1.1; g.evoFlash = 1; g.shake = .35;
+  g.banner = { txt: e.icon + ' ' + e.name.toUpperCase() + '!', t: 2.4, gold: true, small: e.name.length > 12 };
+  spark(g.sx, SQY, '#ffd84d', 60, 260); spark(g.sx, SQY, '#fff2a8', 30, 180);
+  pop(g.sx, SQY - 95, 'EVOLVED!', '#ffd84d', true);
+  SFX.evolve();
+}
+function enemyShot(x, y, kind, spd, angOff = 0) {
+  const dx = g.sx - x, dy = SQY - y, L = Math.hypot(dx, dy) || 1;
+  const a = Math.atan2(dy, dx) + angOff;
+  g.ebullets.push({ x, y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, kind, a });
+}
+
+// ---------- input ----------
+let dragX = null; const keys = {};
+cv.addEventListener('pointerdown', e => {
+  const rect = cv.getBoundingClientRect(), lx = (e.clientX - rect.left) / S, ly = (e.clientY - rect.top) / S;
+  if (running && lx < 60 && ly < 62) { pauseGame(); return; }
+  dragX = e.clientX; try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+});
+cv.addEventListener('pointermove', e => {
+  if (dragX === null || !g || !running) return;
+  g.sx += (e.clientX - dragX) / S * 1.25; dragX = e.clientX;
+});
+const endDrag = () => dragX = null;
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+addEventListener('keydown', e => { keys[e.key] = true; if ((e.key === 'Escape' || e.key === 'p') && running) pauseGame(); });
+addEventListener('keyup', e => keys[e.key] = false);
+document.addEventListener('visibilitychange', () => { if (document.hidden && running) pauseGame(); });
+
+// ---------- update ----------
+function update(dt) {
+  if (keys.ArrowLeft || keys.a) g.sx -= 320 * dt;
+  if (keys.ArrowRight || keys.d) g.sx += 320 * dt;
+  g.sx = clamp(g.sx, RL + 16, RR - 16);
+  const r = squadR();
+
+  const boss = g.objs.find(o => o.k === 'boss');
+  if (boss && !g.bossMode && sy(boss) >= 170) {
+    g.bossMode = true; g.banner = { txt: '⚠ ' + BOSSES[boss.bt].name + ' ⚠', t: 1.8, red: true }; SFX.boss();
+    // the path stops scrolling for the boss, so any torii still on its way evolves now
+    for (const o of g.objs) if (o.k === 'torii' && !o.dead) { o.dead = true; evolve(o.evo); }
+  }
+  const miniNear = g.objs.some(o => o.k === 'mini' && !o.dead && sy(o) > 100 && sy(o) < SQY - 140);
+  const scroll = g.bossMode ? 0 : g.speed * (miniNear ? .3 : 1) * dt;
+  g.dist += scroll;
+  spawnStream(dt);
+  for (const k of ['spread', 'shake', 'hurt', 'flash', 'smoke', 'fire', 'evoFlash']) if (g[k] > 0) g[k] -= dt;
+  if (g.banner) { g.banner.t -= dt; if (g.banner.t <= 0) g.banner = null; }
+
+  // fire
+  g.fireT -= dt;
+  const rate = Math.min(20, g.rate * (1 + .1 * skl('headband')));
+  while (g.fireT <= 0 && g.count > 0) {
+    g.fireT += 1 / rate;
+    const fire = g.fire > 0, evo = g.evo.volley; // Thousand Stars: more stars, +50% damage, each pierces once
+    const n = Math.min(g.count, evo ? 18 : 10), dmg = power() * (1 + .2 * (skl('volley') - 1)) * (evo ? 1.5 : 1) / n * (g.spread > 0 ? 1.2 : 1) * (fire ? 1.8 : 1);
+    for (let i = 0; i < n; i++) {
+      const f = n > 1 ? i / (n - 1) - 0.5 : 0;
+      g.bullets.push({ x: g.sx + f * r * 1.4, y: SQY - r * 0.6, vx: g.spread > 0 ? f * 300 : 0, vy: -560, dmg, a: Math.random() * 6, fire, gold: evo, pierce: evo ? 1 : 0 });
+    }
+    g.flash = .05; SFX.shoot();
+  }
+  updateWeapons(dt, r);
+
+  // move objects
+  for (const o of g.objs) {
+    const y = sy(o);
+    if (o.k === 'en' && o.archer && y > 120 && o.hold > 0) {
+      // archer plants its feet and fires arrows for a few seconds
+      o.d += scroll; o.hold -= dt; o.ph += dt * 3;
+      o.shotT -= dt;
+      if (o.shotT <= 0) { o.shotT = 1.5 * (1 - .4 * g.D); enemyShot(o.x, y, 'arrow', 260 * (1 + .3 * g.D)); SFX.arrow(); }
+    } else if (o.k === 'en' && y > -40) {
+      o.d -= (o.big ? 18 : o.shield ? 20 : 28) * (1 + .5 * g.D) * dt; o.ph += dt * 10;
+      if (y > H * 0.25 && !o.archer) o.x += Math.sign(g.sx - o.x) * Math.min(Math.abs(g.sx - o.x), 22 * dt);
+    }
+    if (o.k === 'boss' && g.bossMode) {
+      o.ph += dt * 4; o.atkT -= dt;
+      if (o.bt === 0) { // Oni: slow march, hurls boulders
+        o.d -= 30 * dt;
+        if (o.atkT <= 0) { o.atkT = 2.2 * (1 - .4 * g.D); enemyShot(o.x, y + 30, 'rock', 200 * (1 + .3 * g.D)); }
+      } else if (o.bt === 1) { // Tengu: swoops side to side, fans of feathers
+        o.d -= 26 * dt; o.x = MID + Math.sin(o.ph * .35) * 110;
+        if (o.atkT <= 0) { o.atkT = 1.8 * (1 - .4 * g.D); for (const a of (g.D > .5 ? [-.45, -.15, .15, .45] : [-.3, 0, .3])) enemyShot(o.x, y + 20, 'feather', 230 * (1 + .3 * g.D), a); SFX.arrow(); }
+      } else { // Iron Samurai: slow, summons ninja guards
+        o.d -= 24 * dt;
+        if (o.atkT <= 0) {
+          o.atkT = 3.5 * (1 - .4 * g.D); const hp = 3.5 * Hm(g.lv, g.stage);
+          for (let i = -1; i <= 1 + Math.floor(g.D * 2); i++) g.objs.push({ k: 'en', d: o.d - 50, x: clamp(o.x + i * 50, RL + 15, RR - 15), hp, max: hp, r: 10, ph: rnd(0, 6) });
+          SFX.bad();
+        }
+      }
+    }
+    if (o.k === 'mini' && y > -40) {
+      if (!o.seen && y > 60) { o.seen = true; g.banner = { txt: 'GUARDIAN: ' + MINIS[o.t].name, sub: '⚠ ONE TOUCH = DEFEAT', t: 1.8, red: true, small: true }; SFX.boss(); }
+      o.ph += dt * 5; o.atkT -= dt;
+      // A guardian touch ends the run, so it must be fair: advance to a standoff line, hold there attacking
+      // (the window to kill it), flash a warning, then charge straight down. Dodge sideways and it escapes.
+      if (o.charging) o.d -= 300 * dt;
+      else if (y < SQY - GUARD_Y_OFF) o.d -= 22 * (1 + .4 * g.D) * dt;
+      else {
+        o.d += scroll; // hold position on screen
+        o.hold = (o.hold ?? GUARD_HOLD) - dt;
+        if (o.hold <= CHARGE_WARN && !o.warned) { o.warned = true; pop(o.x, y - 46, '⚠ CHARGE!', '#ff4d4d', true); SFX.boss(); }
+        if (o.hold <= 0) o.charging = true;
+      }
+      if (!o.charging) {
+        if (o.t === 0) o.x += clamp(g.sx - o.x, -1, 1) * 75 * (1 + .5 * g.D) * dt;
+        else o.x = clamp(o.x + Math.sin(o.ph * .4) * 40 * dt, RL + 30, RR - 30);
+        if (o.t === 1 && o.atkT <= 0 && y > 80) { o.atkT = 1.7 * (1 - .4 * g.D); enemyShot(o.x, y + 20, 'bomb', 190 * (1 + .3 * g.D)); SFX.arrow(); }
+        if (o.t === 2 && o.atkT <= 0 && y > 80) { o.atkT = 2.4 * (1 - .4 * g.D); enemyShot(o.x, y + 10, 'arrow', 280); }
+      }
+    }
+    if (o.hitT > 0) o.hitT -= dt;
+    if (o.chT > 0) o.chT -= dt;
+    if (o.burn && !o.dead) {
+      o.burn.t -= dt; damage(o, o.burn.dps * dt, o.x, y, true);
+      if (o.burn.t <= 0) o.burn = null;
+    }
+  }
+
+  // bullets
+  const vis = g.objs.filter(o => { const y = sy(o); return y > -80 && y < SQY + 40 && !o.dead; });
+  for (const b of g.bullets) {
+    b.x += b.vx * dt; b.y += b.vy * dt;
+    if (b.y < -20 || b.x < RL - 10 || b.x > RR + 10) { b.dead = true; continue; }
+    for (const o of vis) {
+      if (o.dead) continue;
+      const oy = sy(o);
+      if (o.k === 'gate') {
+        // Stars fly through gates: each star raises the gate's number once on the way, but never stops there.
+        // (Gates used to absorb stars, which shielded guardians and enemies walking in behind them.)
+        if (o.used || o === b.lastGate || Math.abs(b.y - oy) > 22) continue;
+        b.lastGate = o;
+        const s = o.opts[laneOf(b.x, o.opts.length)];
+        if (s.t === 'add') { s.acc += 1; if (s.acc >= 6) { s.acc = 0; s.v += Math.max(1, Math.round(g.G)); s.bump = .15; } }
+        spark(b.x, b.y, '#9be8ff', 1); continue;
+      }
+      if (o.k === 'spike' || o.k === 'stage' || o.k === 'torii' || o === b.last || (o.k === 'mini' && oy < 60)) continue;
+      const rr = o.k === 'crate' ? 20 : o.r;
+      if (Math.abs(b.x - o.x) < rr && Math.abs(b.y - oy) < rr) {
+        if (b.fire) spark(b.x, b.y, '#ff8a3d', 2);
+        damage(o, b.dmg, b.x, b.y);
+        if (b.pierce > 0) { b.pierce--; b.last = o; continue; }
+        b.dead = true;
+        break;
+      }
+    }
+  }
+  g.bullets = g.bullets.filter(b => !b.dead);
+  updateProjectiles(dt);
+  if (g.won) { win(); return; }
+
+  // enemy projectiles
+  for (const e of g.ebullets) {
+    if (e.dead) continue; // smashed by Iron Cyclone
+    e.x += e.vx * dt; e.y += e.vy * dt; e.a += dt * 8;
+    if (e.y > H + 20 || e.x < -20 || e.x > W + 20) { e.dead = true; continue; }
+    const hitR = (e.kind === 'rock' || e.kind === 'bomb') ? 14 : 6;
+    if (Math.abs(e.x - g.sx) < r * .8 + hitR && Math.abs(e.y - SQY) < r * .5 + hitR) {
+      e.dead = true; hurtSquad(loss(e.kind === 'rock' ? 4 : e.kind === 'bomb' ? 2 : e.kind === 'feather' ? 2 : 1, g.lv), e.x, e.y, true);
+    }
+  }
+  g.ebullets = g.ebullets.filter(e => !e.dead);
+
+  // collisions with squad
+  for (const o of g.objs) {
+    if (o.dead) continue;
+    const y = sy(o);
+    if (o.k === 'stage') { if (y >= SQY) { o.dead = true; enterStage(o); } continue; }
+    if (o.k === 'torii') { if (y >= SQY) { o.dead = true; evolve(o.evo); } continue; }
+    if (o.k === 'gate' && !o.used && y >= SQY) { o.used = true; applyGate(o.opts[laneOf(g.sx, o.opts.length)]); }
+    else if (o.k === 'mini' && Math.abs(y - SQY) < r * .7 + o.r && Math.abs(o.x - g.sx) < r + o.r) {
+      // one touch from a guardian (or the boss) ends the run, smoke bomb or not
+      g.count = 0; g.lossCause = 'Caught by the ' + MINIS[o.t].name.toLowerCase().replace(/\b\w/g, ch => ch.toUpperCase());
+      spark(o.x, y, '#ff4d4d', 30, 180); g.shake = .4;
+    }
+    else if (o.k === 'en' && Math.abs(y - SQY) < r * 0.7 + o.r && Math.abs(o.x - g.sx) < r + o.r) {
+      o.dead = true; hurtSquad(loss(o.big ? 6 : o.smax ? 2 : 1, g.lv), o.x, y);
+    } else if (o.k === 'spike' && !o.hit && Math.abs(y - SQY) < 14 && g.sx + r * .6 > o.x0 && g.sx - r * .6 < o.x1) {
+      o.hit = true; hurtSquad(Math.max(2, Math.ceil(g.count * .15)), g.sx, SQY, true);
+    } else if (o.k === 'boss' && y + o.r >= SQY - r * 0.6) { g.count = 0; g.lossCause = 'Crushed by the ' + bossName(o.bt); }
+    if (y > H + 80) { if (o.k === 'mini' && !o.dead) pop(g.sx, SQY - 60, 'GUARDIAN ESCAPED', '#cfd6e0', true); o.dead = true; }
+  }
+  g.objs = g.objs.filter(o => !o.dead);
+  g.count = Math.max(0, Math.floor(g.count));
+  if (g.count <= 0) { lose(); return; }
+
+  for (const p of g.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 300 * dt; p.t -= dt; }
+  g.parts = g.parts.filter(p => p.t > 0);
+  for (const p of g.pops) { p.y -= 40 * dt; p.t -= dt; }
+  g.pops = g.pops.filter(p => p.t > 0);
+  for (const o of g.objs) if (o.k === 'gate') for (const s of o.opts) if (s.bump > 0) s.bump -= dt;
+  for (const b of g.bolts) b.t -= dt;
+  g.bolts = g.bolts.filter(b => b.t > 0);
+
+  if (skl('gourd')) {
+    g.regenT -= dt;
+    if (g.regenT <= 0) { g.regenT = 4; const n = addNinjas(gourdN(skl('gourd'))); if (n) pop(g.sx + 30, SQY - 50, '+' + n + ' 🍶', '#7dffa0'); }
+  }
+  checkEvolutions();
+  if (g.dq.length) openDraft();
+}
+
+// ---------- endless enemy stream ----------
+// Basic ninjas pour in nonstop during each stage and get denser toward its end (×3 by the last stretch).
+// The stream stops before the guardian/boss zone so those fights stay focused.
+const streamRate = (c, D) => 1 + 1.5 * D + .04 * Math.min(c - 1, 25); // spawns per second at stage start
+function spawnStream(dt) {
+  if (g.bossMode) return;
+  const top = g.dist + SQY + 40, w = g.waves.find(w => top >= w.from && top < w.to);
+  if (!w) return;
+  const p = (top - w.from) / (w.to - w.from), lv = tierOf(g.c, w.s);
+  g.spawnT -= dt * streamRate(g.c, Dr(lv)) * (1 + 2 * p);
+  while (g.spawnT <= 0) {
+    g.spawnT += 1;
+    const hp = 3.5 * Hm(lv, w.s), x = rnd(RL + 15, RR - 15), n = R() < .25 ? 3 : 1; // a runner, or a small clump
+    for (let i = 0; i < n; i++) g.objs.push({ k: 'en', d: top + rnd(0, 30) + i * 14, x: clamp(x + rnd(-18, 18), RL + 15, RR - 15), hp, max: hp, r: 10, ph: rnd(0, 6) });
+  }
+}
+
+// ---------- weapons ----------
+function updateWeapons(dt, r) {
+  const T = power(), mir = skl('mirror');
+  const tick = (id, cd) => { g.wt[id] = (g.wt[id] ?? .5) - dt; if (g.wt[id] > 0) return false; g.wt[id] = cd; return true; };
+  let targets = null;
+  const tg = () => targets || (targets = g.objs.filter(hittable));
+
+  if (g.evo.kunai) {
+    // Dragon Fang: one huge blade per lane-sweep that pierces everything
+    if (tick('kunai', .9)) {
+      const n = 1 + mir;
+      for (let i = 0; i < n; i++) {
+        const f = n > 1 ? i / (n - 1) - .5 : 0;
+        g.proj.push({ k: 'fang', x: clamp(g.sx + f * 70, RL + 14, RR - 14), y: SQY - r * .6, vx: 0, vy: -640, dmg: T * 2.4, pierce: Infinity, hit: new Set(), life: 2, w: 16 });
+      }
+      SFX.arrow(); SFX.zap();
+    }
+  } else if (skl('kunai')) {
+    const s = KUNAI(skl('kunai'));
+    if (tick('kunai', s.cd)) {
+      const n = s.n + mir;
+      for (let i = 0; i < n; i++) {
+        const f = n > 1 ? i / (n - 1) - .5 : 0;
+        g.proj.push({ k: 'kunai', x: clamp(g.sx + f * (r * 1.3 + 20), RL + 6, RR - 6), y: SQY - r * .6, vx: 0, vy: -760, dmg: T * s.dmg, pierce: s.pierce, hit: new Set(), life: 2 });
+      }
+      SFX.arrow();
+    }
+  }
+  if (skl('talisman')) {
+    const s = TALIS(skl('talisman'));
+    if (tick('talisman', s.cd) && tg().some(o => o.k !== 'crate')) {
+      const n = s.n + mir + (g.evo.talisman ? 1 : 0);
+      for (let i = 0; i < n; i++) g.proj.push({ k: 'tal', x: g.sx, y: SQY - r * .6, vx: (i - (n - 1) / 2) * 140, vy: -260, dmg: T * s.dmg, burn: T * s.burn, life: 3.5, a: 0 });
+      SFX.fire();
+    }
+  }
+  if (skl('seal')) {
+    const s = SEAL(skl('seal')), evo = g.evo.seal; // Raijin's Drum: twice as often, +3 jumps, no falloff
+    const foes = tg().filter(o => o.k !== 'crate');
+    if (foes.length && tick('seal', s.cd * (evo ? .5 : 1))) {
+      let cur = foes.reduce((a, b) => b.hp > a.hp ? b : a), dmg = T * s.dmg;
+      const hit = new Set(), pts = [[cur.x, -10]];
+      for (let j = 0; j < s.jumps + mir + (evo ? 3 : 0) && cur; j++) {
+        hit.add(cur); const cy = sy(cur); pts.push([cur.x, cy]);
+        damage(cur, dmg, cur.x, cy); if (!evo) dmg *= .8;
+        cur = nearest(cur.x, cy, foes, hit, 150);
+      }
+      g.bolts.push({ pts, t: .25, gold: evo }); SFX.zap();
+    }
+  }
+  if (skl('chain')) {
+    const evo = g.evo.chain; // Iron Cyclone: 7 bigger blades on a wider orbit that also smash projectiles
+    const s = CHAIN(skl('chain')), n = evo ? 7 : s.n, rad = r + (evo ? 46 : 26), dmg = T * s.dmg * (evo ? 1.35 : 1);
+    g.chainA += dt * 3.4;
+    for (let i = 0; i < n; i++) {
+      const a = g.chainA + i / n * 6.283, bx = g.sx + Math.cos(a) * rad, by = SQY + Math.sin(a) * rad * .6;
+      for (const o of tg()) {
+        if (o.dead || o.chT > 0) continue;
+        const rr = (o.k === 'crate' ? 20 : o.r) + (evo ? 14 : 10);
+        if (Math.abs(bx - o.x) < rr && Math.abs(by - sy(o)) < rr) { o.chT = .35; damage(o, dmg, bx, by); }
+      }
+      if (evo) for (const e of g.ebullets) if (!e.dead && Math.abs(e.x - bx) < 18 && Math.abs(e.y - by) < 18) { e.dead = true; spark(e.x, e.y, '#c9ced6', 6); }
+    }
+  }
+}
+
+function updateProjectiles(dt) {
+  if (!g.proj.length) return;
+  const targets = g.objs.filter(hittable);
+  for (const p of g.proj) {
+    p.life -= dt;
+    if (p.k === 'tal') {
+      if (!p.tgt || p.tgt.dead) p.tgt = nearest(p.x, p.y, targets);
+      if (p.tgt) {
+        const dx = p.tgt.x - p.x, dy = sy(p.tgt) - p.y, L = Math.hypot(dx, dy) || 1, k = Math.min(1, dt * 5);
+        p.vx += (dx / L * 440 - p.vx) * k; p.vy += (dy / L * 440 - p.vy) * k;
+      }
+      p.a += dt * 6;
+    }
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.life <= 0 || p.y < -30 || p.y > H + 30 || p.x < RL - 20 || p.x > RR + 20) { p.dead = true; continue; }
+    for (const o of targets) {
+      if (o.dead || (p.hit && p.hit.has(o))) continue;
+      const rr = (o.k === 'crate' ? 20 : o.r) + (p.w || 4);
+      if (Math.abs(p.x - o.x) < rr && Math.abs(p.y - sy(o)) < rr + 4) {
+        damage(o, p.dmg, p.x, p.y);
+        if (p.k === 'tal') { if (!o.dead) o.burn = { t: 3, dps: p.burn }; spark(p.x, p.y, '#ff8a3d', 8, 120); p.dead = true; break; }
+        p.hit.add(o); if (--p.pierce <= 0) { p.dead = true; break; }
+      }
+    }
+  }
+  g.proj = g.proj.filter(p => !p.dead);
+}
+
+// ---------- draw ----------
+function rrect(x, y, w, h, r) { cx.beginPath(); if (cx.roundRect) cx.roundRect(x, y, w, h, r); else cx.rect(x, y, w, h); }
+
+function drawScene(dist) {
+  // moss garden
+  cx.fillStyle = '#2f4a2a'; cx.fillRect(-10, -10, W + 20, H + 20);
+  cx.fillStyle = 'rgba(255,255,255,.035)';
+  for (let y = -80 + dist % 80; y < H; y += 80) { cx.fillRect(0, y, RL, 40); cx.fillRect(RR, y, W - RR, 40); }
+  // stone path
+  cx.fillStyle = '#8c8272'; cx.fillRect(RL, -10, RR - RL, H + 20);
+  cx.strokeStyle = 'rgba(60,50,40,.35)'; cx.lineWidth = 2;
+  const off = dist % 40;
+  for (let y = -40 + off, row = Math.floor(dist / 40); y < H + 40; y += 40, row--) {
+    cx.beginPath(); cx.moveTo(RL, y); cx.lineTo(RR, y); cx.stroke();
+    const shift = (row & 1) ? 0 : 26;
+    for (let x = RL + shift; x < RR; x += 52) { cx.beginPath(); cx.moveTo(x, y); cx.lineTo(x, y + 40); cx.stroke(); }
+  }
+  cx.fillStyle = '#5a3b22'; cx.fillRect(RL - 7, -10, 7, H + 20); cx.fillRect(RR, -10, 7, H + 20);
+  cx.fillStyle = '#7a5232'; cx.fillRect(RL - 7, -10, 2, H + 20); cx.fillRect(RR + 5, -10, 2, H + 20);
+  // scenery: cherry blossoms, bamboo, stone lanterns
+  for (const o of decor) {
+    const rel = ((o.d - dist) % TILE + TILE) % TILE - 250, y = SQY - rel;
+    if (y < -50 || y > H + 50) continue;
+    const s = o.s;
+    if (o.t === 0 && o.d % 3 < 1.6) {
+      cx.fillStyle = 'rgba(0,0,0,.25)'; cx.beginPath(); cx.ellipse(o.x + 3, y + 9, 14 * s, 6 * s, 0, 0, 7); cx.fill();
+      cx.fillStyle = '#d97a9a'; cx.beginPath(); cx.arc(o.x, y, 14 * s, 0, 7); cx.fill();
+      cx.fillStyle = '#f5b5c8'; cx.beginPath(); cx.arc(o.x - 4, y - 4, 9 * s, 0, 7); cx.arc(o.x + 6, y + 2, 6 * s, 0, 7); cx.fill();
+    } else if (o.t === 0) {
+      for (let i = -1; i <= 1; i++) {
+        const bx = o.x + i * 5 * s;
+        cx.fillStyle = '#5f8f3a'; cx.fillRect(bx - 2, y - 22 * s, 4, 30 * s);
+        cx.fillStyle = '#3f6626'; cx.fillRect(bx - 2, y - 10 * s, 4, 2); cx.fillRect(bx - 2, y + 2 * s, 4, 2);
+      }
+      cx.fillStyle = '#7fb04a'; cx.beginPath(); cx.ellipse(o.x, y - 22 * s, 9 * s, 4 * s, .4, 0, 7); cx.fill();
+    } else {
+      cx.fillStyle = '#6e6a62'; cx.fillRect(o.x - 3, y - 4, 6, 12);
+      cx.fillStyle = '#8f8a80'; cx.fillRect(o.x - 7, y - 12, 14, 9);
+      cx.fillStyle = '#ffcf6b'; cx.fillRect(o.x - 3, y - 10, 6, 5);
+      cx.fillStyle = '#5b5750'; cx.beginPath(); cx.moveTo(o.x - 10, y - 12); cx.lineTo(o.x, y - 19); cx.lineTo(o.x + 10, y - 12); cx.fill();
+    }
+  }
+}
+
+function draw() {
+  cx.save();
+  if (g && g.shake > 0 && running) cx.translate(frnd(-4, 4), frnd(-4, 4));
+  drawScene(g ? g.dist : idleDist);
+  if (!g) { cx.restore(); return; }
+  cx.fillStyle = 'rgba(255,255,255,.12)';
+  for (let i = 1; i < g.lanes; i++) { const lx = RL + i * (RR - RL) / g.lanes; for (let y = -60 + g.dist % 60; y < H; y += 60) cx.fillRect(lx - 1.5, y, 3, 28); }
+
+  const sorted = g.objs.slice().sort((a, b) => sy(a) - sy(b));
+  for (const o of sorted) {
+    const y = sy(o);
+    if (y < -90 || y > H + 90) continue;
+    if (o.k === 'gate') drawGate(o, y);
+    else if (o.k === 'spike') drawSpike(o, y);
+    else if (o.k === 'en') drawEnemy(o, y);
+    else if (o.k === 'crate') drawCrate(o, y);
+    else if (o.k === 'boss') drawBoss(o, y);
+    else if (o.k === 'mini') drawMini(o, y);
+    else if (o.k === 'stage' && o.s > 1) drawStageLine(o, y);
+    else if (o.k === 'torii') drawTorii(o, y);
+    if (o.burn) { cx.fillStyle = Math.random() < .5 ? '#ff8a3d' : '#ffd84d'; cx.beginPath(); cx.arc(o.x + frnd(-o.r * .5, o.r * .5), y - o.r * .6 + frnd(-3, 3), 3.5, 0, 7); cx.fill(); }
+  }
+
+  const spin = performance.now() / 40;
+  for (const b of g.bullets) {
+    if (b.fire) { cx.fillStyle = 'rgba(255,120,40,.45)'; cx.beginPath(); cx.arc(b.x, b.y + 6, 6, 0, 7); cx.fill(); }
+    drawStar(b.x, b.y, 6, b.a + spin, b.fire, b.gold);
+  }
+  drawWeapons();
+  for (const e of g.ebullets) drawEnemyShot(e);
+
+  drawSquad();
+  if (g.smoke > 0) {
+    const r = squadR() + 14, t = performance.now() / 300;
+    cx.globalAlpha = Math.min(.55, g.smoke * .4);
+    for (let i = 0; i < 9; i++) {
+      const a = i / 9 * 6.283 + t;
+      cx.fillStyle = i % 2 ? '#cfd6e0' : '#aab3bf';
+      cx.beginPath(); cx.arc(g.sx + Math.cos(a) * r * .8, SQY + Math.sin(a) * r * .45, 16, 0, 7); cx.fill();
+    }
+    cx.globalAlpha = 1;
+  }
+
+  for (const p of g.parts) { cx.globalAlpha = Math.min(1, p.t * 3); cx.fillStyle = p.col; cx.fillRect(p.x - p.s / 2, p.y - p.s / 2, p.s, p.s); }
+  cx.globalAlpha = 1;
+  cx.textAlign = 'center';
+  for (const p of g.pops) {
+    cx.font = '900 ' + (p.big ? 28 : 20) + 'px system-ui,sans-serif';
+    cx.globalAlpha = Math.min(1, p.t * 2);
+    cx.lineWidth = 5; cx.strokeStyle = '#000'; cx.strokeText(p.txt, p.x, p.y);
+    cx.fillStyle = p.col; cx.fillText(p.txt, p.x, p.y);
+  }
+  cx.globalAlpha = 1;
+  cx.restore();
+
+  if (g.evoFlash > 0) {
+    // evolution: gold burst from the squad that fades out
+    const v = cx.createRadialGradient(g.sx, SQY, 20, g.sx, SQY, H);
+    v.addColorStop(0, `rgba(255,246,200,${Math.min(.85, g.evoFlash)})`); v.addColorStop(1, `rgba(255,190,40,${g.evoFlash * .35})`);
+    cx.fillStyle = v; cx.fillRect(0, 0, W, H);
+  }
+  if (g.hurt > 0) {
+    const v = cx.createRadialGradient(W / 2, H / 2, H * .3, W / 2, H / 2, H * .75);
+    v.addColorStop(0, 'rgba(255,0,0,0)'); v.addColorStop(1, 'rgba(255,0,0,' + (g.hurt * 1.4) + ')');
+    cx.fillStyle = v; cx.fillRect(0, 0, W, H);
+  }
+  if (g.banner) {
+    const a = Math.min(1, g.banner.t * 2);
+    const sub = g.banner.sub, ty = H * .36 + (sub ? 38 : 45);
+    cx.globalAlpha = a; cx.fillStyle = 'rgba(0,0,0,.5)'; cx.fillRect(0, H * .36, W, sub ? 74 : 64);
+    cx.font = '900 ' + (g.banner.small ? 24 : 36) + 'px system-ui,sans-serif'; cx.textAlign = 'center';
+    if (g.banner.gold) { cx.lineWidth = 6; cx.strokeStyle = 'rgba(120,70,0,.9)'; cx.strokeText(g.banner.txt, W / 2, ty); }
+    cx.fillStyle = g.banner.red ? '#ff4d4d' : g.banner.gold ? '#ffe680' : '#ffb020'; cx.fillText(g.banner.txt, W / 2, ty);
+    if (sub) { cx.font = '800 14px system-ui,sans-serif'; cx.fillStyle = '#fff'; cx.fillText(sub, W / 2, H * .36 + 62); }
+    cx.globalAlpha = 1;
+  }
+  drawHUD();
+}
+
+function drawStageLine(o, y) {
+  cx.fillStyle = 'rgba(255,176,32,.85)'; cx.fillRect(RL, y - 2, RR - RL, 4);
+  cx.font = '900 13px system-ui,sans-serif'; cx.textAlign = 'center';
+  cx.lineWidth = 4; cx.strokeStyle = 'rgba(0,0,0,.6)'; cx.strokeText('STAGE ' + o.s, MID, y - 9);
+  cx.fillStyle = '#ffd84d'; cx.fillText('STAGE ' + o.s, MID, y - 9);
+}
+
+function drawWeapons() {
+  for (const p of g.proj) {
+    cx.save(); cx.translate(p.x, p.y);
+    if (p.k === 'fang') {
+      // Dragon Fang: a long glowing blade with a jade trail
+      cx.fillStyle = 'rgba(80,255,170,.25)'; cx.fillRect(-12, 10, 24, 70);
+      cx.fillStyle = 'rgba(80,255,170,.45)'; cx.fillRect(-6, 10, 12, 50);
+      cx.fillStyle = '#eafff4'; cx.beginPath(); cx.moveTo(0, -34); cx.lineTo(13, 0); cx.lineTo(6, 14); cx.lineTo(-6, 14); cx.lineTo(-13, 0); cx.fill();
+      cx.fillStyle = '#2fbf71'; cx.beginPath(); cx.moveTo(0, -20); cx.lineTo(5, 0); cx.lineTo(0, 8); cx.lineTo(-5, 0); cx.fill();
+      cx.fillStyle = '#d4a52c'; cx.fillRect(-10, 14, 20, 4);
+    } else if (p.k === 'kunai') {
+      cx.fillStyle = 'rgba(180,220,255,.35)'; cx.fillRect(-1.5, 6, 3, 22);
+      cx.fillStyle = '#d7dde5'; cx.beginPath(); cx.moveTo(0, -12); cx.lineTo(4, 0); cx.lineTo(0, 4); cx.lineTo(-4, 0); cx.fill();
+      cx.fillStyle = '#3a2a1e'; cx.fillRect(-1.5, 4, 3, 8);
+      cx.strokeStyle = '#ffd84d'; cx.lineWidth = 2; cx.beginPath(); cx.arc(0, 14, 2.5, 0, 7); cx.stroke();
+    } else {
+      if (g.evo.talisman) { cx.fillStyle = 'rgba(255,200,60,.3)'; cx.beginPath(); cx.arc(0, 4, 17, 0, 7); cx.fill(); }
+      cx.fillStyle = 'rgba(255,120,40,.35)'; cx.beginPath(); cx.arc(0, 0, 11, 0, 7); cx.fill();
+      cx.rotate(Math.sin(p.a) * .4);
+      cx.fillStyle = '#f3e6c4'; cx.fillRect(-5, -8, 10, 16);
+      cx.fillStyle = '#c22'; cx.fillRect(-3, -5, 6, 2); cx.fillRect(-1, -5, 2, 9); cx.fillRect(-3, 1, 6, 2);
+    }
+    cx.restore();
+  }
+  if (skl('chain') && g.count > 0) {
+    const evo = g.evo.chain, n = evo ? 7 : CHAIN(skl('chain')).n, rad = squadR() + (evo ? 46 : 26), sc = evo ? 1.6 : 1;
+    cx.strokeStyle = evo ? 'rgba(160,210,255,.4)' : 'rgba(200,206,214,.25)'; cx.lineWidth = evo ? 3 : 1.5;
+    cx.beginPath(); cx.ellipse(g.sx, SQY, rad, rad * .6, 0, 0, 7); cx.stroke();
+    for (let i = 0; i < n; i++) {
+      const a = g.chainA + i / n * 6.283, bx = g.sx + Math.cos(a) * rad, by = SQY + Math.sin(a) * rad * .6;
+      cx.save(); cx.translate(bx, by); cx.rotate(a * 3); cx.scale(sc, sc);
+      cx.fillStyle = evo ? '#dbeeff' : '#c9ced6'; cx.beginPath(); cx.moveTo(0, -10); cx.quadraticCurveTo(9, -4, 3, 6); cx.lineTo(0, 0); cx.fill();
+      cx.fillStyle = '#5a3b22'; cx.fillRect(-2, -1, 4, 9);
+      cx.restore();
+    }
+  }
+  for (const b of g.bolts) {
+    cx.globalAlpha = Math.min(1, b.t * 5);
+    for (const [w, col] of (b.gold ? [[11, 'rgba(255,216,77,.45)'], [3.5, '#fffbe6']] : [[7, 'rgba(120,180,255,.45)'], [2.5, '#eef6ff']])) {
+      cx.strokeStyle = col; cx.lineWidth = w; cx.beginPath();
+      b.pts.forEach(([x, y], i) => {
+        if (!i) { cx.moveTo(x, y); return; }
+        const [px, py] = b.pts[i - 1];
+        cx.lineTo((px + x) / 2 + Math.sin(i * 7.3 + b.t * 40) * 10, (py + y) / 2); cx.lineTo(x, y);
+      });
+      cx.stroke();
+    }
+    cx.globalAlpha = 1;
+  }
+}
+
+function drawSpike(o, y) {
+  const w = o.x1 - o.x0;
+  cx.fillStyle = '#3a3632'; cx.fillRect(o.x0, y - 12, w, 24);
+  cx.fillStyle = '#c9ced6';
+  for (let x = o.x0 + 4; x < o.x1 - 6; x += 12) {
+    for (const row of [-6, 6]) { cx.beginPath(); cx.moveTo(x, y + row + 5); cx.lineTo(x + 5, y + row - 6); cx.lineTo(x + 10, y + row + 5); cx.fill(); }
+  }
+  cx.fillStyle = '#ff4d4d'; cx.font = '800 11px system-ui,sans-serif'; cx.textAlign = 'center';
+  cx.fillText('⚠ SPIKES', (o.x0 + o.x1) / 2, y - 16);
+}
+
+function drawEnemyShot(e) {
+  cx.save(); cx.translate(e.x, e.y);
+  if (e.kind === 'bomb') {
+    cx.fillStyle = '#1d1d24'; cx.beginPath(); cx.arc(0, 0, 10, 0, 7); cx.fill();
+    cx.fillStyle = '#555'; cx.beginPath(); cx.arc(-3, -3, 3, 0, 7); cx.fill();
+    cx.fillStyle = Math.sin(e.a * 3) > 0 ? '#ffd84d' : '#ff6b2b'; cx.beginPath(); cx.arc(6, -9, 3, 0, 7); cx.fill();
+  } else if (e.kind === 'rock') {
+    cx.rotate(e.a); cx.fillStyle = '#6e6a62'; cx.beginPath(); cx.arc(0, 0, 12, 0, 7); cx.fill();
+    cx.fillStyle = '#8f8a80'; cx.beginPath(); cx.arc(-3, -3, 6, 0, 7); cx.fill();
+  } else if (e.kind === 'feather') {
+    cx.rotate(Math.atan2(e.vy, e.vx)); cx.fillStyle = '#1d1d1d'; cx.beginPath(); cx.ellipse(0, 0, 10, 3.5, 0, 0, 7); cx.fill();
+    cx.strokeStyle = '#d33'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(-10, 0); cx.lineTo(10, 0); cx.stroke();
+  } else {
+    cx.rotate(Math.atan2(e.vy, e.vx)); cx.strokeStyle = '#6b4a2b'; cx.lineWidth = 2;
+    cx.beginPath(); cx.moveTo(-11, 0); cx.lineTo(9, 0); cx.stroke();
+    cx.fillStyle = '#c9ced6'; cx.beginPath(); cx.moveTo(13, 0); cx.lineTo(8, -3); cx.lineTo(8, 3); cx.fill();
+    cx.fillStyle = '#ddd'; cx.fillRect(-12, -3, 4, 6);
+  }
+  cx.restore();
+}
+
+function drawStar(x, y, r, a, fire, gold) {
+  cx.save(); cx.translate(x, y); cx.rotate(a);
+  cx.fillStyle = fire ? '#ffb347' : gold ? '#ffe680' : '#d7dde5'; cx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const rr = i % 2 === 0 ? r : r * .35, an = i * Math.PI / 4;
+    cx.lineTo(Math.cos(an) * rr, Math.sin(an) * rr);
+  }
+  cx.closePath(); cx.fill();
+  cx.strokeStyle = '#6b7380'; cx.lineWidth = 1; cx.stroke();
+  cx.fillStyle = '#3a3f47'; cx.beginPath(); cx.arc(0, 0, r * .22, 0, 7); cx.fill();
+  cx.restore();
+}
+
+function drawGate(o, y) {
+  // torii-style crossbeam across the path (gold lacquer for choice gates)
+  cx.fillStyle = o.choice ? '#8a5a12' : '#3b2a1e'; cx.fillRect(RL - 16, y - 36, RR - RL + 32, 7);
+  cx.fillStyle = o.choice ? '#d9a530' : '#5a3b22'; cx.fillRect(RL - 4, y - 29, RR - RL + 8, 4);
+  if (o.choice) {
+    cx.font = '900 12px system-ui,sans-serif'; cx.textAlign = 'center';
+    cx.lineWidth = 4; cx.strokeStyle = 'rgba(0,0,0,.6)'; cx.strokeText('CHOOSE ONE', MID, y - 41);
+    cx.fillStyle = '#ffd84d'; cx.fillText('CHOOSE ONE', MID, y - 41);
+  }
+  const n = o.opts.length, lw = (RR - RL) / n, short = n >= 3;
+  o.opts.forEach((s, i) => {
+    const x0 = RL + i * lw, x1 = x0 + lw;
+    const good = isGood(s), pulse = .4 + Math.sin(performance.now() / 200) * .08;
+    cx.fillStyle = o.choice ? `rgba(130,70,230,${pulse + .1})` : good ? `rgba(40,160,255,${pulse})` : `rgba(255,60,60,${pulse})`;
+    cx.fillRect(x0 + 3, y - 22, x1 - x0 - 6, 44);
+    cx.fillStyle = o.choice ? '#ffd84d' : good ? '#5cc8ff' : '#ff6b6b';
+    cx.fillRect(x0 + 3, y - 26, x1 - x0 - 6, 5);
+    cx.fillRect(x0 + 1, y - 26, 6, 52); cx.fillRect(x1 - 7, y - 26, 6, 52);
+    const t = label(s, short), sc = 1 + (s.bump > 0 ? s.bump * 2 : 0), ly = o.choice ? y - 3 : y + 1;
+    const base = (n <= 2 ? 30 : n === 3 ? 24 : n === 4 ? 20 : 17) * (o.choice ? .85 : 1);
+    cx.font = (t.length > 4 && !short ? '900 17px' : `900 ${Math.round((t.length > 4 ? base * .8 : base) * sc)}px`) + ' system-ui,sans-serif';
+    cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.lineWidth = 4; cx.strokeStyle = 'rgba(0,0,0,.6)'; cx.strokeText(t, (x0 + x1) / 2, ly);
+    cx.fillStyle = '#fff'; cx.fillText(t, (x0 + x1) / 2, ly);
+    if (o.choice) {
+      cx.font = `800 ${n >= 4 ? 8 : 9}px system-ui,sans-serif`; cx.fillStyle = '#ffe9a8';
+      cx.fillText(caption(s), (x0 + x1) / 2, y + 14);
+    }
+    if (s.t === 'add' && s.acc > 0) {
+      cx.fillStyle = 'rgba(255,255,255,.85)';
+      cx.fillRect(x0 + 12, y + (o.choice ? 19 : 15), (x1 - x0 - 24) * s.acc / 6, 3);
+    }
+  });
+  cx.textBaseline = 'alphabetic';
+}
+
+function drawTorii(o, y) {
+  const t = performance.now() / 300, e = EVOS[o.evo];
+  // glow
+  const gr = cx.createRadialGradient(MID, y, 10, MID, y, 190);
+  gr.addColorStop(0, 'rgba(255,216,77,.45)'); gr.addColorStop(1, 'rgba(255,216,77,0)');
+  cx.fillStyle = gr; cx.fillRect(RL - 20, y - 120, RR - RL + 40, 200);
+  // pillars, two beams with upturned ends
+  cx.fillStyle = '#f2c230';
+  cx.fillRect(RL + 18, y - 70, 12, 92); cx.fillRect(RR - 30, y - 70, 12, 92);
+  cx.beginPath(); cx.moveTo(RL - 14, y - 86); cx.quadraticCurveTo(MID, y - 72, RR + 14, y - 86); cx.lineTo(RR + 8, y - 76); cx.quadraticCurveTo(MID, y - 64, RL - 8, y - 76); cx.fill();
+  cx.fillStyle = '#d9a020'; cx.fillRect(RL + 4, y - 58, RR - RL - 8, 7);
+  cx.fillStyle = '#fff2a8'; cx.fillRect(RL + 22, y - 70, 3, 92); cx.fillRect(RR - 26, y - 70, 3, 92);
+  // sparkles drifting up through the gate
+  for (let i = 0; i < 10; i++) {
+    const px = RL + 40 + ((i * 53 + t * 20) % (RR - RL - 80)), py = y + 10 - ((t * 40 + i * 37) % 80);
+    cx.fillStyle = i % 2 ? '#fff2a8' : '#ffd84d'; cx.fillRect(px, py, 3, 3);
+  }
+  cx.font = '900 15px system-ui,sans-serif'; cx.textAlign = 'center';
+  cx.lineWidth = 4; cx.strokeStyle = 'rgba(60,30,0,.75)'; cx.strokeText(e.icon + ' ' + e.name.toUpperCase(), MID, y - 32);
+  cx.fillStyle = '#fff6c8'; cx.fillText(e.icon + ' ' + e.name.toUpperCase(), MID, y - 32);
+}
+
+function drawEnemy(o, y) {
+  const bob = Math.sin(o.ph) * 1.5, flash = o.hitT > 0;
+  cx.fillStyle = 'rgba(0,0,0,.25)'; cx.beginPath(); cx.ellipse(o.x, y + o.r * .8, o.r, o.r * .4, 0, 0, 7); cx.fill();
+  const yy = y + bob, rr = o.r;
+  if (o.big) {
+    // oni brute: purple skin, horns, club
+    cx.fillStyle = '#4a3a2a'; cx.fillRect(o.x + rr * .6, yy - rr * 1.1, 6, rr * 1.4);
+    cx.fillStyle = flash ? '#fff' : '#7d3cc0'; cx.beginPath(); cx.arc(o.x, yy, rr, 0, 7); cx.fill();
+    cx.fillStyle = '#eee3c8';
+    cx.beginPath(); cx.moveTo(o.x - 10, yy - rr * .7); cx.lineTo(o.x - 14, yy - rr * 1.35); cx.lineTo(o.x - 4, yy - rr * .85); cx.fill();
+    cx.beginPath(); cx.moveTo(o.x + 10, yy - rr * .7); cx.lineTo(o.x + 14, yy - rr * 1.35); cx.lineTo(o.x + 4, yy - rr * .85); cx.fill();
+    cx.fillStyle = '#ffe14d'; cx.fillRect(o.x - 8, yy - 4, 5, 4); cx.fillRect(o.x + 3, yy - 4, 5, 4);
+    cx.fillStyle = '#fff'; cx.fillRect(o.x - 6, yy + 6, 3, 4); cx.fillRect(o.x + 3, yy + 6, 3, 4);
+  } else {
+    // rival clan ninja: red garb (archers in orange), dark hood, eye slit
+    cx.fillStyle = flash ? '#fff' : (o.archer ? '#d9772b' : o.smax ? '#7a2420' : '#b8322c'); cx.beginPath(); cx.arc(o.x, yy, rr, 0, 7); cx.fill();
+    cx.fillStyle = '#3a1210'; cx.beginPath(); cx.arc(o.x, yy - 1, rr * .75, 0, 7); cx.fill();
+    cx.fillStyle = '#f1c27d'; cx.fillRect(o.x - rr * .55, yy - 3, rr * 1.1, 3.5);
+    cx.fillStyle = '#111'; cx.fillRect(o.x - 4, yy - 2.5, 2, 2); cx.fillRect(o.x + 2, yy - 2.5, 2, 2);
+    if (o.archer) {
+      cx.strokeStyle = '#6b4a2b'; cx.lineWidth = 2; cx.beginPath(); cx.arc(o.x, yy + 4, rr * 1.15, .25, Math.PI - .25); cx.stroke();
+      cx.strokeStyle = '#ddd'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(o.x - rr * 1.1, yy + 7); cx.lineTo(o.x + rr * 1.1, yy + 7); cx.stroke();
+    } else if (!o.smax) {
+      cx.fillStyle = '#c0c6cf'; cx.fillRect(o.x + rr * .7, yy - rr * 1.2, 2, rr * 1.2);
+    }
+    if (o.shield > 0) {
+      // wooden riot shield facing the squad
+      cx.fillStyle = flash ? '#fff' : '#7b6a55'; rrect(o.x - rr * 1.3, yy + rr * .4, rr * 2.6, 8, 3); cx.fill();
+      cx.fillStyle = '#4c4030'; cx.fillRect(o.x - 2, yy + rr * .4, 4, 8);
+      cx.fillStyle = '#1b2a3a'; cx.fillRect(o.x - rr, y - rr - 14, rr * 2, 4);
+      cx.fillStyle = '#6fb0ff'; cx.fillRect(o.x - rr, y - rr - 14, rr * 2 * o.shield / o.smax, 4);
+    }
+  }
+  if (o.hp < o.max) {
+    cx.fillStyle = '#300'; cx.fillRect(o.x - o.r, y - o.r - 8, o.r * 2, 4);
+    cx.fillStyle = '#ff4d4d'; cx.fillRect(o.x - o.r, y - o.r - 8, o.r * 2 * Math.max(0, o.hp) / o.max, 4);
+  }
+}
+
+function drawCrate(o, y) {
+  cx.fillStyle = 'rgba(0,0,0,.3)'; cx.fillRect(o.x - 18, y + 16, 40, 8);
+  // lacquered treasure chest
+  cx.fillStyle = o.hitT > 0 ? '#e88' : '#8e1f1f'; rrect(o.x - 20, y - 18, 40, 36, 5); cx.fill();
+  cx.fillStyle = '#5c1010'; cx.fillRect(o.x - 20, y - 6, 40, 3);
+  cx.fillStyle = '#d4a52c'; cx.fillRect(o.x - 20, y - 18, 4, 36); cx.fillRect(o.x + 16, y - 18, 4, 36);
+  cx.fillRect(o.x - 4, y - 8, 8, 9);
+  const icon = { spread: '✷ FAN', troops: '🥷 NINJAS', rate: '⚡ SPEED', smoke: '💨 SMOKE', fire: '🔥 FIRE' }[o.pu];
+  cx.font = '800 12px system-ui,sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.fillStyle = 'rgba(0,0,0,.6)'; rrect(o.x - 34, y - 42, 68, 18, 9); cx.fill();
+  cx.fillStyle = '#ffd84d'; cx.fillText(icon, o.x, y - 33);
+  cx.font = '900 15px system-ui,sans-serif'; cx.lineWidth = 3; cx.strokeStyle = '#000';
+  const t = Math.ceil(o.hp); cx.strokeText(t, o.x, y); cx.fillStyle = '#fff'; cx.fillText(t, o.x, y);
+  cx.textBaseline = 'alphabetic';
+}
+
+function drawBoss(o, y) {
+  const flash = o.hitT > 0, wob = Math.sin(o.ph || 0) * 3;
+  cx.fillStyle = 'rgba(0,0,0,.3)'; cx.beginPath(); cx.ellipse(o.x, y + o.r * .85, o.r * 1.1, o.r * .35, 0, 0, 7); cx.fill();
+  cx.save(); cx.translate(o.x + wob, y);
+  if (o.bt === 1) {
+    // Tengu: black wings, red face, long nose
+    const flap = Math.sin(o.ph * 3) * 10;
+    cx.fillStyle = '#151515';
+    cx.beginPath(); cx.moveTo(-20, -5); cx.lineTo(-80, -40 + flap); cx.lineTo(-70, 10 + flap); cx.lineTo(-30, 20); cx.fill();
+    cx.beginPath(); cx.moveTo(20, -5); cx.lineTo(80, -40 + flap); cx.lineTo(70, 10 + flap); cx.lineTo(30, 20); cx.fill();
+    cx.fillStyle = '#2c2c34'; cx.beginPath(); cx.arc(0, 4, o.r * .8, 0, 7); cx.fill();
+    cx.fillStyle = flash ? '#ff9c9c' : '#d8262b'; cx.beginPath(); cx.arc(0, -8, 24, 0, 7); cx.fill();
+    cx.fillStyle = '#b01d22'; cx.beginPath(); cx.moveTo(-4, -6); cx.lineTo(0, 26); cx.lineTo(4, -6); cx.fill();
+    cx.fillStyle = '#fff'; cx.fillRect(-14, -18, 9, 3); cx.fillRect(5, -18, 9, 3);
+    cx.fillStyle = '#111'; cx.fillRect(-12, -14, 5, 4); cx.fillRect(7, -14, 5, 4);
+    cx.fillStyle = '#222'; cx.fillRect(-8, -38, 16, 10);
+  } else if (o.bt === 2) {
+    // Iron Samurai: armored, crested kabuto helmet, katana
+    cx.fillStyle = '#c9ced6'; cx.save(); cx.rotate(-.6); cx.fillRect(40, -60, 5, 80); cx.restore();
+    cx.fillStyle = '#2b2f38'; cx.beginPath(); cx.arc(0, 0, o.r, 0, 7); cx.fill();
+    cx.fillStyle = flash ? '#9aa' : '#4a5260';
+    for (let i = 0; i < 4; i++) cx.fillRect(-36, -6 + i * 9, 72, 6);
+    cx.fillStyle = '#1b1e24'; cx.beginPath(); cx.arc(0, -16, 22, Math.PI, 0); cx.fill();
+    cx.fillStyle = '#d4a52c';
+    cx.beginPath(); cx.moveTo(-4, -34); cx.lineTo(-26, -62); cx.lineTo(-10, -36); cx.fill();
+    cx.beginPath(); cx.moveTo(4, -34); cx.lineTo(26, -62); cx.lineTo(10, -36); cx.fill();
+    cx.fillStyle = '#8e1f1f'; cx.fillRect(-16, -16, 32, 12);
+    cx.fillStyle = '#ffe14d'; cx.fillRect(-10, -12, 6, 3); cx.fillRect(4, -12, 6, 3);
+  } else {
+    // Oni Warlord
+    cx.fillStyle = '#4a0e0e'; cx.beginPath(); cx.arc(0, 0, o.r, 0, 7); cx.fill();
+    cx.fillStyle = flash ? '#ff9c9c' : '#c22'; cx.beginPath(); cx.arc(0, 0, o.r * .82, 0, 7); cx.fill();
+    cx.fillStyle = '#2a2a2a';
+    cx.beginPath(); cx.moveTo(-30, -30); cx.lineTo(-48, -64); cx.lineTo(-12, -40); cx.fill();
+    cx.beginPath(); cx.moveTo(30, -30); cx.lineTo(48, -64); cx.lineTo(12, -40); cx.fill();
+    cx.fillStyle = '#ffe14d';
+    cx.beginPath(); cx.arc(-14, -6, 6, 0, 7); cx.arc(14, -6, 6, 0, 7); cx.fill();
+    cx.fillStyle = '#300'; cx.fillRect(-16, 14, 32, 6);
+    cx.fillStyle = '#fff'; cx.fillRect(-12, 14, 4, 5); cx.fillRect(8, 14, 4, 5);
+    cx.fillStyle = '#4a3a2a'; cx.fillRect(38, -20, 10, 46);
+  }
+  cx.restore();
+}
+
+function drawMini(o, y) {
+  const flash = o.hitT > 0, r = o.r, bob = Math.sin(o.ph * 2) * 2, yy = y + bob, m = MINIS[o.t];
+  cx.fillStyle = 'rgba(0,0,0,.3)'; cx.beginPath(); cx.ellipse(o.x, y + r * .85, r, r * .35, 0, 0, 7); cx.fill();
+  if (o.t === 2) cx.globalAlpha = .85;
+  cx.strokeStyle = 'rgba(255,216,77,.5)'; cx.lineWidth = 3; cx.beginPath(); cx.arc(o.x, yy, r + 5 + Math.sin(o.ph * 3) * 2, 0, 7); cx.stroke();
+  const warn = o.charging || (o.hold !== undefined && o.hold <= CHARGE_WARN && Math.sin(performance.now() / 50) > 0);
+  cx.fillStyle = flash ? '#fff' : warn ? '#ff3b3b' : m.col; cx.beginPath(); cx.arc(o.x, yy, r, 0, 7); cx.fill();
+  if (o.t === 1) {
+    cx.fillStyle = '#f1c27d'; cx.beginPath(); cx.arc(o.x, yy - 4, r * .55, 0, 7); cx.fill();
+    cx.fillStyle = '#111'; cx.fillRect(o.x - 7, yy - 7, 4, 3); cx.fillRect(o.x + 3, yy - 7, 4, 3);
+    cx.fillStyle = '#5a2a10'; for (let i = 0; i < 6; i++) { const a = i / 6 * 6.28 + o.ph * .2; cx.beginPath(); cx.arc(o.x + Math.cos(a) * r * .8, yy + 8 + Math.sin(a) * r * .3, 3, 0, 7); cx.fill(); }
+  } else {
+    cx.fillStyle = 'rgba(0,0,0,.55)'; cx.beginPath(); cx.arc(o.x, yy - 2, r * .72, 0, 7); cx.fill();
+    cx.fillStyle = o.t === 2 ? '#d8b4ff' : '#f1c27d'; cx.fillRect(o.x - r * .5, yy - 6, r, 6);
+    cx.fillStyle = o.t === 2 ? '#fff' : '#111'; cx.fillRect(o.x - 8, yy - 5, 4, 3); cx.fillRect(o.x + 4, yy - 5, 4, 3);
+    if (o.t === 0) { cx.fillStyle = '#c9ced6'; cx.save(); cx.translate(o.x, yy); cx.rotate(Math.sin(o.ph) * .3);
+      cx.fillRect(-r - 6, -r, 3, r * 1.4); cx.fillRect(r + 3, -r, 3, r * 1.4); cx.restore(); }
+  }
+  cx.globalAlpha = 1;
+  const bw = r * 2.4;
+  cx.fillStyle = 'rgba(0,0,0,.6)'; cx.fillRect(o.x - bw / 2, y - r - 22, bw, 7);
+  cx.fillStyle = '#ffb020'; cx.fillRect(o.x - bw / 2, y - r - 22, bw * Math.max(0, o.hp) / o.max, 7);
+  cx.font = '800 10px system-ui,sans-serif'; cx.textAlign = 'center'; cx.fillStyle = '#fff';
+  cx.fillText(m.name, o.x, y - r - 26);
+}
+
+function drawSquad() {
+  const r = squadR(), n = Math.min(g.count, 70);
+  cx.fillStyle = 'rgba(0,0,0,.25)'; cx.beginPath(); cx.ellipse(g.sx, SQY + r * .55, r, r * .35, 0, 0, 7); cx.fill();
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = i * 2.39996, d = (r - 6) * Math.sqrt((i + .5) / n);
+    pts.push([g.sx + Math.cos(a) * d, SQY + Math.sin(a) * d * .6, i]);
+  }
+  pts.sort((a, b) => a[1] - b[1]);
+  const now = performance.now(), sk = curSkin();
+  for (const [x, y, i] of pts) {
+    const bob = Math.sin(now / 90 + i) * 1.2, yy = y + bob;
+    const tail = Math.sin(now / 70 + i) * 2;
+    // headband tails flutter behind
+    cx.strokeStyle = sk.col; cx.lineWidth = 2;
+    cx.beginPath(); cx.moveTo(x + 3, yy + 1); cx.lineTo(x + 8, yy + 6 + tail); cx.moveTo(x + 3, yy + 1); cx.lineTo(x + 5, yy + 8 - tail); cx.stroke();
+    cx.fillStyle = sk.body; cx.beginPath(); cx.arc(x, yy, 6.5, 0, 7); cx.fill();
+    cx.fillStyle = 'rgba(255,255,255,.08)'; cx.beginPath(); cx.arc(x, yy - .5, 5, 0, 7); cx.fill();
+    cx.fillStyle = sk.col; cx.fillRect(x - 5, yy - 4.5, 10, 2);
+    cx.fillStyle = '#f1c27d'; cx.fillRect(x - 3.5, yy - 2, 7, 2.5);
+    if (g.flash > 0 && i % 3 === 0) drawStar(x, yy - 11, 3.5, now / 30);
+  }
+  const t = String(g.count);
+  cx.font = '900 18px system-ui,sans-serif'; cx.textAlign = 'center';
+  const w = cx.measureText(t).width + 20, by = SQY - r * .6 - 30;
+  cx.fillStyle = g.count >= g.cap ? '#d99a00' : '#1e88ff'; rrect(g.sx - w / 2, by - 15, w, 26, 13); cx.fill();
+  cx.fillStyle = '#fff'; cx.fillText(t, g.sx, by + 5);
+}
+
+function drawHUD() {
+  cx.fillStyle = 'rgba(0,0,0,.55)'; rrect(12, 12, W - 24, 46, 12); cx.fill();
+  // pause button
+  cx.fillStyle = 'rgba(255,255,255,.15)'; rrect(18, 17, 36, 36, 9); cx.fill();
+  cx.fillStyle = '#fff'; cx.fillRect(29, 26, 5, 18); cx.fillRect(38, 26, 5, 18);
+  cx.textAlign = 'left';
+  cx.font = '900 13px system-ui,sans-serif'; cx.fillText('CH ' + g.c, 62, 33);
+  cx.font = '700 10px system-ui,sans-serif'; cx.fillStyle = 'rgba(255,255,255,.7)'; cx.fillText('STAGE ' + g.stage + '/' + STAGES, 62, 47);
+  // chapter progress with a tick at each stage start
+  const bx = 128, bw = 140, prog = d => bx + bw * clamp(d / (g.L - 450), 0, 1);
+  cx.fillStyle = '#333'; rrect(bx, 30, bw, 10, 5); cx.fill();
+  cx.fillStyle = '#ffb020'; rrect(bx, 30, Math.max(6, prog(g.dist) - bx), 10, 5); cx.fill();
+  cx.fillStyle = 'rgba(0,0,0,.55)';
+  for (let i = 1; i < g.stageD.length; i++) cx.fillRect(prog(g.stageD[i]) - 1, 28, 2, 14);
+  cx.textAlign = 'right'; cx.fillStyle = '#ffd84d'; cx.font = '800 14px system-ui,sans-serif';
+  cx.fillText('🪙 ' + (save.coins + Math.floor(g.coins)), W - 24, 40);
+  // XP bar
+  cx.fillStyle = 'rgba(0,0,0,.55)'; rrect(12, 62, W - 24, 8, 4); cx.fill();
+  cx.fillStyle = '#5cc8ff'; rrect(12, 62, Math.max(4, (W - 24) * g.xp / g.xpNeed), 8, 4); cx.fill();
+  cx.textAlign = 'left'; cx.font = '800 11px system-ui,sans-serif'; cx.fillStyle = '#5cc8ff';
+  cx.fillText('LV ' + g.xpLv, 16, 84);
+  cx.font = '700 12px system-ui,sans-serif'; cx.fillStyle = 'rgba(255,230,128,.9)';
+  cx.fillText('⚡' + Math.min(20, g.rate * (1 + .1 * skl('headband'))).toFixed(1) + '/s   💥' + (g.dmg * (1 + .15 * skl('whetstone'))).toFixed(1), 56, 84);
+  // build tray along the bottom
+  const ids = Object.keys(g.sk);
+  ids.sort((a, b) => SK[b].a - SK[a].a);
+  const tw = 30, tx0 = MID - (ids.length * (tw + 4) - 4) / 2;
+  ids.forEach((id, i) => {
+    const x = tx0 + i * (tw + 4), y = H - 42;
+    const ev = g.evo[id];
+    cx.fillStyle = ev ? 'rgba(120,80,0,.75)' : SK[id].a ? 'rgba(0,0,0,.55)' : 'rgba(20,40,70,.6)'; rrect(x, y, tw, tw + 6, 7); cx.fill();
+    if (ev) { cx.strokeStyle = '#ffd84d'; cx.lineWidth = 2; rrect(x, y, tw, tw + 6, 7); cx.stroke(); }
+    cx.font = '17px system-ui,sans-serif'; cx.textAlign = 'center'; cx.fillStyle = '#fff'; cx.fillText(ev ? EVOS[id].icon : SK[id].icon, x + tw / 2, y + 21);
+    for (let k = 0; k < SK[id].max; k++) { cx.fillStyle = k < g.sk[id] ? '#ffb020' : 'rgba(255,255,255,.2)'; cx.fillRect(x + 3 + k * ((tw - 6) / SK[id].max), y + tw, (tw - 6) / SK[id].max - 1.5, 3); }
+  });
+  const fx = [];
+  if (g.spread > 0) fx.push(['✷ FAN ' + Math.ceil(g.spread) + 's', '#ffd84d']);
+  if (g.fire > 0) fx.push(['🔥 FIRE ' + Math.ceil(g.fire) + 's', '#ff8a3d']);
+  if (g.smoke > 0) fx.push(['💨 SMOKE ' + Math.ceil(g.smoke) + 's', '#cfd6e0']);
+  cx.textAlign = 'right'; cx.font = '800 12px system-ui,sans-serif';
+  let fxX = W - 20;
+  for (const [t, c] of fx) { cx.fillStyle = c; cx.fillText(t, fxX, 84); fxX -= cx.measureText(t).width + 10; }
+  const boss = g.objs.find(o => o.k === 'boss');
+  if (g.bossMode && boss) {
+    cx.fillStyle = 'rgba(0,0,0,.55)'; rrect(40, 94, W - 80, 22, 8); cx.fill();
+    cx.fillStyle = '#c22'; rrect(44, 98, Math.max(1, (W - 88) * Math.max(0, boss.hp) / boss.max), 14, 6); cx.fill();
+    cx.textAlign = 'center'; cx.fillStyle = '#fff'; cx.font = '800 11px system-ui,sans-serif';
+    cx.fillText(BOSSES[boss.bt].name, MID, 109);
+  }
+}
+
+// ---------- menus ----------
+// foot: optional small text link under the buttons, as [label, onClick]
+function panel(html, buttons, foot) {
+  ui.innerHTML = '<div class="panel">' + html + '<div class="btns">' +
+    buttons.map((b, i) => `<button id="b${i}" class="${b[2] || ''}">${b[0]}</button>`).join('') + '</div>' +
+    (foot ? `<button id="bf" class="link">${foot[0]}</button>` : '') + '</div>';
+  const all = foot ? [...buttons.map((b, i) => ['b' + i, b[1]]), ['bf', foot[1]]] : buttons.map((b, i) => ['b' + i, b[1]]);
+  all.forEach(([id, fn]) => document.getElementById(id).onclick = () => { initAudio(); SFX.click(); fn(); });
+}
+const coinTag = () => `<div class="coins">🪙 ${save.coins}</div>`;
+
+const dayKey = t => new Date(t).toDateString();
+const dailyReady = () => save.daily.last !== dayKey(Date.now());
+function claimDaily() {
+  const streak = save.daily.last === dayKey(Date.now() - 864e5) ? Math.min(7, save.daily.streak + 1) : 1;
+  const amt = 30 + streak * 20;
+  save.daily = { last: dayKey(Date.now()), streak }; save.coins += amt; persist(); SFX.daily();
+  panel(`<h2>🎁 Daily Reward</h2><p>Day <b>${streak}</b> streak${streak === 7 ? ' (max!)' : ''}<br>You got <b style="color:#ffd84d">🪙 ${amt}</b></p>
+    <div class="help">Come back tomorrow for more. Bigger rewards each day in a row, up to day 7.</div>${coinTag()}`,
+    [['Nice!', home]]);
+}
+
+function home() {
+  running = false; g = null;
+  if (save.seenVersion !== GAME_VERSION) { patchNotes(); return; } // returning player after an update
+  const btns = [];
+  if (dailyReady()) btns.push(['🎁 Claim Daily Reward', claimDaily]);
+  const c = save.chapter;
+  btns.push(['▶ Play Chapter ' + c + (c > MAX_CHAPTER ? ' (Endless)' : ' / ' + MAX_CHAPTER), () => newGame()], ['Upgrades', () => shop(home), 'sec'], ['Ninja Skins', skins, 'sec'],
+     ['Sound: ' + (save.sound ? 'On' : 'Off'), () => { save.sound = !save.sound; persist(); home(); }, 'sec']);
+  const best = save.bestStage ? ` · Best: <b>stage ${save.bestStage}/${STAGES}</b>` : '';
+  panel(`<h1>SHURIKEN <span>SQUAD</span></h1>${coinTag()}
+    <div class="help">Drag to steer · Your ninjas throw stars automatically<br>Take <b style="color:#5cc8ff">blue</b> gates, dodge <b style="color:#ff6b6b">red</b> ones and spikes<br>Hit gates with stars to raise their number<br>Kill enemies to <b style="color:#5cc8ff">level up</b> and pick new skills<br>${STAGES} stages per chapter · Boss: <b>${bossName((c - 1) % 3)}</b>${best}</div>`, btns,
+    [`v${GAME_VERSION} · 📜 What's New`, patchNotes]);
+}
+
+function patchNotes() {
+  const fresh = save.seenVersion !== GAME_VERSION;
+  save.seenVersion = GAME_VERSION; persist();
+  const html = PATCH_NOTES.map((p, i) => `<div class="pn"><div class="pnh"><b>v${p.v} · ${p.title}</b>${i === 0 ? '<span class="tagnew">NEW</span>' : ''}<span class="pnd">${p.date}</span></div>
+    <ul>${p.notes.map(([ic, t]) => `<li><span>${ic}</span><span>${t}</span></li>`).join('')}</ul></div>`).join('');
+  panel(`<h2>${fresh ? '🎉 Game Updated!' : "📜 What's New"}</h2><div class="notes">${html}</div>`, [[fresh ? "Let's go!" : 'Back', home]]);
+}
+const bossName = bt => BOSSES[bt].name.charAt(0) + BOSSES[bt].name.slice(1).toLowerCase();
+const buildHtml = (sk, evo = {}) => `<div class="build">${Object.keys(sk).map(id => evo[id]
+  ? `<span style="color:#ffd84d">${EVOS[id].icon} ${EVOS[id].name}</span>` : `<span>${SK[id].icon} ${sk[id]}</span>`).join('')}</div>`;
+
+function skins() {
+  const rows = SKINS.map(s => {
+    const owned = save.skins.includes(s.id), on = save.skin === s.id;
+    const sw = `<span style="display:inline-block;width:26px;height:26px;border-radius:50%;background:${s.body};border:4px solid ${s.col};vertical-align:middle"></span>`;
+    const btn = on ? '<button disabled>Equipped</button>'
+      : owned ? `<button data-s="${s.id}" class="sec">Equip</button>`
+      : `<button data-s="${s.id}" ${save.coins < s.cost ? 'disabled' : ''}>🪙${s.cost}</button>`;
+    return `<div class="up">${sw}<div class="info"><div class="n">${s.name}</div><div class="d">${owned ? 'Owned' : 'Headband & garb'}</div></div>${btn}</div>`;
+  }).join('');
+  panel(`<h2>Ninja Skins</h2>${coinTag()}${rows}`, [['Back', home, 'sec']]);
+  ui.querySelectorAll('button[data-s]').forEach(btn => btn.onclick = () => {
+    const s = SKINS.find(k => k.id === btn.dataset.s);
+    initAudio();
+    if (!save.skins.includes(s.id)) { if (save.coins < s.cost) return; save.coins -= s.cost; save.skins.push(s.id); SFX.power(); } else SFX.click();
+    save.skin = s.id; persist(); skins();
+  });
+}
+
+function shop(back) {
+  const rows = Object.keys(UPG).map(k => {
+    const u = UPG[k], lv = save.up[k], maxed = lv >= MAXUP, c = upCost(k);
+    const bar = `<div style="height:5px;background:#334;border-radius:3px;margin-top:5px"><div style="height:5px;width:${lv / MAXUP * 100}%;background:#ffb020;border-radius:3px"></div></div>`;
+    return `<div class="up"><div class="info"><div class="n">${u.icon} ${u.name} <span style="color:#9aa6b2;font-weight:600;font-size:12px">Lv ${lv}/${MAXUP}</span></div><div class="d">${u.desc}</div>${bar}</div>
+      <button data-k="${k}" ${maxed || save.coins < c ? 'disabled' : ''}>${maxed ? 'MAX' : '🪙' + c}</button></div>`;
+  }).join('');
+  panel(`<h2>Upgrades</h2>${coinTag()}${rows}`, [['Back', back, 'sec']]);
+  ui.querySelectorAll('button[data-k]').forEach(btn => btn.onclick = () => {
+    const k = btn.dataset.k, c = upCost(k);
+    if (save.coins >= c && save.up[k] < MAXUP) { save.coins -= c; save.up[k]++; persist(); initAudio(); SFX.power(); shop(back); }
+  });
+}
+
+function pauseGame() {
+  if (!running) return;
+  running = false; dragX = null;
+  panel('<h2>Paused</h2>', [['Resume', () => { ui.innerHTML = ''; running = true; }], ['Quit to menu', home, 'sec']]);
+}
+
+function bank(extra) {
+  const mult = 1 + .2 * save.up.coin, earned = Math.round((g.coins * g.G + extra) * mult);
+  save.coins += earned; persist(); return earned;
+}
+
+function win() {
+  running = false; SFX.win();
+  const c = g.c, left = g.count, kills = g.kills, sk = g.sk, evo = g.evo, earned = bank(100 * g.lv + left);
+  save.chapter = c + 1; save.bestStage = 0; persist();
+  const champ = c === MAX_CHAPTER ? `<p style="color:#ffd84d"><b>🏆 You beat all ${MAX_CHAPTER} chapters! You are a true ninja master. Endless mode unlocked.</b></p>` : '';
+  const after = () => panel(`<h1>CHAPTER ${c} <span>CLEARED</span></h1>${champ}<p>${bossName((c - 1) % 3)} defeated with <b>${left}</b> ninjas left.<br>⚔ <b>${kills}</b> enemies defeated<br>You earned <b style="color:#ffd84d">🪙 ${earned}</b></p>${buildHtml(sk, evo)}${coinTag()}`,
+    [['▶ Next Chapter', () => newGame()], ['Upgrades', () => shop(after), 'sec'], ['Menu', home, 'sec']]);
+  after();
+}
+
+function lose() {
+  running = false; SFX.lose();
+  const c = g.c, stage = g.stage, kills = g.kills, sk = g.sk, evo = g.evo, cause = g.lossCause || 'Your squad was wiped out', earned = bank(0);
+  save.bestStage = Math.max(save.bestStage, stage); persist();
+  const after = () => panel(`<h1>CLAN <span>DEFEATED</span></h1><p><b style="color:#ff6b6b">${cause}.</b><br>Chapter <b>${c}</b> · reached <b>stage ${stage}/${STAGES}</b> · ⚔ <b>${kills}</b> defeated<br>You still earned <b style="color:#ffd84d">🪙 ${earned}</b> — spend it on upgrades.</p>${buildHtml(sk, evo)}${coinTag()}`,
+    [['↻ Try Again', () => newGame()], ['Upgrades', () => shop(after), 'sec'], ['Menu', home, 'sec']]);
+  after();
+}
+
+// ---------- loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.033, (now - last) / 1000); last = now;
+  if (running && g) {
+    // evolutions play in slow motion for a moment (real time, not game time)
+    if (g.slow > 0) { g.slow -= dt; update(dt * .3); } else update(dt);
+  }
+  if (!g) idleDist += 60 * dt;
+  draw();
+  requestAnimationFrame(frame);
+}
+home();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
