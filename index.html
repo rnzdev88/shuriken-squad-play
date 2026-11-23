@@ -24,7 +24,12 @@ canvas{display:block;margin:0 auto;touch-action:none}
 .arm .info{flex:1;min-width:0}
 .arm .n{font-weight:800;font-size:14px}
 .arm .d{font-size:12px;color:#9aa6b2;margin-top:2px;line-height:1.35}
-.arm.locked{opacity:.75}
+.arm.locked{background:#121821;border:1px dashed #3a4658}
+.arm.locked .ai{filter:grayscale(1);opacity:.45}
+.arm.locked .n{color:#8a96a3}
+.pill{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.5px;border-radius:6px;padding:2px 5px;margin-left:6px;vertical-align:2px}
+.pill.own{background:#1d3b2a;color:#7dffa0}
+.pill.lock{background:#3a2328;color:#ff9c9c}
 .arm .tg{font-size:9px;color:#c79bff;font-weight:900;letter-spacing:.5px}
 .pbar{height:5px;background:#334;border-radius:3px;margin-top:5px}
 .pbar i{display:block;height:5px;background:#ffb020;border-radius:3px}
@@ -621,7 +626,8 @@ function evoHint(id, nextLv) {
   if (after(act) >= weapon.max && after(e.with) >= 1) return `<div class="ev ready">✨ Evolves into ${e.icon} ${e.name}!</div>`;
   // the other half of the pair isn't unlocked yet: tease it so players know what to chase
   const other = EVOS[id] ? e.with : act;
-  if (!isUnlocked(other)) return `<div class="ev">⟳ ${e.icon} ${e.name} needs 🔒 ${SK[other].name} (Armory)</div>`;
+  // name the *other* skill as the locked one, so this card never reads as locked itself
+  if (!isUnlocked(other)) return `<div class="ev">⟳ Evolves with ${SK[other].icon} ${SK[other].name} → ${e.icon} ${e.name} <span style="color:#9aa6b2">(${SK[other].name} is still locked, see Armory)</span></div>`;
   return EVOS[id] ? `<div class="ev">⟳ Max it + ${partner.icon} ${partner.name} → ${e.icon} ${e.name}</div>`
                   : `<div class="ev">⟳ Evolves ${weapon.icon} ${weapon.name} at Lv ${weapon.max} → ${e.icon} ${e.name}</div>`;
 }
@@ -1605,13 +1611,19 @@ function unlockProgress(id) {
 }
 function armory() {
   save.armoryNew = false; persist();
+  // Owned and locked skills must be impossible to mix up: owned first with a STARTER / ✓ UNLOCKED pill,
+  // locked below with a dashed outline, a 🔒 LOCKED pill and the challenge spelled out.
   const row = id => {
     const s = SK[id];
-    if (isUnlocked(id)) return `<div class="arm"><span class="ai">${s.icon}</span><div class="info"><div class="n">${s.name}${s.tag ? ` <span class="tg">${s.tag.toUpperCase()}</span>` : ''}</div><div class="d">${s.d(1)}</div></div></div>`;
+    if (isUnlocked(id)) {
+      const pill = STARTER.includes(id) ? '<span class="pill own">STARTER</span>' : '<span class="pill own">✓ UNLOCKED</span>';
+      return `<div class="arm"><span class="ai">${s.icon}</span><div class="info"><div class="n">${s.name}${pill}${s.tag ? ` <span class="tg">${s.tag.toUpperCase()}</span>` : ''}</div><div class="d">${s.d(1)}</div></div></div>`;
+    }
     const { cur, goal, p } = unlockProgress(id);
     const bar = goal > 1 ? `<div class="pbar"><i style="width:${p * 100}%"></i></div><div class="d">${fmtN(cur)} / ${fmtN(goal)}</div>` : '';
-    return `<div class="arm locked"><span class="ai">🔒</span><div class="info"><div class="n">${s.name}</div><div class="d">${UNLOCKS[id].cond}</div>${bar}</div></div>`;
+    return `<div class="arm locked"><span class="ai">${s.icon}</span><div class="info"><div class="n">${s.name}<span class="pill lock">🔒 LOCKED</span></div><div class="d">🎯 Challenge: ${UNLOCKS[id].cond}</div>${bar}</div></div>`;
   };
+  const list = filter => { const sel = Object.keys(SK).filter(filter); return [...sel.filter(isUnlocked), ...sel.filter(id => !isUnlocked(id))].map(row).join(''); };
   const evoRow = a => {
     const e = EVOS[a], w = SK[a], p = SK[e.with];
     return save.evoSeen.includes(a)
@@ -1620,8 +1632,8 @@ function armory() {
   };
   const ids = Object.keys(SK), got = ids.filter(isUnlocked).length;
   panel(`<h2>⚔️ Armory</h2><p style="margin:0 0 10px">${got} / ${ids.length} skills · ${save.evoSeen.length} / ${Object.keys(EVOS).length} evolutions</p>
-    <div class="notes"><div class="sect">Weapons</div>${ids.filter(id => SK[id].a).map(row).join('')}
-    <div class="sect">Passive skills</div>${ids.filter(id => !SK[id].a).map(row).join('')}
+    <div class="notes"><div class="sect">Weapons</div>${list(id => SK[id].a)}
+    <div class="sect">Passive skills</div>${list(id => !SK[id].a)}
     <div class="sect">Evolutions</div>${Object.keys(EVOS).map(evoRow).join('')}</div>`, [['Back', home, 'sec']]);
 }
 
