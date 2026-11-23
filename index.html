@@ -96,8 +96,14 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- patch notes ----------
 // Newest first. Bump GAME_VERSION and add an entry for every player-facing update;
 // returning players see the notes once, new players only see the "What's New" button.
-const GAME_VERSION = '1.3';
+const GAME_VERSION = '1.4';
 const PATCH_NOTES = [
+  { v: '1.4', title: 'Boss Battles', date: 'Nov 2026', notes: [
+    ['👹', '<b>Real boss fights:</b> bosses no longer just walk at you. They hold their ground and attack, then lock onto your lane. A <b style="color:#ff6b6b">red strip</b> shows where they\'re about to charge, so sidestep!'],
+    ['😡', '<b>Enraged:</b> at half health a boss gets angry, with faster attacks, more projectiles and quicker charges. The Iron Samurai\'s guards bring shields.'],
+    ['⏱️', '<b>Don\'t stall:</b> after 40 seconds the boss goes <b>Berserk</b> and advances. Finish it before it reaches you!'],
+    ['⚖️', 'Bosses are much tougher, so a good build really matters now. The first few chapters\' bosses are gentler while you learn.'],
+  ] },
   { v: '1.3', title: 'Endless Waves', date: 'Nov 2026', notes: [
     ['🌊', '<b>Endless waves:</b> enemies now pour in nonstop during every stage, and the flood gets thicker toward the end.'],
     ['👹', '<b>Guardians are deadly:</b> one touch from a guardian or the boss ends your run. Guardians stop in front of you and attack, which is your chance to take them down. If one flashes red and shouts <b>CHARGE!</b>, dodge sideways.'],
@@ -238,6 +244,8 @@ const SR = s => .6 * Math.pow(1.9, s - 1);
 // gentle intro: tiers 1-15 ramp from 55% to full strength
 // HPK: global enemy-HP knob, retuned whenever in-run power changes (M3: choice gates + evolutions)
 const HPK = 1.8;
+// BOSS_HPK: extra boss HP so the phased boss fight lasts ~20-40 s instead of a 5 s damage check
+const BOSS_HPK = 3;
 const Hm = (lv, s = 1) => HPK * Gs(lv) * (1 + 0.7 * Dr(lv)) * Pw(lv) * (0.55 + 0.45 * Math.min(1, (lv - 1) / 15)) * SR(s);
 const lanesFor = lv => lv < 15 ? 2 : lv < 60 ? 3 : lv < 150 ? 4 : 5;
 // ninjas lost to a hit; grows with the stage at the same rate as the squad cap so late hits still sting
@@ -346,7 +354,7 @@ function genChapter(c) {
   }
   const lv = tierOf(c, STAGES), bt = (c - 1) % 3;
   // the first few bosses are softened so new players reach the build-up before the wall
-  const bh = Math.round(1750 * Hm(lv, STAGES) * BOSSES[bt].hp * (c % 10 === 0 ? 1.5 : 1) * Math.min(1, .45 + .15 * (c - 1)));
+  const bh = Math.round(1750 * BOSS_HPK * Hm(lv, STAGES) * BOSSES[bt].hp * (c % 10 === 0 ? 1.5 : 1) * Math.min(1, .3 + .175 * (c - 1)));
   objs.push({ k: 'boss', bt, d: d + 520, x: MID, hp: bh, max: bh, r: 46, ph: 0, atkT: 2 });
   return { objs, stageD, waves, L: d + 520 };
 }
@@ -678,23 +686,7 @@ function update(dt) {
       o.d -= (o.big ? 18 : o.shield ? 20 : 28) * (1 + .5 * g.D) * dt; o.ph += dt * 10;
       if (y > H * 0.25 && !o.archer) o.x += Math.sign(g.sx - o.x) * Math.min(Math.abs(g.sx - o.x), 22 * dt);
     }
-    if (o.k === 'boss' && g.bossMode) {
-      o.ph += dt * 4; o.atkT -= dt;
-      if (o.bt === 0) { // Oni: slow march, hurls boulders
-        o.d -= 30 * dt;
-        if (o.atkT <= 0) { o.atkT = 2.2 * (1 - .4 * g.D); enemyShot(o.x, y + 30, 'rock', 200 * (1 + .3 * g.D)); }
-      } else if (o.bt === 1) { // Tengu: swoops side to side, fans of feathers
-        o.d -= 26 * dt; o.x = MID + Math.sin(o.ph * .35) * 110;
-        if (o.atkT <= 0) { o.atkT = 1.8 * (1 - .4 * g.D); for (const a of (g.D > .5 ? [-.45, -.15, .15, .45] : [-.3, 0, .3])) enemyShot(o.x, y + 20, 'feather', 230 * (1 + .3 * g.D), a); SFX.arrow(); }
-      } else { // Iron Samurai: slow, summons ninja guards
-        o.d -= 24 * dt;
-        if (o.atkT <= 0) {
-          o.atkT = 3.5 * (1 - .4 * g.D); const hp = 3.5 * Hm(g.lv, g.stage);
-          for (let i = -1; i <= 1 + Math.floor(g.D * 2); i++) g.objs.push({ k: 'en', d: o.d - 50, x: clamp(o.x + i * 50, RL + 15, RR - 15), hp, max: hp, r: 10, ph: rnd(0, 6) });
-          SFX.bad();
-        }
-      }
-    }
+    if (o.k === 'boss' && g.bossMode) updateBoss(o, y, dt);
     if (o.k === 'mini' && y > -40) {
       if (!o.seen && y > 60) { o.seen = true; g.banner = { txt: 'GUARDIAN: ' + MINIS[o.t].name, sub: '⚠ ONE TOUCH = DEFEAT', t: 1.8, red: true, small: true }; SFX.boss(); }
       o.ph += dt * 5; o.atkT -= dt;
@@ -783,7 +775,11 @@ function update(dt) {
       o.dead = true; hurtSquad(loss(o.big ? 6 : o.smax ? 2 : 1, g.lv), o.x, y);
     } else if (o.k === 'spike' && !o.hit && Math.abs(y - SQY) < 14 && g.sx + r * .6 > o.x0 && g.sx - r * .6 < o.x1) {
       o.hit = true; hurtSquad(Math.max(2, Math.ceil(g.count * .15)), g.sx, SQY, true);
-    } else if (o.k === 'boss' && y + o.r >= SQY - r * 0.6) { g.count = 0; g.lossCause = 'Crushed by the ' + bossName(o.bt); }
+    } else if (o.k === 'boss' && y + o.r >= SQY - r * 0.6 &&
+               // a charge only hits if it's in your lane; a berserk boss reaching your row overruns everyone
+               (o.state === 'charge' || o.state === 'return' ? Math.abs(o.x - g.sx) < o.r + r * .8 : true)) {
+      g.count = 0; g.lossCause = 'Crushed by the ' + bossName(o.bt);
+    }
     if (y > H + 80) { if (o.k === 'mini' && !o.dead) pop(g.sx, SQY - 60, 'GUARDIAN ESCAPED', '#cfd6e0', true); o.dead = true; }
   }
   g.objs = g.objs.filter(o => !o.dead);
@@ -804,6 +800,75 @@ function update(dt) {
   }
   checkEvolutions();
   if (g.dq.length) openDraft();
+}
+
+// ---------- boss fight ----------
+// The boss holds near the top and fights in phases instead of walking into the squad:
+//   idle (its attack pattern) → telegraph: locks onto your lane, red strip on the ground → charge down it → return.
+//   Touching the boss is defeat, so every charge is telegraphed and can be sidestepped.
+//   Below 50% HP it ENRAGES (roar, faster attacks, shorter warnings, extra projectiles).
+//   After BOSS_TIME seconds it goes BERSERK and advances; reaching the squad's row overruns the clan.
+const BOSS_TIME = 40, BOSS_TELE = 1.3, BOSS_CHARGE_V = 560, BOSS_RETURN_V = 300, BOSS_CREEP_V = 14;
+function updateBoss(o, y, dt) {
+  const setY = ny => { o.d = g.dist + SQY - ny; };
+  const rage = o.phase === 2, D = g.D, spd = (rage ? .7 : 1) * (1 - .4 * D); // attack cooldown multiplier
+  o.ph += dt * 4; o.fightT = (o.fightT || 0) + dt;
+  if (o.homeY === undefined) { o.homeY = y; o.state = 'idle'; o.specT = 4; }
+  if (!rage && o.hp <= o.max / 2) {
+    o.phase = 2; o.state = 'roar'; o.stT = .9; setY(o.homeY);
+    g.banner = { txt: BOSSES[o.bt].name + ' ENRAGED!', t: 1.4, red: true, small: true }; SFX.boss(); g.shake = .45;
+    return;
+  }
+  if (!o.berserk && o.fightT > BOSS_TIME) {
+    o.berserk = true;
+    g.banner = { txt: '⚠ BERSERK ⚠', sub: 'Finish it before it reaches you!', t: 1.8, red: true }; SFX.boss();
+  }
+  if (o.berserk) o.homeY += BOSS_CREEP_V * dt;
+  switch (o.state) {
+    case 'roar': o.stT -= dt; if (o.stT <= 0) o.state = 'idle'; return;
+    case 'tele': // slide over the locked lane while the strip warns the player
+      o.stT -= dt; o.x += (o.lane - o.x) * Math.min(1, dt * 8); setY(o.homeY);
+      if (o.stT <= 0) { o.state = 'charge'; SFX.boom(); g.shake = .25; }
+      return;
+    case 'charge': setY(y + BOSS_CHARGE_V * dt); if (y > SQY + 70) o.state = 'return'; return;
+    case 'return': { const ny = Math.max(o.homeY, y - BOSS_RETURN_V * dt); setY(ny); if (ny <= o.homeY) o.state = 'idle'; return; }
+  }
+  // idle: hold position and use this boss's pattern
+  setY(o.homeY);
+  o.atkT -= dt; o.specT -= dt;
+  if (o.bt === 1) { // Tengu: sways across the path, fans of feathers
+    const tx = MID + Math.sin(o.ph * (rage ? .55 : .35)) * 110;
+    o.x += (tx - o.x) * Math.min(1, dt * 3);
+    if (o.atkT <= 0) {
+      o.atkT = 1.8 * spd;
+      const fan = rage ? [-.6, -.3, 0, .3, .6] : D > .5 ? [-.45, -.15, .15, .45] : [-.3, 0, .3];
+      for (const a of fan) enemyShot(o.x, y + 20, 'feather', 230 * (1 + .3 * D), a);
+      SFX.arrow();
+    }
+  } else {
+    // Oni and Samurai drift toward the squad so their attacks stay aimed
+    o.x += clamp(g.sx - o.x, -1, 1) * Math.min(Math.abs(g.sx - o.x), 30 * dt);
+    if (o.bt === 0 && o.atkT <= 0) { // Oni: boulders (a spread of three when enraged)
+      o.atkT = 2.2 * spd;
+      for (const a of (rage ? [-.25, 0, .25] : [0])) enemyShot(o.x, y + 30, 'rock', 200 * (1 + .3 * D), a);
+    } else if (o.bt === 2 && o.atkT <= 0) { // Iron Samurai: summons a line of guards (shielded when enraged)
+      o.atkT = 3.5 * spd;
+      const H2 = Hm(g.lv, g.stage), hp = 3.5 * H2;
+      for (let i = -1; i <= 1 + Math.floor(D * 2); i++) {
+        const e = { k: 'en', d: o.d - 50, x: clamp(o.x + i * 50, RL + 15, RR - 15), hp, max: hp, r: 10, ph: rnd(0, 6) };
+        if (rage) { e.shield = e.smax = 18 * H2; e.hp = e.max = 8 * H2; e.r = 12; }
+        g.objs.push(e);
+      }
+      SFX.bad();
+    }
+  }
+  if (o.specT <= 0) {
+    // lock onto the squad's lane and warn before charging
+    o.state = 'tele'; o.stT = BOSS_TELE * (rage ? .75 : 1) * (1 - .25 * D);
+    o.lane = clamp(g.sx, RL + o.r, RR - o.r);
+    o.specT = (rage ? 4.5 : 6.5) * (1 - .3 * D) * (o.berserk ? .6 : 1);
+    SFX.boss();
+  }
 }
 
 // ---------- endless enemy stream ----------
@@ -968,6 +1033,16 @@ function draw() {
   if (!g) { cx.restore(); return; }
   cx.fillStyle = 'rgba(255,255,255,.12)';
   for (let i = 1; i < g.lanes; i++) { const lx = RL + i * (RR - RL) / g.lanes; for (let y = -60 + g.dist % 60; y < H; y += 60) cx.fillRect(lx - 1.5, y, 3, 28); }
+
+  // boss charge warning: a pulsing red strip down the locked lane
+  const bossObj = g.bossMode && g.objs.find(o => o.k === 'boss' && o.state === 'tele');
+  if (bossObj) {
+    const by = sy(bossObj), w = bossObj.r * 2 + 12, x0 = bossObj.lane - w / 2, p = .25 + .2 * Math.sin(performance.now() / 70);
+    cx.fillStyle = `rgba(255,40,40,${p})`; cx.fillRect(x0, by, w, H - by);
+    cx.fillStyle = 'rgba(255,90,90,.85)'; cx.fillRect(x0, by, 3, H - by); cx.fillRect(x0 + w - 3, by, 3, H - by);
+    cx.font = '900 20px system-ui,sans-serif'; cx.textAlign = 'center'; cx.fillStyle = 'rgba(255,220,220,.9)';
+    for (let yy = by + 70 + (performance.now() / 6) % 60; yy < H; yy += 60) cx.fillText('▼', bossObj.lane, yy);
+  }
 
   const sorted = g.objs.slice().sort((a, b) => sy(a) - sy(b));
   for (const o of sorted) {
@@ -1259,6 +1334,13 @@ function drawCrate(o, y) {
 function drawBoss(o, y) {
   const flash = o.hitT > 0, wob = Math.sin(o.ph || 0) * 3;
   cx.fillStyle = 'rgba(0,0,0,.3)'; cx.beginPath(); cx.ellipse(o.x, y + o.r * .85, o.r * 1.1, o.r * .35, 0, 0, 7); cx.fill();
+  if (o.phase === 2 || o.berserk) {
+    // enraged: flickering red aura (stronger when berserk)
+    const a = (o.berserk ? .45 : .28) + .12 * Math.sin(performance.now() / 90);
+    const gr = cx.createRadialGradient(o.x, y, o.r * .6, o.x, y, o.r * 1.9);
+    gr.addColorStop(0, `rgba(255,40,40,${a})`); gr.addColorStop(1, 'rgba(255,40,40,0)');
+    cx.fillStyle = gr; cx.beginPath(); cx.arc(o.x, y, o.r * 1.9, 0, 7); cx.fill();
+  }
   cx.save(); cx.translate(o.x + wob, y);
   if (o.bt === 1) {
     // Tengu: black wings, red face, long nose
@@ -1399,10 +1481,15 @@ function drawHUD() {
   for (const [t, c] of fx) { cx.fillStyle = c; cx.fillText(t, fxX, 84); fxX -= cx.measureText(t).width + 10; }
   const boss = g.objs.find(o => o.k === 'boss');
   if (g.bossMode && boss) {
+    const bw = W - 88;
     cx.fillStyle = 'rgba(0,0,0,.55)'; rrect(40, 94, W - 80, 22, 8); cx.fill();
-    cx.fillStyle = '#c22'; rrect(44, 98, Math.max(1, (W - 88) * Math.max(0, boss.hp) / boss.max), 14, 6); cx.fill();
+    cx.fillStyle = boss.phase === 2 ? '#ff3030' : '#c22'; rrect(44, 98, Math.max(1, bw * Math.max(0, boss.hp) / boss.max), 14, 6); cx.fill();
+    if (boss.phase !== 2) { cx.fillStyle = 'rgba(255,255,255,.55)'; cx.fillRect(44 + bw / 2 - 1, 96, 2, 18); } // enrage threshold
     cx.textAlign = 'center'; cx.fillStyle = '#fff'; cx.font = '800 11px system-ui,sans-serif';
-    cx.fillText(BOSSES[boss.bt].name, MID, 109);
+    cx.fillText(BOSSES[boss.bt].name + (boss.berserk ? ' · BERSERK' : boss.phase === 2 ? ' · ENRAGED' : ''), MID, 109);
+    // countdown to berserk
+    const left = Math.ceil(BOSS_TIME - (boss.fightT || 0));
+    if (!boss.berserk) { cx.font = '800 12px system-ui,sans-serif'; cx.fillStyle = left <= 10 ? '#ff6b6b' : 'rgba(255,255,255,.75)'; cx.fillText('⏱ ' + left + 's', MID, 132); }
   }
 }
 
@@ -1449,7 +1536,7 @@ function patchNotes() {
     <ul>${p.notes.map(([ic, t]) => `<li><span>${ic}</span><span>${t}</span></li>`).join('')}</ul></div>`).join('');
   panel(`<h2>${fresh ? '🎉 Game Updated!' : "📜 What's New"}</h2><div class="notes">${html}</div>`, [[fresh ? "Let's go!" : 'Back', home]]);
 }
-const bossName = bt => BOSSES[bt].name.charAt(0) + BOSSES[bt].name.slice(1).toLowerCase();
+const bossName = bt => BOSSES[bt].name.toLowerCase().replace(/\b\w/g, ch => ch.toUpperCase());
 const buildHtml = (sk, evo = {}) => `<div class="build">${Object.keys(sk).map(id => evo[id]
   ? `<span style="color:#ffd84d">${EVOS[id].icon} ${EVOS[id].name}</span>` : `<span>${SK[id].icon} ${sk[id]}</span>`).join('')}</div>`;
 
