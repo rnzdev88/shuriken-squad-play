@@ -16,7 +16,23 @@ canvas{display:block;margin:0 auto;touch-action:none}
 .panel p{margin:8px 0 16px;color:#b8c2cc;font-size:15px;line-height:1.45}
 .panel b{color:#fff}
 .coins{display:inline-block;background:#2a2410;color:#ffd84d;font-weight:800;border-radius:20px;padding:5px 14px;margin:6px 0 14px;font-size:15px}
-.btns{display:flex;flex-direction:column;gap:10px}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.btns button{flex:1 1 100%}
+.btns button.third{flex:1 1 0;min-width:0;font-size:14px;padding:12px 4px}
+.arm{display:flex;align-items:center;gap:10px;background:#1a2230;border-radius:12px;padding:9px 11px;margin-bottom:7px}
+.arm .ai{font-size:22px;width:28px;text-align:center;flex:none}
+.arm .info{flex:1;min-width:0}
+.arm .n{font-weight:800;font-size:14px}
+.arm .d{font-size:12px;color:#9aa6b2;margin-top:2px;line-height:1.35}
+.arm.locked{opacity:.75}
+.arm .tg{font-size:9px;color:#c79bff;font-weight:900;letter-spacing:.5px}
+.pbar{height:5px;background:#334;border-radius:3px;margin-top:5px}
+.pbar i{display:block;height:5px;background:#ffb020;border-radius:3px}
+.sect{font-size:11px;font-weight:900;color:#ffb020;letter-spacing:1px;text-transform:uppercase;margin:12px 0 7px}
+.sect:first-child{margin-top:0}
+.unl{background:linear-gradient(135deg,#5a3a00,#2a1d00);border:2px solid #ffd84d;color:#ffe680;border-radius:12px;padding:9px;margin:0 0 10px;font-size:11px;font-weight:900;letter-spacing:.5px}
+.unl b{display:block;font-size:17px;color:#fff;margin-top:3px;letter-spacing:0}
+.nextu{font-size:12px;color:#9aa6b2;margin:0 0 12px;line-height:1.45}
 button{font:inherit;font-weight:800;font-size:17px;border:0;border-radius:12px;padding:13px 20px;background:#ffb020;color:#1a1200;cursor:pointer}
 button.sec{background:#273142;color:#fff}
 button:disabled{opacity:.4}
@@ -96,8 +112,16 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- patch notes ----------
 // Newest first. Bump GAME_VERSION and add an entry for every player-facing update;
 // returning players see the notes once, new players only see the "What's New" button.
-const GAME_VERSION = '1.4';
+const GAME_VERSION = '1.5';
 const PATCH_NOTES = [
+  { v: '1.5', title: 'The Armory', date: 'Nov 2026', notes: [
+    ['🔓', '<b>Earn your arsenal:</b> you now start with a small kit (Shuriken Volley, Kunai Line, Headband, Whetstone, Iron Tabi). Every other weapon and skill is unlocked by completing a challenge, like dodging charges, shooting gates, or clearing a chapter after a sacrifice.'],
+    ['⚔️', '<b>Armory</b> (home menu): see every skill, what unlocks the locked ones, your progress, and the evolutions you\'ve discovered.'],
+    ['✨', 'Your next unlock and its progress show after every run. Skill cards also tell you when an evolution needs a skill you haven\'t unlocked yet.'],
+    ['🪙', '<b>Economy rebalance:</b> upgrades were maxing out far too fast. Coin Bonus is now +5% per level, upgrades cost more as they level up, and the endless enemy stream gives XP but no coins. Your coins and upgrades are kept.'],
+    ['⚖️', 'The first chapters are a little gentler while you build your arsenal.'],
+    ['🐛', 'Fixed: setting a treasure chest on fire with a Fire Talisman could make its flames glitch.'],
+  ] },
   { v: '1.4', title: 'Boss Battles', date: 'Nov 2026', notes: [
     ['👹', '<b>Real boss fights:</b> bosses no longer just walk at you. They hold their ground and attack, then lock onto your lane. A <b style="color:#ff6b6b">red strip</b> shows where they\'re about to charge, so sidestep!'],
     ['😡', '<b>Enraged:</b> at half health a boss gets angry, with faster attacks, more projectiles and quicker charges. The Iron Samurai\'s guards bring shields.'],
@@ -149,6 +173,29 @@ try {
 // brand-new players have nothing to catch up on, so don't pop the notes at them
 if (!hadSave) save.seenVersion = GAME_VERSION;
 
+// ---------- unlocks (earned, Vampire Survivors style) ----------
+// Players start with a small kit; everything else is earned through lifetime challenges, each teaching a mechanic.
+// Kusarigama (dodging) + Iron Tabi (starter) is the intended first evolution.
+const STARTER = ['volley', 'kunai', 'headband', 'whetstone', 'tabi'];
+const UNLOCKS = {
+  talisman: { stat: 'chapters',   goal: 1,    cond: 'Clear any chapter' },
+  chain:    { stat: 'dodges',     goal: 3,    cond: 'Dodge 3 guardian or boss charges' },
+  abacus:   { stat: 'gateBumps',  goal: 30,   cond: 'Raise gate numbers by shooting them 30 times' },
+  seal:     { stat: 'kills',      goal: 1000, cond: 'Defeat 1,000 enemies' },
+  gourd:    { stat: 'rallies',    goal: 5,    cond: 'Take the ⛺ Rally lane 5 times' },
+  mirror:   { stat: 'evolves',    goal: 1,    cond: 'Evolve any weapon' },
+  banner:   { stat: 'fullBoss',   goal: 1,    cond: 'Reach a boss with a full squad' },
+  ronin:    { stat: 'sacClears',  goal: 1,    cond: 'Clear a chapter after taking a ÷2 Sacrifice lane' },
+};
+// Saves from before unlocks existed start from the kit too, but anything the save already proves
+// (chapters cleared) counts right away.
+if (!Array.isArray(save.unlocked)) save.unlocked = [...STARTER];
+save.stats = Object.assign({ kills: 0, dodges: 0, gateBumps: 0, rallies: 0, evolves: 0, fullBoss: 0, sacClears: 0,
+                             chapters: Math.max(0, save.chapter - 1) }, save.stats || {});
+if (!Array.isArray(save.evoSeen)) save.evoSeen = [];
+for (const id in UNLOCKS) if (!save.unlocked.includes(id) && save.stats[UNLOCKS[id].stat] >= UNLOCKS[id].goal) save.unlocked.push(id);
+const isUnlocked = id => save.unlocked.includes(id);
+
 const SKINS = [
   { id: 'azure',  name: 'Azure',  col: '#2a7de1', body: '#121218', cost: 0 },
   { id: 'jade',   name: 'Jade',   col: '#2fbf71', body: '#121218', cost: 150 },
@@ -170,10 +217,13 @@ const UPG = {
   troops: { name: 'Starting Ninjas', desc: '+3 starting ninjas, +4 squad size', base: 40, icon: '🥷' },
   rate:   { name: 'Throw Speed',     desc: '+6% throw speed',         base: 60, icon: '⚡' },
   dmg:    { name: 'Star Power',      desc: '+15% shuriken damage',    base: 80, icon: '✴️' },
-  coin:   { name: 'Coin Bonus',      desc: '+20% coins earned',       base: 70, icon: '🪙' },
+  coin:   { name: 'Coin Bonus',      desc: '+5% coins earned',        base: 70, icon: '🪙' },
 };
 const MAXUP = 50;
-const upCost = k => Math.round(UPG[k].base * Math.pow(1 + save.up[k], 1.7));
+// ECON: tuned with `sim.js ... journey` so a player who spends every coin lands near the difficulty curve's
+// assumption (upgrade level ≈ tier ÷ 7: ~7 at chapter 10) and maxes out late, not in the first day.
+const ECON = { costExp: 2.2, coinUp: .05, clearPer: 40, bossPer: 4 };
+const upCost = k => Math.round(UPG[k].base * Math.pow(1 + save.up[k], ECON.costExp));
 
 // ---------- sound ----------
 let AC = null, lastShot = 0, lastHit = 0;
@@ -241,12 +291,12 @@ const upExp = lv => Math.min(50, (lv - 1) / 7);
 const Pw = lv => { const u = upExp(lv); return Math.max(1, (1 + .06 * u) * (1 + .15 * u) * (1 + .1 * u) * .6); };
 // The crowd and build snowball within a chapter, so later stages get a steep HP ramp (SR) to keep pace.
 const SR = s => .6 * Math.pow(1.9, s - 1);
-// gentle intro: tiers 1-15 ramp from 55% to full strength
+// gentle intro: tiers 1-15 ramp from 45% to full strength (new players start with only the starter kit)
 // HPK: global enemy-HP knob, retuned whenever in-run power changes (M3: choice gates + evolutions)
 const HPK = 1.8;
 // BOSS_HPK: extra boss HP so the phased boss fight lasts ~20-40 s instead of a 5 s damage check
 const BOSS_HPK = 3;
-const Hm = (lv, s = 1) => HPK * Gs(lv) * (1 + 0.7 * Dr(lv)) * Pw(lv) * (0.55 + 0.45 * Math.min(1, (lv - 1) / 15)) * SR(s);
+const Hm = (lv, s = 1) => HPK * Gs(lv) * (1 + 0.7 * Dr(lv)) * Pw(lv) * (0.45 + 0.55 * Math.min(1, (lv - 1) / 15)) * SR(s);
 const lanesFor = lv => lv < 15 ? 2 : lv < 60 ? 3 : lv < 150 ? 4 : 5;
 // ninjas lost to a hit; grows with the stage at the same rate as the squad cap so late hits still sting
 const loss = (base, lv) => Math.max(1, Math.round(base * Gs(lv) * (g ? 1 + .3 * (g.stage - 1) : 1)));
@@ -365,7 +415,7 @@ const KUNAI = l => ({ cd: 1.6 - .15 * l, n: 1 + Math.floor((l - 1) / 2), pierce:
 const CHAIN = l => ({ n: 1 + Math.ceil(l / 2), dmg: .12 + .05 * l });
 const TALIS = l => ({ cd: 2.4 - .25 * l, n: 1 + Math.floor((l - 1) / 2), dmg: .5 + .1 * l, burn: .15 + .05 * l });
 const SEAL = l => ({ cd: 2.6 - .25 * l, jumps: 2 + l, dmg: .6 + .15 * l });
-const gourdN = l => Math.max(1, Math.round(g.G * l * .6));
+const gourdN = l => Math.max(1, Math.round((g ? g.G : 1) * l * .6));
 const SK = {
   volley:    { a: 1, max: 5, icon: '✴️', name: 'Shuriken Volley', d: l => `Your squad's throws hit ${20 * (l - 1)}% harder` },
   kunai:     { a: 1, max: 5, icon: '🗡️', name: 'Kunai Line', d: l => { const s = KUNAI(l); return `${s.n} kunai every ${s.cd.toFixed(1)}s, each piercing ${s.pierce} enemies`; } },
@@ -410,7 +460,7 @@ function newGame(seed) {
         count: Math.round((8 + u.troops * 3) * Gs(lv)), cap: capFor(lv, 1), sx: MID,
         rate: Math.min(15, 3 * (1 + .06 * u.rate)), dmg: 1 + .15 * u.dmg, spread: 0, fireT: 0, flash: 0,
         bullets: [], ebullets: [], proj: [], bolts: [], smoke: 0, fire: 0, parts: [], pops: [], bossMode: false, shake: 0, hurt: 0, coins: 0,
-        kills: 0, xp: 0, xpLv: 1, xpNeed: xpNeed(1), dq: [], draft: null, sk: { volley: 1 }, evo: {}, toriiFor: {}, wt: {}, chainA: 0, regenT: 4, won: false,
+        kills: 0, st: { gateBumps: 0, rallies: 0, dodges: 0, evolves: 0, sac: 0, fullBoss: 0 }, xp: 0, xpLv: 1, xpNeed: xpNeed(1), dq: [], draft: null, sk: { volley: 1 }, evo: {}, toriiFor: {}, wt: {}, chainA: 0, regenT: 4, won: false,
         slow: 0, evoFlash: 0,
         banner: { txt: 'CHAPTER ' + c + (c % 10 === 0 ? ' ★' : ''), t: 1.8 } };
   running = true; ui.innerHTML = '';
@@ -461,8 +511,8 @@ function applyGate(s) {
   else if (s.t === 'rate') g.rate = Math.max(g.rate, Math.min(12, g.rate * 1.12));
   else if (s.t === 'dmg') g.dmg *= 1.15;
   else if (s.t === 'skill') { g.count = Math.max(1, Math.ceil(g.count * .7)); g.dq.push('SKILL GATE'); }
-  else if (s.t === 'rally') addNinjas(g.cap);
-  else if (s.t === 'sac') { g.count = Math.max(1, Math.floor(g.count / 2)); g.dmg *= 1.5; }
+  else if (s.t === 'rally') { addNinjas(g.cap); g.st.rallies++; }
+  else if (s.t === 'sac') { g.count = Math.max(1, Math.floor(g.count / 2)); g.dmg *= 1.5; g.st.sac++; }
   else if (s.t === 'gold') g.coins += s.v;
   const good = isGood(s), grow = s.t === 'mul' || s.t === 'rally' || (s.t === 'add' && s.v >= 0);
   pop(g.sx, y, grow && wasFull ? 'SQUAD FULL' : label(s), good ? (grow && wasFull ? '#cfd6e0' : s.ch ? '#ffd84d' : '#5cf0ff') : '#ff5c5c', true);
@@ -511,7 +561,8 @@ function kill(o) {
     spark(o.x, oy, '#ff8a3d', 10, 150);
   }
   if (o.k === 'en') {
-    const c = o.big ? 5 : (o.archer || o.smax) ? 3 : 1;
+    // the endless stream gives XP but no coins; otherwise income scales with kill count and floods the economy
+    const c = o.stream ? 0 : o.big ? 5 : (o.archer || o.smax) ? 3 : 1;
     g.coins += c; if (c > 1) pop(o.x, oy, '+' + c + ' 🪙', '#ffd84d'); if (o.big) SFX.boom();
     gainXp(o.big ? 4 : (o.archer || o.smax) ? 2 : 1);
   } else if (o.k === 'crate') { g.coins += 10; gainXp(2); powerUp(o); }
@@ -520,7 +571,7 @@ function kill(o) {
     if (o.t === 2 && !o.split) for (const dx of [-30, 30]) g.objs.push({ k: 'mini', t: 2, split: true, d: o.d + 150, x: clamp(o.x + dx, RL + 25, RR - 25), hp: o.max * .4, max: o.max * .4, r: 20, ph: 0, atkT: 2, seen: true });
     else powerUp({ x: o.x, d: o.d, pu: pick(['spread', 'fire', 'smoke', 'troops']) });
     if (!o.split) { gainXp(6); g.dq.push('GUARDIAN REWARD'); }
-  } else if (o.k === 'boss') { g.coins += 30 + g.lv * 10; SFX.boom(); g.won = true; }
+  } else if (o.k === 'boss') { g.coins += 30 + g.lv * ECON.bossPer; SFX.boom(); g.won = true; }
 }
 function gainXp(n) {
   g.xp += n;
@@ -542,6 +593,7 @@ function draftOptions() {
     const l = own[id] || 0;
     if (l >= SK[id].max) continue;
     if (!l && (SK[id].a ? nA : nP) >= SLOTS) continue;
+    if (!isUnlocked(id)) continue;
     pool.push({ id, w: l ? 1.6 : 1 });
   }
   const out = [];
@@ -567,6 +619,9 @@ function evoHint(id, nextLv) {
   if (!act || g.evo[act]) return '';
   const e = EVOS[act], partner = SK[e.with], weapon = SK[act];
   if (after(act) >= weapon.max && after(e.with) >= 1) return `<div class="ev ready">✨ Evolves into ${e.icon} ${e.name}!</div>`;
+  // the other half of the pair isn't unlocked yet: tease it so players know what to chase
+  const other = EVOS[id] ? e.with : act;
+  if (!isUnlocked(other)) return `<div class="ev">⟳ ${e.icon} ${e.name} needs 🔒 ${SK[other].name} (Armory)</div>`;
   return EVOS[id] ? `<div class="ev">⟳ Max it + ${partner.icon} ${partner.name} → ${e.icon} ${e.name}</div>`
                   : `<div class="ev">⟳ Evolves ${weapon.icon} ${weapon.name} at Lv ${weapon.max} → ${e.icon} ${e.name}</div>`;
 }
@@ -610,7 +665,7 @@ function checkEvolutions() {
 function evolve(id) {
   if (g.evo[id]) return;
   const e = EVOS[id];
-  g.evo[id] = true; g.slow = 1.1; g.evoFlash = 1; g.shake = .35;
+  g.evo[id] = true; g.st.evolves++; g.slow = 1.1; g.evoFlash = 1; g.shake = .35;
   g.banner = { txt: e.icon + ' ' + e.name.toUpperCase() + '!', t: 2.4, gold: true, small: e.name.length > 12 };
   spark(g.sx, SQY, '#ffd84d', 60, 260); spark(g.sx, SQY, '#fff2a8', 30, 180);
   pop(g.sx, SQY - 95, 'EVOLVED!', '#ffd84d', true);
@@ -649,6 +704,7 @@ function update(dt) {
   const boss = g.objs.find(o => o.k === 'boss');
   if (boss && !g.bossMode && sy(boss) >= 170) {
     g.bossMode = true; g.banner = { txt: '⚠ ' + BOSSES[boss.bt].name + ' ⚠', t: 1.8, red: true }; SFX.boss();
+    if (g.count >= g.cap) g.st.fullBoss = 1;
     // the path stops scrolling for the boss, so any torii still on its way evolves now
     for (const o of g.objs) if (o.k === 'torii' && !o.dead) { o.dead = true; evolve(o.evo); }
   }
@@ -729,7 +785,7 @@ function update(dt) {
         if (o.used || o === b.lastGate || Math.abs(b.y - oy) > 22) continue;
         b.lastGate = o;
         const s = o.opts[laneOf(b.x, o.opts.length)];
-        if (s.t === 'add') { s.acc += 1; if (s.acc >= 6) { s.acc = 0; s.v += Math.max(1, Math.round(g.G)); s.bump = .15; } }
+        if (s.t === 'add') { s.acc += 1; if (s.acc >= 6) { s.acc = 0; s.v += Math.max(1, Math.round(g.G)); s.bump = .15; g.st.gateBumps++; } }
         spark(b.x, b.y, '#9be8ff', 1); continue;
       }
       if (o.k === 'spike' || o.k === 'stage' || o.k === 'torii' || o === b.last || (o.k === 'mini' && oy < 60)) continue;
@@ -780,7 +836,7 @@ function update(dt) {
                (o.state === 'charge' || o.state === 'return' ? Math.abs(o.x - g.sx) < o.r + r * .8 : true)) {
       g.count = 0; g.lossCause = 'Crushed by the ' + bossName(o.bt);
     }
-    if (y > H + 80) { if (o.k === 'mini' && !o.dead) pop(g.sx, SQY - 60, 'GUARDIAN ESCAPED', '#cfd6e0', true); o.dead = true; }
+    if (y > H + 80) { if (o.k === 'mini' && !o.dead) { pop(g.sx, SQY - 60, 'GUARDIAN ESCAPED', '#cfd6e0', true); if (o.charging) g.st.dodges++; } o.dead = true; }
   }
   g.objs = g.objs.filter(o => !o.dead);
   g.count = Math.max(0, Math.floor(g.count));
@@ -831,7 +887,7 @@ function updateBoss(o, y, dt) {
       if (o.stT <= 0) { o.state = 'charge'; SFX.boom(); g.shake = .25; }
       return;
     case 'charge': setY(y + BOSS_CHARGE_V * dt); if (y > SQY + 70) o.state = 'return'; return;
-    case 'return': { const ny = Math.max(o.homeY, y - BOSS_RETURN_V * dt); setY(ny); if (ny <= o.homeY) o.state = 'idle'; return; }
+    case 'return': { const ny = Math.max(o.homeY, y - BOSS_RETURN_V * dt); setY(ny); if (ny <= o.homeY) { o.state = 'idle'; g.st.dodges++; } return; }
   }
   // idle: hold position and use this boss's pattern
   setY(o.homeY);
@@ -884,7 +940,7 @@ function spawnStream(dt) {
   while (g.spawnT <= 0) {
     g.spawnT += 1;
     const hp = 3.5 * Hm(lv, w.s), x = rnd(RL + 15, RR - 15), n = R() < .25 ? 3 : 1; // a runner, or a small clump
-    for (let i = 0; i < n; i++) g.objs.push({ k: 'en', d: top + rnd(0, 30) + i * 14, x: clamp(x + rnd(-18, 18), RL + 15, RR - 15), hp, max: hp, r: 10, ph: rnd(0, 6) });
+    for (let i = 0; i < n; i++) g.objs.push({ k: 'en', stream: true, d: top + rnd(0, 30) + i * 14, x: clamp(x + rnd(-18, 18), RL + 15, RR - 15), hp, max: hp, r: 10, ph: rnd(0, 6) });
   }
 }
 
@@ -1056,7 +1112,7 @@ function draw() {
     else if (o.k === 'mini') drawMini(o, y);
     else if (o.k === 'stage' && o.s > 1) drawStageLine(o, y);
     else if (o.k === 'torii') drawTorii(o, y);
-    if (o.burn) { cx.fillStyle = Math.random() < .5 ? '#ff8a3d' : '#ffd84d'; cx.beginPath(); cx.arc(o.x + frnd(-o.r * .5, o.r * .5), y - o.r * .6 + frnd(-3, 3), 3.5, 0, 7); cx.fill(); }
+    if (o.burn) { const br = o.r || 20; cx.fillStyle = Math.random() < .5 ? '#ff8a3d' : '#ffd84d'; cx.beginPath(); cx.arc(o.x + frnd(-br * .5, br * .5), y - br * .6 + frnd(-3, 3), 3.5, 0, 7); cx.fill(); }
   }
 
   const spin = performance.now() / 40;
@@ -1521,7 +1577,8 @@ function home() {
   const btns = [];
   if (dailyReady()) btns.push(['🎁 Claim Daily Reward', claimDaily]);
   const c = save.chapter;
-  btns.push(['▶ Play Chapter ' + c + (c > MAX_CHAPTER ? ' (Endless)' : ' / ' + MAX_CHAPTER), () => newGame()], ['Upgrades', () => shop(home), 'sec'], ['Ninja Skins', skins, 'sec'],
+  btns.push(['▶ Play Chapter ' + c + (c > MAX_CHAPTER ? ' (Endless)' : ' / ' + MAX_CHAPTER), () => newGame()],
+     ['Upgrades', () => shop(home), 'sec third'], [(save.armoryNew ? '🔔 ' : '') + 'Armory', armory, 'sec third'], ['Skins', skins, 'sec third'],
      ['Sound: ' + (save.sound ? 'On' : 'Off'), () => { save.sound = !save.sound; persist(); home(); }, 'sec']);
   const best = save.bestStage ? ` · Best: <b>stage ${save.bestStage}/${STAGES}</b>` : '';
   panel(`<h1>SHURIKEN <span>SQUAD</span></h1>${coinTag()}
@@ -1539,6 +1596,54 @@ function patchNotes() {
 const bossName = bt => BOSSES[bt].name.toLowerCase().replace(/\b\w/g, ch => ch.toUpperCase());
 const buildHtml = (sk, evo = {}) => `<div class="build">${Object.keys(sk).map(id => evo[id]
   ? `<span style="color:#ffd84d">${EVOS[id].icon} ${EVOS[id].name}</span>` : `<span>${SK[id].icon} ${sk[id]}</span>`).join('')}</div>`;
+
+// ---------- armory: every skill, locked ones with their challenge and progress ----------
+const fmtN = n => n.toLocaleString('en-US');
+function unlockProgress(id) {
+  const u = UNLOCKS[id], cur = Math.min(u.goal, save.stats[u.stat] || 0);
+  return { cur, goal: u.goal, p: cur / u.goal };
+}
+function armory() {
+  save.armoryNew = false; persist();
+  const row = id => {
+    const s = SK[id];
+    if (isUnlocked(id)) return `<div class="arm"><span class="ai">${s.icon}</span><div class="info"><div class="n">${s.name}${s.tag ? ` <span class="tg">${s.tag.toUpperCase()}</span>` : ''}</div><div class="d">${s.d(1)}</div></div></div>`;
+    const { cur, goal, p } = unlockProgress(id);
+    const bar = goal > 1 ? `<div class="pbar"><i style="width:${p * 100}%"></i></div><div class="d">${fmtN(cur)} / ${fmtN(goal)}</div>` : '';
+    return `<div class="arm locked"><span class="ai">🔒</span><div class="info"><div class="n">${s.name}</div><div class="d">${UNLOCKS[id].cond}</div>${bar}</div></div>`;
+  };
+  const evoRow = a => {
+    const e = EVOS[a], w = SK[a], p = SK[e.with];
+    return save.evoSeen.includes(a)
+      ? `<div class="arm"><span class="ai">${e.icon}</span><div class="info"><div class="n" style="color:#ffd84d">${e.name}</div><div class="d">${w.icon} ${w.name} + ${p.icon} ${p.name}</div></div></div>`
+      : `<div class="arm locked"><span class="ai">❓</span><div class="info"><div class="n">???</div><div class="d">Evolves from ${w.icon} ${w.name}</div></div></div>`;
+  };
+  const ids = Object.keys(SK), got = ids.filter(isUnlocked).length;
+  panel(`<h2>⚔️ Armory</h2><p style="margin:0 0 10px">${got} / ${ids.length} skills · ${save.evoSeen.length} / ${Object.keys(EVOS).length} evolutions</p>
+    <div class="notes"><div class="sect">Weapons</div>${ids.filter(id => SK[id].a).map(row).join('')}
+    <div class="sect">Passive skills</div>${ids.filter(id => !SK[id].a).map(row).join('')}
+    <div class="sect">Evolutions</div>${Object.keys(EVOS).map(evoRow).join('')}</div>`, [['Back', home, 'sec']]);
+}
+
+// Fold a finished run into lifetime stats and return any skills it unlocked.
+function commitRun(won) {
+  const st = save.stats, before = new Set(save.unlocked);
+  st.kills += g.kills;
+  for (const k of ['dodges', 'gateBumps', 'rallies', 'evolves', 'fullBoss']) st[k] += g.st[k];
+  if (won) { st.chapters++; if (g.st.sac) st.sacClears++; }
+  for (const id in g.evo) if (!save.evoSeen.includes(id)) save.evoSeen.push(id);
+  for (const id in UNLOCKS) if (!isUnlocked(id) && st[UNLOCKS[id].stat] >= UNLOCKS[id].goal) save.unlocked.push(id);
+  const fresh = save.unlocked.filter(id => !before.has(id));
+  if (fresh.length) save.armoryNew = true;
+  return fresh;
+}
+// results-screen block: what just unlocked, and the closest next unlock to chase
+function unlockHtml(fresh) {
+  let h = fresh.map(id => `<div class="unl">🔓 NEW ${SK[id].a ? 'WEAPON' : 'SKILL'} UNLOCKED<b>${SK[id].icon} ${SK[id].name}</b></div>`).join('');
+  const next = Object.keys(UNLOCKS).filter(id => !isUnlocked(id)).map(id => ({ id, ...unlockProgress(id) })).sort((a, b) => b.p - a.p)[0];
+  if (next) h += `<div class="nextu">Next unlock: <b>${SK[next.id].icon} ${SK[next.id].name}</b><br>${UNLOCKS[next.id].cond}${next.goal > 1 ? ` (${fmtN(next.cur)} / ${fmtN(next.goal)})` : ''}</div>`;
+  return h;
+}
 
 function skins() {
   const rows = SKINS.map(s => {
@@ -1579,25 +1684,27 @@ function pauseGame() {
 }
 
 function bank(extra) {
-  const mult = 1 + .2 * save.up.coin, earned = Math.round((g.coins * g.G + extra) * mult);
+  const mult = 1 + ECON.coinUp * save.up.coin, earned = Math.round((g.coins * g.G + extra) * mult);
   save.coins += earned; persist(); return earned;
 }
 
 function win() {
   running = false; SFX.win();
-  const c = g.c, left = g.count, kills = g.kills, sk = g.sk, evo = g.evo, earned = bank(100 * g.lv + left);
+  const c = g.c, left = g.count, kills = g.kills, sk = g.sk, evo = g.evo, fresh = commitRun(true), earned = bank(ECON.clearPer * g.lv + left);
   save.chapter = c + 1; save.bestStage = 0; persist();
+  if (fresh.length) setTimeout(() => SFX.daily(), 600);
   const champ = c === MAX_CHAPTER ? `<p style="color:#ffd84d"><b>🏆 You beat all ${MAX_CHAPTER} chapters! You are a true ninja master. Endless mode unlocked.</b></p>` : '';
-  const after = () => panel(`<h1>CHAPTER ${c} <span>CLEARED</span></h1>${champ}<p>${bossName((c - 1) % 3)} defeated with <b>${left}</b> ninjas left.<br>⚔ <b>${kills}</b> enemies defeated<br>You earned <b style="color:#ffd84d">🪙 ${earned}</b></p>${buildHtml(sk, evo)}${coinTag()}`,
+  const after = () => panel(`<h1>CHAPTER ${c} <span>CLEARED</span></h1>${champ}<p>${bossName((c - 1) % 3)} defeated with <b>${left}</b> ninjas left.<br>⚔ <b>${kills}</b> enemies defeated<br>You earned <b style="color:#ffd84d">🪙 ${earned}</b></p>${buildHtml(sk, evo)}${unlockHtml(fresh)}${coinTag()}`,
     [['▶ Next Chapter', () => newGame()], ['Upgrades', () => shop(after), 'sec'], ['Menu', home, 'sec']]);
   after();
 }
 
 function lose() {
   running = false; SFX.lose();
-  const c = g.c, stage = g.stage, kills = g.kills, sk = g.sk, evo = g.evo, cause = g.lossCause || 'Your squad was wiped out', earned = bank(0);
+  const c = g.c, stage = g.stage, kills = g.kills, sk = g.sk, evo = g.evo, cause = g.lossCause || 'Your squad was wiped out', fresh = commitRun(false), earned = bank(0);
   save.bestStage = Math.max(save.bestStage, stage); persist();
-  const after = () => panel(`<h1>CLAN <span>DEFEATED</span></h1><p><b style="color:#ff6b6b">${cause}.</b><br>Chapter <b>${c}</b> · reached <b>stage ${stage}/${STAGES}</b> · ⚔ <b>${kills}</b> defeated<br>You still earned <b style="color:#ffd84d">🪙 ${earned}</b> — spend it on upgrades.</p>${buildHtml(sk, evo)}${coinTag()}`,
+  if (fresh.length) setTimeout(() => SFX.daily(), 900);
+  const after = () => panel(`<h1>CLAN <span>DEFEATED</span></h1><p><b style="color:#ff6b6b">${cause}.</b><br>Chapter <b>${c}</b> · reached <b>stage ${stage}/${STAGES}</b> · ⚔ <b>${kills}</b> defeated<br>You still earned <b style="color:#ffd84d">🪙 ${earned}</b> — spend it on upgrades.</p>${buildHtml(sk, evo)}${unlockHtml(fresh)}${coinTag()}`,
     [['↻ Try Again', () => newGame()], ['Upgrades', () => shop(after), 'sec'], ['Menu', home, 'sec']]);
   after();
 }
