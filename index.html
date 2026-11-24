@@ -109,11 +109,22 @@ button.card.boon .lv{color:#e3c8ff;background:#5a3590;border-radius:5px;padding:
 .hb button.lead{flex:0 0 62px}
 .hb .mx{flex:1;font-size:11px;font-weight:900;color:#ffd84d;text-align:center;padding:8px 0}
 .arm .dots{margin-top:4px}
-.btns button.herochip{display:flex;align-items:center;gap:9px;text-align:left;background:#1a2230;color:#fff;border:2px solid #2c3a50;font-size:13px;padding:6px 10px}
-.herochip .hp{width:32px;height:32px;font-size:16px;border-width:2px}
-.herochip .hn{flex:1;min-width:0;line-height:1.25}
-.herochip .hn small{display:block;color:#9aa6b2;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.herochip .go{color:#ffb020;font-size:12px;font-weight:900;white-space:nowrap}
+.hp img{width:118%;height:118%;object-fit:cover;margin-top:6%}
+.btns button.herochip{position:relative;display:flex;align-items:center;gap:10px;text-align:left;color:#fff;background:#151b26;border:0;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12);padding:6px 12px 6px 6px;min-height:70px;overflow:visible;min-width:0;max-width:100%;box-sizing:border-box}
+.herochip .hbg{position:absolute;inset:0;border-radius:12px;pointer-events:none}
+.herochip .hart{position:relative;flex:none;width:64px;height:64px;margin:-12px 0 -4px;display:flex;align-items:center;justify-content:center;font-size:36px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+.herochip .hart img{width:100%;height:100%}
+.herochip .hinfo{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.15}
+.herochip .hrole{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#cfd6e0;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.herochip .hname{font-size:22px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 2px 0 rgba(0,0,0,.45)}
+.herochip .hmeta{font-size:12px;font-weight:800;color:#e6ebf2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.herochip .hrow{display:flex;align-items:baseline;gap:7px;white-space:nowrap}
+.herochip .hstars{font-size:12px;letter-spacing:1px}
+.herochip .hstars i{font-style:normal;opacity:.25}
+.herochip .hchg{position:relative;flex:none;display:flex;flex-direction:column;align-items:center;font-size:9px;font-weight:900;letter-spacing:.06em;color:#ffb020}
+.herochip .hchg b{font-size:30px;line-height:.8;font-weight:900}
+.herochip .hnew{position:absolute;top:-8px;right:10px;background:#ff3b5c;color:#fff;font-size:10px;font-weight:900;letter-spacing:.08em;padding:3px 7px;border-radius:8px;box-shadow:0 2px 6px rgba(255,59,92,.5);animation:hnew 1.2s ease-in-out infinite}
+@keyframes hnew{50%{transform:scale(1.12)}}
 </style>
 </head>
 <body>
@@ -1959,11 +1970,66 @@ function home() {
 }
 
 // ---------- heroes screen ----------
-const heroPortrait = h => `<span class="hp" style="background:${h.body};border-color:${h.col}">${h.icon}</span>`;
-// compact chip above Play: who leads, their weapon, and a 🔔 when a hero was just unlocked
+// Hero bust painted once per hero + skin on an offscreen canvas (the same look as the in-game leader, at portrait
+// size). Falls back to the emoji when canvas export isn't available.
+const heroArtCache = {};
+function heroArt(id) {
+  const h = HEROES[id], sk = curSkin(), key = id + '|' + sk.id;
+  if (key in heroArtCache) return heroArtCache[key];
+  let url = '';
+  try {
+    const S = 128, c = document.createElement('canvas'); c.width = c.height = S;
+    const x = c.getContext('2d'), cx0 = 64, cy = 72, R = id === 'goro' ? 42 : 38;
+    const gl = x.createRadialGradient(cx0, cy, 8, cx0, cy, 64); gl.addColorStop(0, h.col + 'aa'); gl.addColorStop(1, h.col + '00');
+    x.fillStyle = gl; x.fillRect(0, 0, S, S);
+    // scarf tails behind the head: Kage's long scarf is his colour, the others wear the skin's
+    x.strokeStyle = id === 'kage' ? h.col : sk.col; x.lineWidth = 7; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(cx0 + R * .7, cy - R * .45); x.quadraticCurveTo(cx0 + R + 14, cy - 10, cx0 + R + 20, cy + 14);
+    x.moveTo(cx0 + R * .7, cy - R * .45); x.quadraticCurveTo(cx0 + R + 4, cy + 4, cx0 + R + 4, cy + 26); x.stroke();
+    x.fillStyle = h.col; x.beginPath(); x.arc(cx0, cy, R + 4, 0, 7); x.fill();
+    x.fillStyle = h.body; x.beginPath(); x.arc(cx0, cy, R, 0, 7); x.fill();
+    x.fillStyle = 'rgba(255,255,255,.09)'; x.beginPath(); x.arc(cx0 - 6, cy - 8, R * .72, 0, 7); x.fill();
+    // headband with its knot, in the squad skin colour
+    x.fillStyle = sk.col; x.fillRect(cx0 - R + 4, cy - R * .62, R * 2 - 8, 9);
+    x.beginPath(); x.arc(cx0 + R * .72, cy - R * .62 + 4.5, 6, 0, 7); x.fill();
+    // face opening with eyes and a determined brow
+    const fw = R * 1.3, fy = cy - 6;
+    x.fillStyle = '#f1c27d'; x.beginPath(); x.roundRect ? x.roundRect(cx0 - fw / 2, fy, fw, 17, 8) : x.rect(cx0 - fw / 2, fy, fw, 17); x.fill();
+    for (const s of [-1, 1]) {
+      const ex = cx0 + s * R * .3;
+      x.fillStyle = '#1a1200'; x.beginPath(); x.ellipse(ex, fy + 9.5, 4, 4.6, 0, 0, 7); x.fill();
+      x.fillStyle = '#fff'; x.beginPath(); x.arc(ex + 1.3, fy + 8, 1.4, 0, 7); x.fill();
+      x.strokeStyle = h.body; x.lineWidth = 3; x.beginPath(); x.moveTo(ex - s * 6, fy + 1.5); x.lineTo(ex + s * 5, fy + 4.5); x.stroke();
+    }
+    if (id === 'kage') { // a gold shuriken above the head
+      x.fillStyle = h.trim; x.beginPath();
+      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + .3, r = i % 2 ? 4 : 13; x.lineTo(cx0 + Math.cos(a) * r, cy - R - 12 + Math.sin(a) * r); }
+      x.fill(); x.fillStyle = h.body; x.beginPath(); x.arc(cx0, cy - R - 12, 2.5, 0, 7); x.fill();
+    } else if (id === 'tsubaki') { // a blossom in her hair
+      const bx = cx0 + R * .55, by = cy - R * .8;
+      x.fillStyle = h.trim; for (let i = 0; i < 5; i++) { const a = i * 1.257; x.beginPath(); x.arc(bx + Math.cos(a) * 7, by + Math.sin(a) * 7, 5.5, 0, 7); x.fill(); }
+      x.fillStyle = '#ffd84d'; x.beginPath(); x.arc(bx, by, 4, 0, 7); x.fill();
+    } else { // Goro's gold kabuto horns
+      x.fillStyle = h.col;
+      for (const s of [-1, 1]) { x.beginPath(); x.moveTo(cx0 + s * 14, cy - R + 6); x.quadraticCurveTo(cx0 + s * 30, cy - R - 6, cx0 + s * 36, cy - R - 24); x.lineTo(cx0 + s * 6, cy - R + 4); x.fill(); }
+    }
+    url = c.toDataURL();
+  } catch (e) { url = ''; }
+  return heroArtCache[key] = typeof url === 'string' && url.startsWith('data:image') ? url : '';
+}
+const heroPortrait = (h, id = Object.keys(HEROES).find(k => HEROES[k] === h)) => {
+  const art = heroArt(id);
+  return `<span class="hp" style="background:${h.body};border-color:${h.col}">${art ? `<img src="${art}" alt="">` : h.icon}</span>`;
+};
+// hero banner above Play: the leader's portrait on their colour, name, role, weapon and mastery; a NEW badge after an unlock
 function heroChip() {
-  const h = HEROES[save.hero] || HEROES.kage, w = SK[h.weapon];
-  return `${heroPortrait(h)}<span class="hn"><b>${h.name}</b> · Mastery ${save.heroes[save.hero] || 1}<small>${w.icon} ${w.name} · ${h.sig}</small></span><span class="go">${save.heroNew ? '🔔 NEW' : 'HEROES ▸'}</span>`;
+  const id = HEROES[save.hero] ? save.hero : 'kage', h = HEROES[id], w = SK[h.weapon], m = save.heroes[id] || 1;
+  const art = heroArt(id), stars = '✦'.repeat(m) + `<i>${'✦'.repeat(MASTERY_MAX - m)}</i>`;
+  return `<span class="hbg" style="background:linear-gradient(100deg,${h.col}66 0%,${h.body} 46%,#151b26 100%)"></span>`
+    + `<span class="hart" style="--hc:${h.col}">${art ? `<img src="${art}" alt="">` : h.icon}</span>`
+    + `<span class="hinfo"><span class="hrole">Leader · ${h.role.split(' · ')[0]}</span><span class="hrow"><b class="hname" style="color:${h.col}">${h.name}</b><span class="hstars" style="color:${h.trim}">${stars}</span></span>`
+    + `<span class="hmeta">${w.icon} ${w.name}</span></span>`
+    + `<span class="hchg">CHANGE<b>›</b></span>${save.heroNew ? '<span class="hnew">NEW</span>' : ''}`;
 }
 function unlockHero(id) {
   if (id in save.heroes) return false;
