@@ -37,6 +37,7 @@ canvas{display:block;margin:0 auto;touch-action:none}
 .sect:first-child{margin-top:0}
 .unl{background:linear-gradient(135deg,#5a3a00,#2a1d00);border:2px solid #ffd84d;color:#ffe680;border-radius:12px;padding:9px;margin:0 0 10px;font-size:11px;font-weight:900;letter-spacing:.5px}
 .unl b{display:block;font-size:17px;color:#fff;margin-top:3px;letter-spacing:0}
+.unl span{display:block;font-size:11px;font-weight:700;color:#ffe9b0;margin-top:4px;letter-spacing:0;line-height:1.35}
 .nextu{font-size:12px;color:#9aa6b2;margin:0 0 12px;line-height:1.45}
 button{font:inherit;font-weight:800;font-size:17px;border:0;border-radius:12px;padding:13px 20px;background:#ffb020;color:#1a1200;cursor:pointer}
 button.sec{background:#273142;color:#fff}
@@ -70,10 +71,49 @@ button.card .ev.ready{color:#ffd84d;font-weight:900}
 .pn ul{list-style:none;margin:0;padding:0}
 .pn li{display:flex;gap:8px;font-size:13px;color:#b8c2cc;line-height:1.4;margin:6px 0}
 .pn li span:first-child{flex:none;width:20px;text-align:center}
-button.link{background:none;color:#9aa6b2;font-size:12px;font-weight:700;padding:8px 6px}
+button.link{background:none;color:#9aa6b2;font-size:12px;font-weight:700;padding:8px 4px}
 .foot{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:8px;color:#5c6875;font-size:12px}
 .up .ai{font-size:18px;flex:none}
+button.ad{background:linear-gradient(135deg,#7b4dff,#c04de0);color:#fff}
+button.ad small{font-size:13px;opacity:.85}
+.x2done{display:inline-block;color:#ffd84d;transform-origin:0 50%;animation:x2pop .5s ease-out}
+.x2done span{background:#7b4dff;color:#fff;font-size:11px;border-radius:6px;padding:1px 5px;vertical-align:2px}
+@keyframes x2pop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
+.bk{margin-bottom:10px}
+.bk .help{margin:0 0 8px;font-size:12px}
+.bk button{width:100%;font-size:15px;padding:11px 14px}
+.bk .sect{margin-top:14px}
+textarea.code{display:block;box-sizing:border-box;width:100%;margin:0 0 8px;padding:8px 9px;background:#0d1117;color:#cfe3ff;border:1px solid #2c3a50;border-radius:10px;font:13px/1.35 ui-monospace,Menlo,Consolas,monospace;word-break:break-all;resize:none;-webkit-user-select:text;user-select:text;touch-action:pan-y}
+textarea.code:focus{outline:none;border-color:#ffb020}
+.bkmsg{font-size:12px;font-weight:700;color:#7dffa0;margin:6px 0 0;line-height:1.4}
+.bkmsg:empty{display:none}
+.bkmsg.bad{color:#ff9c9c;margin:0 0 8px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.tags span{font-size:10px;font-weight:900;border-radius:6px;padding:2px 6px;background:#243044;color:#cfd6e0;white-space:nowrap}
+.tags span.on{background:#1d3b2a;color:#7dffa0}
+.tags span.hot{background:#ffd84d;color:#1a1200}
+button.card.boon{background:linear-gradient(135deg,#3b2160,#1c1430);border-color:#c79bff;box-shadow:0 0 14px rgba(199,155,255,.22)}
+button.card.boon .nm{color:#f0e2ff}
+button.card.boon .lv{color:#e3c8ff;background:#5a3590;border-radius:5px;padding:1px 5px}
+.boonp h2{color:#e3c8ff}
+.bnr{display:flex;gap:8px;align-items:center;text-align:left;background:#2a1d40;border:1px solid #5a3590;border-radius:10px;padding:6px 9px;margin-bottom:6px;font-size:12px;color:#d8c8ee;line-height:1.35}
+.bnr b{color:#f0e2ff}
+.setl{font-size:11px;color:#7dffa0;font-weight:800;margin-top:4px;line-height:1.3}
 .revt{font-size:44px;font-weight:900;color:#ff6b6b;margin:-4px 0 12px;line-height:1}
+.hp{flex:none;width:44px;height:44px;border-radius:50%;border:3px solid;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;overflow:hidden}
+.arm.hero{align-items:flex-start;text-align:left}
+.arm.hero.sel{outline:2px solid #ffb020;background:#222a1a}
+.arm.locked .hp{filter:grayscale(1);opacity:.5}
+.hb{display:flex;gap:6px;margin-top:7px}
+.hb button{flex:1;font-size:13px;padding:8px 6px;min-width:0}
+.hb button.lead{flex:0 0 62px}
+.hb .mx{flex:1;font-size:11px;font-weight:900;color:#ffd84d;text-align:center;padding:8px 0}
+.arm .dots{margin-top:4px}
+.btns button.herochip{display:flex;align-items:center;gap:9px;text-align:left;background:#1a2230;color:#fff;border:2px solid #2c3a50;font-size:13px;padding:6px 10px}
+.herochip .hp{width:32px;height:32px;font-size:16px;border-width:2px}
+.herochip .hn{flex:1;min-width:0;line-height:1.25}
+.herochip .hn small{display:block;color:#9aa6b2;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.herochip .go{color:#ffb020;font-size:12px;font-weight:900;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -120,8 +160,27 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- patch notes ----------
 // Newest first. Bump GAME_VERSION and add an entry for every player-facing update;
 // returning players see the notes once, new players only see the "What's New" button.
-const GAME_VERSION = '1.6';
+const GAME_VERSION = '1.8';
+// Playtest build: every hero is owned from the start so testers can try them all.
+// Set to false for release; heroes then unlock at their chapter (HEROES[id].unlock).
+const TESTER_ALL_HEROES = true;
 const PATCH_NOTES = [
+  { v: '1.8', title: 'Heroes', date: 'Nov 2026', notes: [
+    ['🥷', '<b>Heroes:</b> choose who leads your squad with the new hero button above Play. Each hero starts with a different weapon and has a signature skill.'],
+    ['🦊', '<b>Tsubaki</b> (clear Chapter 4) starts with Fire Talisman and counts as an extra 🔥 Fire skill. Burning enemies take extra damage from everything.'],
+    ['🐻', '<b>Goro</b> (clear Chapter 10) starts with Kusarigama and leads a bigger clan: more squad size, + gates recruit more, and he counts as an extra 🐝 Swarm skill. He throws a bit slower.'],
+    ['✦', '<b>Hero Mastery:</b> spend coins to strengthen your hero\'s signature skill, up to level 5. Upgrades still power up every hero.'],
+    ['🧪', '<b>Playtest:</b> all 3 heroes are unlocked for you right now so you can try them. In the full game they unlock as you progress.'],
+  ] },
+  { v: '1.7', title: 'Boons & Synergies', date: 'Nov 2026', notes: [
+    ['🧬', '<b>Synergy sets:</b> every skill now has tags like 🔥 Fire, 🛡️ Steel or 🐝 Swarm. Own 3 skills with the same tag for a set bonus, and 4 for an even stronger ★ version. Skill cards show your progress.'],
+    ['👑', '<b>Boons:</b> beating your 1st and 3rd guardian each chapter lets you pick a Boon, a powerful twist that lasts the whole run: Momentum, Last Stand, Gate Echo, Blood Pact and more.'],
+    ['👥', '<b>New weapon: Smoke Clones.</b> Shadow clones fight beside your squad. Unlock them by running through ×2 or ×3 gates. Max them with the Abacus to evolve <b>Shadow Legion</b>, where every × gate multiplies your clones too.'],
+    ['🎬', '<b>×2 Coins:</b> after any run, double the coins you earned from the results screen.'],
+    ['💾', '<b>Save backup:</b> tap 💾 Save at the bottom of the home screen to copy a code with all your progress. On a new phone or browser, paste it into Restore to pick up where you left off.'],
+    ['⚖️', 'Thousand Stars is a little weaker; Raijin\'s Drum, Phoenix Seal and Iron Cyclone hit harder. Enemies in later stages and bosses are tougher to match your new powers.'],
+    ['🐛', 'Fixed: the coin counter could briefly show more coins than you had right after a run.'],
+  ] },
   { v: '1.6', title: 'Second Wind & Daily Missions', date: 'Nov 2026', notes: [
     ['❤️', '<b>Revive:</b> once per run, when your squad falls you can get back up with 60% of your squad. A shockwave clears nearby enemies, guardians and bosses get knocked back, and you\'re untouchable for a moment.'],
     ['📋', '<b>Daily Missions:</b> 3 new goals every day (easy, medium, hard), like defeating enemies, dodging charges or shooting gates up. Each one pays coins, and finishing all 3 opens the <b>🎁 Daily Chest</b>.'],
@@ -170,22 +229,12 @@ const PATCH_NOTES = [
 // ---------- save data ----------
 const STAGES = 5, MAX_CHAPTER = 100;
 const SAVE_KEY = 'gatesquad_v1';
-let save = { chapter: 1, bestStage: 0, coins: 0, sound: true, up: { troops: 0, rate: 0, dmg: 0, coin: 0 },
-             skins: ['azure'], skin: 'azure', daily: { last: '', streak: 0 }, seenVersion: '' };
-let hadSave = false;
-try {
-  const s = JSON.parse(localStorage.getItem(SAVE_KEY));
-  if (s) {
-    hadSave = true;
-    save = Object.assign(save, s, { up: Object.assign(save.up, s.up || {}) });
-    // v1 saves counted single levels; 5 old levels make one chapter
-    if (s.chapter == null && s.level) save.chapter = Math.max(1, Math.ceil(s.level / STAGES));
-    delete save.level; delete save.best;
-  }
-  if (!Array.isArray(save.skins)) save.skins = ['azure'];
-} catch (e) {}
-// brand-new players have nothing to catch up on, so don't pop the notes at them
-if (!hadSave) save.seenVersion = GAME_VERSION;
+const saveDefaults = () => ({ chapter: 1, bestStage: 0, coins: 0, sound: true, up: { troops: 0, rate: 0, dmg: 0, coin: 0 },
+             skins: ['azure'], skin: 'azure', daily: { last: '', streak: 0 }, seenVersion: '', hero: 'kage', heroes: { kage: 1 } });
+// `save` is only ever filled in place (see loadSave), so it is safe to hold on to.
+const save = saveDefaults();
+let storedSave = null;
+try { storedSave = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) {}
 
 // ---------- unlocks (earned, Vampire Survivors style) ----------
 // Players start with a small kit; everything else is earned through lifetime challenges, each teaching a mechanic.
@@ -200,14 +249,72 @@ const UNLOCKS = {
   mirror:   { stat: 'evolves',    goal: 1,    cond: 'Evolve any weapon' },
   banner:   { stat: 'fullBoss',   goal: 1,    cond: 'Reach a boss with a full squad' },
   ronin:    { stat: 'sacClears',  goal: 1,    cond: 'Clear a chapter after taking a ÷2 Sacrifice lane' },
+  clones:   { stat: 'muls',       goal: 8,    cond: 'Run through ×2 or ×3 gates 8 times' }, // teaches multipliers, Shadow Legion's trick
 };
-// Saves from before unlocks existed start from the kit too, but anything the save already proves
-// (chapters cleared) counts right away.
-if (!Array.isArray(save.unlocked)) save.unlocked = [...STARTER];
-save.stats = Object.assign({ kills: 0, dodges: 0, gateBumps: 0, rallies: 0, evolves: 0, fullBoss: 0, sacClears: 0,
-                             chapters: Math.max(0, save.chapter - 1) }, save.stats || {});
-if (!Array.isArray(save.evoSeen)) save.evoSeen = [];
-for (const id in UNLOCKS) if (!save.unlocked.includes(id) && save.stats[UNLOCKS[id].stat] >= UNLOCKS[id].goal) save.unlocked.push(id);
+// ---------- heroes (M5) ----------
+// The leader of the squad. Heroes are sidegrades, not a second power ladder: the 4 account upgrades stay the shared
+// power progression, and a hero only changes how a run starts and which builds it leans toward.
+//   weapon: the run starts with it at Lv 1 instead of Shuriken Volley (usable even if the Armory hasn't unlocked it)
+//   tag:    counts as one extra skill with that synergy tag, so 2 more tagged skills complete the set
+//   v(m):   signature strength at mastery m (1-5). Mastery is a small coin sink: max mastery is worth well under +10% power.
+//   capMul / rateMul: the hero's trade-offs (squad size, throw speed); con: the trade-off in words
+//   unlock: reached by clearing chapter unlock - 1 (save.chapter >= unlock)
+// Look: every hero leads the squad as a bigger ninja in their own garb (body/col/trim); the squad keeps its skin.
+const pct = v => Math.round(v * 1000) / 10;
+const HEROES = {
+  kage: { name: 'Kage', icon: '🥷', role: 'Balanced · Shuriken master', weapon: 'volley', unlock: 1,
+    body: '#161a2e', col: '#5c8dff', trim: '#ffd84d',
+    sig: 'Star Focus', v: m => .04 * m, sd: m => `Shuriken Volley stars hit <b>+${pct(HEROES.kage.v(m))}%</b> harder` },
+  tsubaki: { name: 'Tsubaki', icon: '🦊', role: 'Fire · Elite burner', weapon: 'talisman', tag: 'Fire', unlock: 5,
+    body: '#3a1020', col: '#ff5c7a', trim: '#ffb3c8',
+    sig: 'Foxfire', v: m => .125 + .025 * m, sd: m => `Burning enemies take <b>+${pct(HEROES.tsubaki.v(m))}%</b> damage. Counts as an extra 🔥 Fire skill` },
+  goro: { name: 'Goro', icon: '🐻', role: 'Bruiser · Crowd & Swarm', weapon: 'chain', tag: 'Swarm', unlock: 11,
+    body: '#2b2f36', col: '#d4a52c', trim: '#c9ced6', rateMul: .85,
+    sig: 'Mountain Clan', v: m => .075 + .025 * m, sd: m => `<b>+${pct(HEROES.goro.v(m))}%</b> squad size and + gates recruit that much more. Counts as an extra 🐝 Swarm skill`,
+    con: '−15% throw speed' },
+};
+const MASTERY_MAX = 5;
+// coins to go from mastery m to m + 1 (modest: the whole track costs about one or two account-upgrade levels at chapter 10)
+const MASTERY_COST = [0, 800, 2000, 4500, 9000];
+const masteryCost = m => MASTERY_COST[m];
+// Monetization hook (not built): a hero could also be unlocked by a purchase or a rewarded ad. Wire the store or
+// ad SDK here and call unlockHero(id) on success; the Heroes screen would show the offer next to the chapter goal.
+function heroUnlockAlt(id, done) { done(false); }
+// Merge a stored save over the defaults and migrate older formats. Used both when loading from localStorage
+// and when restoring a backup code, so a restored save is defaulted exactly like a loaded one.
+function migrateSave(s) {
+  const out = Object.assign(saveDefaults(), s, { up: Object.assign(saveDefaults().up, s.up || {}) });
+  // v1 saves counted single levels; 5 old levels make one chapter
+  if (s.chapter == null && s.level) out.chapter = Math.max(1, Math.ceil(s.level / STAGES));
+  delete out.level; delete out.best;
+  if (!Array.isArray(out.skins)) out.skins = ['azure'];
+  // Saves from before unlocks existed start from the kit too, but anything the save already proves
+  // (chapters cleared) counts right away.
+  if (!Array.isArray(out.unlocked)) out.unlocked = [...STARTER];
+  out.stats = Object.assign({ kills: 0, dodges: 0, gateBumps: 0, rallies: 0, evolves: 0, fullBoss: 0, sacClears: 0, muls: 0,
+                              chapters: Math.max(0, out.chapter - 1) }, out.stats || {});
+  if (!Array.isArray(out.evoSeen)) out.evoSeen = [];
+  for (const id in UNLOCKS) if (!out.unlocked.includes(id) && out.stats[UNLOCKS[id].stat] >= UNLOCKS[id].goal) out.unlocked.push(id);
+  // heroes: id → mastery (1-5); Kage is always owned. Saves from before heroes get every hero their chapter already earned.
+  const hs = {}, inHs = isObjS(out.heroes) ? out.heroes : {};
+  for (const id in HEROES) if (id in inHs) hs[id] = Math.max(1, Math.min(MASTERY_MAX, Math.floor(+inHs[id]) || 1));
+  hs.kage = hs.kage || 1;
+  out.heroes = hs;
+  for (const id in HEROES) if (!(id in hs) && (TESTER_ALL_HEROES || out.chapter >= HEROES[id].unlock)) { hs[id] = 1; out.heroNew = true; }
+  if (!(out.hero in hs)) out.hero = 'kage';
+  return out;
+}
+function isObjS(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }
+// Replace the live save in place with a migrated copy of `s`.
+function loadSave(s) {
+  const next = migrateSave(s);
+  for (const k of Object.keys(save)) delete save[k];
+  Object.assign(save, next);
+}
+const hadSave = !!storedSave && typeof storedSave === 'object';
+try { loadSave(hadSave ? storedSave : {}); } catch (e) { loadSave({}); }
+// brand-new players have nothing to catch up on, so don't pop the notes at them
+if (!hadSave) save.seenVersion = GAME_VERSION;
 const isUnlocked = id => save.unlocked.includes(id);
 
 const SKINS = [
@@ -304,12 +411,13 @@ const Dr = lv => Math.min(1, (lv - 1) / 300);
 const upExp = lv => Math.min(50, (lv - 1) / 7);
 const Pw = lv => { const u = upExp(lv); return Math.max(1, (1 + .06 * u) * (1 + .15 * u) * (1 + .1 * u) * .6); };
 // The crowd and build snowball within a chapter, so later stages get a steep HP ramp (SR) to keep pace.
-const SR = s => .6 * Math.pow(1.9, s - 1);
+// M4: 1.9 → 2.0 per stage, since boons (after guardians 1 and 3) and set bonuses add their power as the run goes on.
+const SR = s => .6 * Math.pow(2.0, s - 1);
 // gentle intro: tiers 1-15 ramp from 45% to full strength (new players start with only the starter kit)
-// HPK: global enemy-HP knob, retuned whenever in-run power changes (M3: choice gates + evolutions)
-const HPK = 1.8;
-// BOSS_HPK: extra boss HP so the phased boss fight lasts ~20-40 s instead of a 5 s damage check
-const BOSS_HPK = 3;
+// HPK: global enemy-HP knob, retuned whenever in-run power changes (M3: choice gates + evolutions; M4: boons + set bonuses, 1.8 → 2.0)
+const HPK = 2.0;
+// BOSS_HPK: extra boss HP so the phased boss fight lasts ~20-40 s instead of a 5 s damage check (M4: 3 → 3.2)
+const BOSS_HPK = 3.2;
 const Hm = (lv, s = 1) => HPK * Gs(lv) * (1 + 0.7 * Dr(lv)) * Pw(lv) * (0.45 + 0.55 * Math.min(1, (lv - 1) / 15)) * SR(s);
 const lanesFor = lv => lv < 15 ? 2 : lv < 60 ? 3 : lv < 150 ? 4 : 5;
 // ninjas lost to a hit; grows with the stage at the same rate as the squad cap so late hits still sting
@@ -428,33 +536,85 @@ function genChapter(c) {
 const KUNAI = l => ({ cd: 1.6 - .15 * l, n: 1 + Math.floor((l - 1) / 2), pierce: 2 + l, dmg: .35 + .1 * l });
 const CHAIN = l => ({ n: 1 + Math.ceil(l / 2), dmg: .12 + .05 * l });
 const TALIS = l => ({ cd: 2.4 - .25 * l, n: 1 + Math.floor((l - 1) / 2), dmg: .5 + .1 * l, burn: .15 + .05 * l });
-const SEAL = l => ({ cd: 2.6 - .25 * l, jumps: 2 + l, dmg: .6 + .15 * l });
+const SEAL = l => ({ cd: 2.6 - .25 * l, jumps: 2 + l, dmg: .7 + .2 * l });
+const CLONES = l => ({ n: 1 + l, cd: .9 - .06 * l, dmg: .12 + .03 * l });
+// Shadow Legion: × gates multiply the clones (up to CLONE_MAX); only CLONE_DRAW are drawn and throw, scaled up to the rest
+const CLONE_MAX = 32, CLONE_DRAW = 14;
+// Volley: +20% per pick. Kage starts with Lv 1 for free (+0%); other heroes draft it from scratch, so their Lv 1 is +20%.
+const volleyBonus = l => .2 * Math.max(0, l - (g && HEROES[g.hero].weapon !== 'volley' ? 0 : 1));
 const gourdN = l => Math.max(1, Math.round((g ? g.G : 1) * l * .6));
 const SK = {
-  volley:    { a: 1, max: 5, icon: '✴️', name: 'Shuriken Volley', d: l => `Your squad's throws hit ${20 * (l - 1)}% harder` },
-  kunai:     { a: 1, max: 5, icon: '🗡️', name: 'Kunai Line', d: l => { const s = KUNAI(l); return `${s.n} kunai every ${s.cd.toFixed(1)}s, each piercing ${s.pierce} enemies`; } },
-  chain:     { a: 1, max: 5, icon: '⛓️', name: 'Kusarigama', d: l => `${CHAIN(l).n} chain blades orbit the squad and shred anything that gets close` },
-  talisman:  { a: 1, max: 5, icon: '📜', name: 'Fire Talisman', d: l => { const s = TALIS(l); return `${s.n} homing talisman${s.n > 1 ? 's' : ''} every ${s.cd.toFixed(1)}s that set enemies on fire`; } },
-  seal:      { a: 1, max: 5, icon: '⚡', name: 'Lightning Seal', d: l => { const s = SEAL(l); return `Lightning every ${s.cd.toFixed(1)}s, chaining through ${s.jumps} enemies`; } },
-  headband:  { a: 0, max: 5, icon: '🎌', name: 'Headband', d: l => `+${10 * l}% throw speed` },
-  whetstone: { a: 0, max: 5, icon: '🪨', name: 'Whetstone', d: l => `+${15 * l}% damage for every weapon` },
-  abacus:    { a: 0, max: 5, icon: '🧮', name: 'Abacus', d: l => `+ gates give ${25 * l}% more ninjas, − gates take ${12 * l}% fewer` },
-  gourd:     { a: 0, max: 5, icon: '🍶', name: 'Sake Gourd', d: l => `Recruit ${gourdN(l)} ninja${gourdN(l) > 1 ? 's' : ''} every 4 seconds` },
-  mirror:    { a: 0, max: 3, icon: '🪞', name: 'Mirror', d: l => `+${l} kunai, talisman and lightning chain` },
-  tabi:      { a: 0, max: 5, icon: '🥾', name: 'Iron Tabi', d: l => `Lose ${12 * l}% fewer ninjas to arrows, rocks and spikes` },
+  volley:    { a: 1, max: 5, icon: '✴️', name: 'Shuriken Volley', tags: ['Steel'], d: l => `Your squad's throws hit ${Math.round(100 * volleyBonus(l))}% harder` },
+  kunai:     { a: 1, max: 5, icon: '🗡️', name: 'Kunai Line', tags: ['Steel', 'Elite'], d: l => { const s = KUNAI(l); return `${s.n} kunai every ${s.cd.toFixed(1)}s, each piercing ${s.pierce} enemies`; } },
+  chain:     { a: 1, max: 5, icon: '⛓️', name: 'Kusarigama', tags: ['Steel'], d: l => `${CHAIN(l).n} chain blades orbit the squad and shred anything that gets close` },
+  talisman:  { a: 1, max: 5, icon: '📜', name: 'Fire Talisman', tags: ['Fire'], d: l => { const s = TALIS(l); return `${s.n} homing talisman${s.n > 1 ? 's' : ''} every ${s.cd.toFixed(1)}s that set enemies on fire`; } },
+  seal:      { a: 1, max: 5, icon: '⚡', name: 'Lightning Seal', tags: ['Storm', 'Fire'], d: l => { const s = SEAL(l); return `Lightning every ${s.cd.toFixed(1)}s, chaining through ${s.jumps} enemies`; } },
+  clones:    { a: 1, max: 5, icon: '👥', name: 'Smoke Clones', tags: ['Shadow', 'Swarm'], d: l => { const s = CLONES(l); return `${s.n} shadow clones fight beside the squad, each throwing a star every ${s.cd.toFixed(1)}s`; } },
+  headband:  { a: 0, max: 5, icon: '🎌', name: 'Headband', tags: ['Storm'], d: l => `+${10 * l}% throw speed` },
+  whetstone: { a: 0, max: 5, icon: '🪨', name: 'Whetstone', tags: ['Fire', 'Elite'], d: l => `+${15 * l}% damage for every weapon` },
+  abacus:    { a: 0, max: 5, icon: '🧮', name: 'Abacus', tags: ['Swarm'], d: l => `+ gates give ${25 * l}% more ninjas, − gates take ${12 * l}% fewer` },
+  gourd:     { a: 0, max: 5, icon: '🍶', name: 'Sake Gourd', tags: ['Fire', 'Swarm'], d: l => `Recruit ${gourdN(l)} ninja${gourdN(l) > 1 ? 's' : ''} every 4 seconds` },
+  mirror:    { a: 0, max: 3, icon: '🪞', name: 'Mirror', tags: ['Shadow', 'Storm'], d: l => `+${l} kunai, talisman and lightning chain` },
+  tabi:      { a: 0, max: 5, icon: '🥾', name: 'Iron Tabi', tags: ['Steel'], d: l => `Lose ${12 * l}% fewer ninjas to arrows, rocks and spikes` },
   // Swarm vs Elite: Banner rewards a full squad, Ronin lets a small squad hit like a full one
-  banner:    { a: 0, max: 5, icon: '🚩', name: 'War Banner', tag: 'Swarm', d: l => `+${12 * l}% squad size, and +${8 * l}% damage while the squad is full` },
-  ronin:     { a: 0, max: 5, icon: '⚔️', name: 'Ronin Spirit', tag: 'Elite', d: l => `Fallen ninjas fight on as ghosts: ${20 * l}% of your missing squad still deals damage` },
+  banner:    { a: 0, max: 5, icon: '🚩', name: 'War Banner', tags: ['Swarm'], d: l => `+${12 * l}% squad size, and +${8 * l}% damage while the squad is full` },
+  ronin:     { a: 0, max: 5, icon: '⚔️', name: 'Ronin Spirit', tags: ['Shadow', 'Elite'], d: l => `Fallen ninjas fight on as ghosts: ${20 * l}% of your missing squad still deals damage` },
 };
 const SLOTS = 4;
 // Evolution: a max-level weapon plus its paired passive (any level) summons a Golden Torii
 const EVOS = {
-  volley:   { with: 'banner',   icon: '🌟', name: 'Thousand Stars', d: 'Almost every ninja throws. Stars pierce and hit 50% harder.' },
+  volley:   { with: 'banner',   icon: '🌟', name: 'Thousand Stars', d: 'Almost every ninja throws. Stars pierce and hit 30% harder.' },
   kunai:    { with: 'ronin',    icon: '🐉', name: 'Dragon Fang',    d: 'A giant fang that tears through everything in its lane' },
-  chain:    { with: 'tabi',     icon: '🌀', name: 'Iron Cyclone',   d: '7 huge blades that also smash arrows and rocks' },
-  talisman: { with: 'gourd',    icon: '☀️', name: 'Phoenix Seal',   d: 'Fire spreads on kill, and every burning kill recruits ninjas' },
-  seal:     { with: 'headband', icon: '🥁', name: "Raijin's Drum",  d: 'Lightning strikes twice as often and never weakens as it chains' },
+  chain:    { with: 'tabi',     icon: '🌀', name: 'Iron Cyclone',   d: '7 huge blades that smash arrows and rocks, and hurl a spinning blade at the toughest enemy every second' },
+  talisman: { with: 'gourd',    icon: '☀️', name: 'Phoenix Seal',   d: 'Talismans hit 50% harder and burn twice as hot. Fire spreads on kill, and burning kills recruit ninjas' },
+  seal:     { with: 'headband', icon: '🥁', name: "Raijin's Drum",  d: 'Lightning strikes almost 3× as often and 2.5× as hard, and never weakens as it chains' },
+  clones:   { with: 'abacus',   icon: '🌘', name: 'Shadow Legion',  d: `× gates multiply your clones too (up to ${CLONE_MAX}), so every multiplier grows a shadow army` },
 };
+// Synergy tags: owning 3 skills that share a tag activates its set bonus; a 4th upgrades it (★).
+// Tags pull drafts toward a coherent build instead of "highest number wins".
+const TAGS = {
+  Fire:   { icon: '🔥', col: '#ff8a3d', d: ['Your stars set enemies on fire', 'Hotter fire that spreads to nearby enemies on every burning kill'] },
+  Storm:  { icon: '🌩️', col: '#8fc8ff', d: ['A free lightning strike every 2s', 'A free lightning strike every second'] },
+  Steel:  { icon: '🛡️', col: '#c9ced6', d: ['Lose 20% fewer ninjas to every hit', 'Lose 35% fewer ninjas to every hit'] },
+  Shadow: { icon: '🌑', col: '#c79bff', d: ['Vanish in smoke for 2s every 12s (hits miss you)', 'Vanish in smoke for 2s every 8s'] },
+  Swarm:  { icon: '🐝', col: '#7dffa0', d: ['+15% squad size', '+25% squad size'] },
+  Elite:  { icon: '💎', col: '#5cf0ff', d: ['Hits have a 15% chance to crit for double damage', 'Hits have a 25% chance to crit for ×2.5 damage'] },
+};
+const SET_AT = [3, 4]; // skills needed for the set bonus and its ★ tier
+// Boons: rare run modifiers offered by every other guardian kill (pick 1 of 3, no levels, 2 a chapter).
+// Each one changes what a good decision looks like for the rest of the run.
+const BOONS = {
+  momentum:  { icon: '🌀', name: 'Momentum',        d: 'Throw speed builds up to +60% while you avoid hits. Each hit knocks it down by half.' },
+  laststand: { icon: '🩸', name: 'Last Stand',      d: 'Up to +150% damage as your squad drops below 60% of its size' },
+  echo:      { icon: '🔁', name: 'Gate Echo',       d: 'Blue gates have a 60% chance to trigger twice (×2 becomes ×4!), but red − gates take 50% more' },
+  overflow:  { icon: '🌊', name: 'Overflow',        d: 'Ninjas that don\'t fit in a full squad turn into damage, up to +25%' },
+  pact:      { icon: '👹', name: 'Blood Pact',      d: '+60% damage, but your squad is 20% smaller' },
+  slayer:    { icon: '🎯', name: 'Giant Slayer',    d: '+25% damage to guardians and bosses' },
+  insight:   { icon: '🔮', name: 'Third Eye',       d: 'Level-ups show 4 cards, and you earn 40% more XP' },
+  kindred:   { icon: '🎎', name: 'Kindred Spirits', d: 'Every tag counts one extra skill, so set bonuses need only 2. Your hits deal 8% less damage.' },
+};
+// the run's hero counts as one extra skill of its tag (Tsubaki: Fire, Goro: Swarm)
+const tagCount = (t, sk = g.sk, bn = g.boons) => Object.keys(sk).filter(id => SK[id].tags.includes(t)).length + (bn && bn.kindred ? 1 : 0)
+  + (g && HEROES[g.hero].tag === t ? 1 : 0);
+// hero helpers: the run's hero (or the selected one before a run), and its signature strength (0 for other heroes)
+const curHero = () => HEROES[g ? g.hero : save.hero] || HEROES.kage;
+const heroSig = id => g && g.hero === id ? HEROES[id].v(g.mastery) : 0;
+// a hero's starting weapon can be drafted in that hero's runs even before the Armory unlocks it
+const canUse = id => isUnlocked(id) || (!!g && HEROES[g.hero].weapon === id);
+const setTier = n => n >= SET_AT[1] ? 2 : n >= SET_AT[0] ? 1 : 0;
+// recompute active set bonuses after the build changes, announcing new ones
+function refreshSets() {
+  const old = g.sets || {}, sets = {};
+  for (const t in TAGS) { const tier = setTier(tagCount(t)); if (tier) sets[t] = tier; }
+  g.sets = sets;
+  const fresh = Object.keys(sets).filter(t => sets[t] > (old[t] || 0));
+  if (fresh.length) {
+    const t = fresh[0];
+    g.banner = { txt: TAGS[t].icon + ' ' + t.toUpperCase() + (sets[t] > 1 ? ' SET ★' : ' SET!'), sub: TAGS[t].d[sets[t] - 1], t: 2, gold: true, small: true };
+    if (t === 'Shadow') g.shT = 2;
+  }
+  g.cap = capFor(g.lv, g.stage); g.count = Math.min(g.count, g.cap);
+}
 const evoOf = passive => Object.keys(EVOS).find(a => EVOS[a].with === passive);
 const evoReady = id => EVOS[id] && !g.evo[id] && skl(id) >= SK[id].max && skl(EVOS[id].with) >= 1;
 const xpNeed = l => Math.round(8 + l * 7 + l * l * .6); // steeper since the endless stream gives far more kills
@@ -468,15 +628,15 @@ function newGame(seed) {
   R = makeRng(runSeed);
   const ch = genChapter(c);
   R = makeRng(runSeed ^ 0x9E3779B9); // separate stream for in-run rolls (drafts, enemy AI)
-  const u = save.up, lv = tierOf(c, 1);
-  g = { c, seed: runSeed, stage: 1, lv, G: Gs(lv), D: Dr(lv), lanes: lanesFor(lv), speed: SPEED * (1 + .3 * Dr(lv)),
+  const u = save.up, lv = tierOf(c, 1), hero = HEROES[save.hero] ? save.hero : 'kage', H0 = HEROES[hero];
+  g = { c, seed: runSeed, hero, mastery: save.heroes[hero] || 1, stage: 1, lv, G: Gs(lv), D: Dr(lv), lanes: lanesFor(lv), speed: SPEED * (1 + .3 * Dr(lv)),
         dist: 0, L: ch.L, stageD: ch.stageD, waves: ch.waves, spawnT: 1, objs: ch.objs,
         count: Math.round((8 + u.troops * 3) * Gs(lv)), cap: capFor(lv, 1), sx: MID,
-        rate: Math.min(15, 3 * (1 + .06 * u.rate)), dmg: 1 + .15 * u.dmg, spread: 0, fireT: 0, flash: 0,
+        rate: Math.min(15, 3 * (1 + .06 * u.rate)) * (H0.rateMul || 1), dmg: 1 + .15 * u.dmg, spread: 0, fireT: 0, flash: 0,
         bullets: [], ebullets: [], proj: [], bolts: [], smoke: 0, fire: 0, parts: [], pops: [], bossMode: false, shake: 0, hurt: 0, coins: 0,
-        kills: 0, st: { gateBumps: 0, rallies: 0, dodges: 0, evolves: 0, sac: 0, fullBoss: 0, choices: 0, guardians: 0, stages: 0 }, revived: false, invuln: 0, xp: 0, xpLv: 1, xpNeed: xpNeed(1), dq: [], draft: null, sk: { volley: 1 }, evo: {}, toriiFor: {}, wt: {}, chainA: 0, regenT: 4, won: false,
-        slow: 0, evoFlash: 0,
-        banner: { txt: 'CHAPTER ' + c + (c % 10 === 0 ? ' ★' : ''), t: 1.8 } };
+        kills: 0, st: { gateBumps: 0, rallies: 0, dodges: 0, evolves: 0, sac: 0, fullBoss: 0, choices: 0, guardians: 0, stages: 0, muls: 0 }, revived: false, invuln: 0, xp: 0, xpLv: 1, xpNeed: xpNeed(1), dq: [], draft: null, sk: { [H0.weapon]: 1 }, evo: {}, toriiFor: {}, wt: {}, chainA: 0, regenT: 4, won: false,
+        slow: 0, evoFlash: 0, sets: {}, shT: 0, boons: {}, momT: 0, ovf: 0, clones: 0, clA: 0,
+        banner: { txt: 'CHAPTER ' + c + (c % 10 === 0 ? ' ★' : ''), sub: H0.icon + ' ' + H0.name.toUpperCase() + ' LEADS THE SQUAD', t: 1.8 } };
   running = true; ui.innerHTML = '';
 }
 
@@ -497,7 +657,7 @@ function pop(x, y, txt, col, big) { g.pops.push({ x, y, txt, col, t: 1.1, big })
 function spark(x, y, col, n = 4, sp = 90) { for (let i = 0; i < n; i++) g.parts.push({ x, y, vx: frnd(-sp, sp), vy: frnd(-sp * 1.3, sp * .4), t: frnd(.25, .55), col, s: frnd(2, 5) }); }
 function isGood(s) { return s.ch || (s.t === 'add' && s.v >= 0) || s.t === 'mul' || s.t === 'rate' || s.t === 'dmg'; }
 // gate "+N / -N" value after the Abacus passive
-function gateV(s) { const a = skl('abacus'); return Math.round(s.v * (s.v >= 0 ? 1 + .25 * a : 1 - .12 * a)); }
+function gateV(s) { const a = skl('abacus'); return Math.round(s.v * (s.v >= 0 ? (1 + .25 * a) * (1 + heroSig('goro')) : 1 - .12 * a)); }
 function label(s, short) {
   if (s.t === 'add') { const v = gateV(s); return (v >= 0 ? '+' : '') + v; }
   if (s.t === 'mul') return '×' + s.v;
@@ -516,17 +676,43 @@ function caption(s) {
 const laneOf = (x, n = g.lanes) => clamp(Math.floor((x - RL) / ((RR - RL) / n)), 0, n - 1);
 // The squad has a size cap per stage. Without it, ×2/×3 gates compound across a 5-stage chapter
 // into crowds of millions and no enemy matters. At the cap, POWER and SPEED gates become the better pick.
-const capFor = (lv, s) => Math.round((40 + 4 * save.up.troops) * Gs(lv) * (1 + .3 * (s - 1)) * (g ? 1 + .12 * skl('banner') : 1));
-function addNinjas(n) { const before = g.count; g.count = Math.min(g.cap, g.count + n); return g.count - before; }
+const capFor = (lv, s) => Math.round((40 + 4 * save.up.troops) * Gs(lv) * (1 + .3 * (s - 1)) * heroCapMul() * (g ? (1 + .12 * skl('banner')) * (1 + [0, .15, .25][g.sets.Swarm || 0]) * (g.boons.pact ? .8 : 1) : 1));
+// hero squad size: Tsubaki's smaller clan, Goro's Mountain Clan (works before the run object exists, for the starting cap)
+function heroCapMul() {
+  const id = g ? g.hero : save.hero, h = HEROES[id] || HEROES.kage, m = g ? g.mastery : (save.heroes[id] || 1);
+  return (h.capMul || 1) * (id === 'goro' ? 1 + h.v(m) : 1);
+}
+function addNinjas(n, noOverflow) {
+  const before = g.count; g.count = Math.min(g.cap, g.count + n);
+  const waste = n - (g.count - before);
+  if (g.boons.overflow && !noOverflow && waste > 0 && g.ovf < OVF_MAX / OVF_K) { // Overflow: wasted recruits become damage
+    g.ovf += waste / g.G; if (g.ovfPop <= 0) { g.ovfPop = .8; pop(g.sx + 34, SQY - 84, '🌊 +' + Math.round(ovfBonus() * 100) + '%', '#7fd8ff'); }
+  }
+  return g.count - before;
+}
+// boon helpers: current bonus of the scaling boons (also shown in the HUD)
+const OVF_K = .003, OVF_MAX = .25;
+const ovfBonus = () => g.boons.overflow ? Math.min(OVF_MAX, g.ovf * OVF_K) : 0;
+const momBonus = () => g.boons.momentum ? Math.min(.6, g.momT * .06) : 0;
+const lsBonus = () => g.boons.laststand ? 1.5 * clamp((.6 - g.count / g.cap) / .45, 0, 1) : 0;
 function applyGate(s) {
   const y = SQY - 70, wasFull = g.count >= g.cap;
-  if (s.t === 'add') { const v = gateV(s); if (v >= 0) addNinjas(v); else g.count += v; }
-  else if (s.t === 'mul') addNinjas(g.count * (s.v - 1));
-  else if (s.t === 'div') g.count = Math.floor(g.count / s.v);
-  else if (s.t === 'rate') g.rate = Math.max(g.rate, Math.min(12, g.rate * 1.12));
-  else if (s.t === 'dmg') g.dmg *= 1.15;
+  // Gate Echo boon: blue gates often trigger twice, red − gates take 50% more
+  const echo = g.boons.echo && !s.ch && isGood(s) && R() < .6;
+  for (let rep = echo ? 2 : 1; rep > 0; rep--) {
+    if (s.t === 'add') { const v = gateV(s); if (v >= 0) addNinjas(v); else g.count += g.boons.echo ? Math.round(v * 1.5) : v; }
+    else if (s.t === 'mul') {
+      addNinjas(g.count * (s.v - 1));
+      if (g.evo.clones) { g.clones = Math.min(CLONE_MAX, g.clones * s.v); pop(g.sx, y - 64, '👥 ×' + s.v + ' CLONES', '#c79bff', true); }
+    }
+    else if (s.t === 'rate') g.rate = Math.max(g.rate, Math.min(12, g.rate * 1.12));
+    else if (s.t === 'dmg') g.dmg *= 1.15;
+  }
+  if (echo) pop(g.sx, y - 34, '🔁 ECHO ×2', '#e3c8ff');
+  if (s.t === 'mul') g.st.muls++;
+  if (s.t === 'div') g.count = Math.floor(g.count / s.v);
   else if (s.t === 'skill') { g.count = Math.max(1, Math.ceil(g.count * .7)); g.dq.push('SKILL GATE'); }
-  else if (s.t === 'rally') { addNinjas(g.cap); g.st.rallies++; }
+  else if (s.t === 'rally') { addNinjas(g.cap, true); g.st.rallies++; }
   else if (s.t === 'sac') { g.count = Math.max(1, Math.floor(g.count / 2)); g.dmg *= 1.5; g.st.sac++; }
   else if (s.t === 'gold') g.coins += s.v;
   if (s.ch) g.st.choices++;
@@ -550,6 +736,13 @@ function hurtSquad(n, x, y, tabi) {
   if (g.invuln > 0) return; // just revived
   if (g.smoke > 0) { spark(x, y, '#cfd6e0', 4); return; }
   if (tabi && skl('tabi')) n = Math.max(1, Math.round(n * (1 - .12 * skl('tabi'))));
+  if (g.sets.Steel) {
+    // Steel set: fewer losses; the fraction is rolled so even 1-ninja hits are sometimes blocked
+    const k = n * (g.sets.Steel > 1 ? .65 : .8); n = Math.floor(k) + (R() < k % 1 ? 1 : 0);
+    if (!n) { pop(x, SQY - 40, 'BLOCKED', '#c9ced6'); spark(x, y, '#c9ced6', 4); return; }
+  }
+  if (g.momT > 2 && g.boons.momentum) pop(g.sx, SQY - 84, '🌀 ÷2', '#e3c8ff');
+  g.momT = Math.min(g.momT, 10) / 2;
   g.count -= n; pop(x, SQY - 40, '-' + n, '#ff5c5c'); spark(x, y, '#ff5c5c', 6);
   g.shake = 0.2; g.hurt = .25; SFX.hurt();
 }
@@ -558,10 +751,14 @@ function hurtSquad(n, x, y, tabi) {
 // T: damage of one full volley from the whole squad; every weapon scales off it.
 // Ronin counts part of the missing squad (up to the cap) as still fighting; Banner rewards a full squad.
 const fighters = () => g.count + Math.max(0, g.cap - g.count) * Math.min(1, .2 * skl('ronin'));
-const power = () => g.dmg * (1 + .15 * skl('whetstone')) * fighters() * (g.count >= g.cap ? 1 + .08 * skl('banner') : 1);
+const power = () => g.dmg * (1 + .15 * skl('whetstone')) * fighters() * (g.count >= g.cap ? 1 + .08 * skl('banner') : 1)
+  * (g.boons.pact ? 1.6 : 1) * (g.boons.kindred ? .92 : 1) * (1 + lsBonus()) * (1 + ovfBonus());
 function damage(o, amt, x, y, quiet) {
   if (o.dead) return;
   o.hitT = .06;
+  if (g.boons.slayer && (o.k === 'mini' || o.k === 'boss')) amt *= 1.25;
+  if (o.burn && g.hero === 'tsubaki') amt *= 1 + heroSig('tsubaki'); // Foxfire
+  if (!quiet && g.sets.Elite && R() < (g.sets.Elite > 1 ? .25 : .15)) { amt *= g.sets.Elite > 1 ? 2.5 : 2; spark(x, y, '#5cf0ff', 3, 120); }
   if (o.shield > 0) { o.shield -= amt; if (!quiet) { spark(x, y, '#9fb4c8', 2); SFX.hit(); } return; }
   o.hp -= amt;
   if (!quiet) { spark(x, y, o.k === 'crate' ? '#d9a066' : '#ff7a5c', 2); SFX.hit(); }
@@ -571,10 +768,10 @@ function kill(o) {
   const oy = sy(o);
   if (o.k !== 'crate') g.kills++;
   o.dead = true; spark(o.x, oy, '#ffcc66', o.k === 'boss' ? 60 : 14, o.k === 'boss' ? 220 : 110);
-  if (o.burn && g.evo.talisman && o.k !== 'boss') {
-    // Phoenix Seal: the fire jumps to nearby enemies and the fallen rise to join you
+  if (o.burn && (g.evo.talisman || g.sets.Fire > 1) && o.k !== 'boss') {
+    // Phoenix Seal (and the ★ Fire set): the fire jumps to nearby enemies; with Phoenix the fallen rise to join you
     for (const n of g.objs) if (!n.dead && !n.burn && (n.k === 'en' || n.k === 'mini') && Math.hypot(n.x - o.x, sy(n) - oy) < 70) n.burn = { t: 3, dps: o.burn.dps };
-    addNinjas(Math.max(1, Math.round(g.G * .4)));
+    if (g.evo.talisman) addNinjas(Math.max(1, Math.round(g.G * .4)));
     spark(o.x, oy, '#ff8a3d', 10, 150);
   }
   if (o.k === 'en') {
@@ -587,11 +784,12 @@ function kill(o) {
     g.coins += 25; SFX.boom(); pop(o.x, oy, o.split ? 'TWIN DOWN!' : 'GUARDIAN DOWN!', '#ffd84d', true);
     if (o.t === 2 && !o.split) for (const dx of [-30, 30]) g.objs.push({ k: 'mini', t: 2, split: true, d: o.d + 150, x: clamp(o.x + dx, RL + 25, RR - 25), hp: o.max * .4, max: o.max * .4, r: 20, ph: 0, atkT: 2, seen: true });
     else powerUp({ x: o.x, d: o.d, pu: pick(['spread', 'fire', 'smoke', 'troops']) });
-    if (!o.split) { gainXp(6); g.dq.push('GUARDIAN REWARD'); g.st.guardians++; }
+    // every other guardian you defeat (1st, 3rd) grants a Boon; the others a bonus skill pick, so runs still reach evolutions
+    if (!o.split) { gainXp(6); g.dq.push(boonNext() ? BOON_DRAFT : 'GUARDIAN REWARD'); g.st.guardians++; }
   } else if (o.k === 'boss') { g.coins += 30 + g.lv * ECON.bossPer; SFX.boom(); g.won = true; }
 }
 function gainXp(n) {
-  g.xp += n;
+  g.xp += n * (g.boons.insight ? 1.4 : 1);
   while (g.xp >= g.xpNeed) { g.xp -= g.xpNeed; g.xpLv++; g.xpNeed = xpNeed(g.xpLv); g.dq.push('LEVEL ' + g.xpLv + '!'); }
 }
 const hittable = o => { if (o.dead) return false; const y = sy(o);
@@ -610,11 +808,14 @@ function draftOptions() {
     const l = own[id] || 0;
     if (l >= SK[id].max) continue;
     if (!l && (SK[id].a ? nA : nP) >= SLOTS) continue;
-    if (!isUnlocked(id)) continue;
-    pool.push({ id, w: l ? 1.6 : 1 });
+    if (!canUse(id)) continue;
+    // owned skills show up more often, and so does the missing half of an evolution pair,
+    // so every pair is a realistic goal (not just Volley + Banner, the one every run starts toward)
+    const pair = !l && ((EVOS[id] && own[EVOS[id].with]) || (evoOf(id) && own[evoOf(id)] && !g.evo[evoOf(id)]));
+    pool.push({ id, w: l ? 1.6 : pair ? 1.5 : 1 });
   }
   const out = [];
-  while (out.length < 3 && pool.length) {
+  while (out.length < (g.boons.insight ? 4 : 3) && pool.length) {
     let r = R() * pool.reduce((t, p) => t + p.w, 0), i = 0;
     while ((r -= pool[i].w) > 0) i++;
     out.push(pool.splice(i, 1)[0].id);
@@ -622,11 +823,31 @@ function draftOptions() {
   if (!out.length) out.push('_troops', '_gold');
   return out;
 }
+// a guardian kill offers 3 boons the run doesn't have yet (falls back to a skill draft if none are left)
+const BOON_DRAFT = 'GUARDIAN BOON';
+const boonNext = () => g.st.guardians % 2 === 0;
+function boonOptions() {
+  const pool = Object.keys(BOONS).filter(id => !g.boons[id]), out = [];
+  while (out.length < 3 && pool.length) out.push(pool.splice(Math.floor(R() * pool.length), 1)[0]);
+  return out;
+}
+function takeBoon(id) {
+  g.boons[id] = true;
+  refreshSets(); // Kindred changes sets, Blood Pact the squad cap
+  const b = BOONS[id];
+  pop(g.sx, SQY - 70, b.icon + ' ' + b.name.toUpperCase(), '#e3c8ff', true);
+  spark(g.sx, SQY, '#c79bff', 30, 200);
+}
+function boonHtml(id, i) {
+  const b = BOONS[id];
+  return `<button class="card boon" data-i="${i}"><span class="ic">${b.icon}</span><span><span class="nm">${b.name}</span><span class="lv">BOON</span><div class="ds">${b.d}</div></span></button>`;
+}
 function takeSkill(id) {
   if (id === '_troops') { const n = addNinjas(Math.round(15 * g.G)); pop(g.sx, SQY - 70, n ? '+' + n + ' NINJAS' : 'SQUAD FULL', '#5cf0ff', true); return; }
   if (id === '_gold') { g.coins += 40; pop(g.sx, SQY - 70, '+40 🪙', '#ffd84d', true); return; }
   g.sk[id] = (g.sk[id] || 0) + 1;
-  if (id === 'banner') g.cap = capFor(g.lv, g.stage);
+  if (id === 'clones') g.clones = Math.max(g.clones, CLONES(g.sk[id]).n);
+  refreshSets(); // also refreshes the squad cap (Banner, Swarm set)
   pop(g.sx, SQY - 70, SK[id].icon + ' ' + SK[id].name.toUpperCase(), '#ffd84d', true);
 }
 // one line telling the player where this card leads (evolutions are the long-term goal of a run)
@@ -639,21 +860,35 @@ function evoHint(id, nextLv) {
   // the other half of the pair isn't unlocked yet: tease it so players know what to chase
   const other = EVOS[id] ? e.with : act;
   // name the *other* skill as the locked one, so this card never reads as locked itself
-  if (!isUnlocked(other)) return `<div class="ev">⟳ Evolves with ${SK[other].icon} ${SK[other].name} → ${e.icon} ${e.name} <span style="color:#9aa6b2">(${SK[other].name} is still locked, see Armory)</span></div>`;
+  if (!canUse(other)) return `<div class="ev">⟳ Evolves with ${SK[other].icon} ${SK[other].name} → ${e.icon} ${e.name} <span style="color:#9aa6b2">(${SK[other].name} is still locked, see Armory)</span></div>`;
   return EVOS[id] ? `<div class="ev">⟳ Max it + ${partner.icon} ${partner.name} → ${e.icon} ${e.name}</div>`
                   : `<div class="ev">⟳ Evolves ${weapon.icon} ${weapon.name} at Lv ${weapon.max} → ${e.icon} ${e.name}</div>`;
+}
+// tag chips with set progress ("🔥 Fire 2/3"); a pick that completes a set is highlighted and spells out the bonus
+function tagHtml(id, isNew) {
+  let sets = '';
+  const chips = SK[id].tags.map(t => {
+    const before = tagCount(t), after = before + (isNew ? 1 : 0), tier = setTier(after), hot = tier > setTier(before);
+    if (hot) sets += `<div class="setl">${TAGS[t].icon} ${t} set${tier > 1 ? ' ★' : ''}: ${TAGS[t].d[tier - 1]}</div>`;
+    const prog = tier > 1 ? `${SET_AT[1]}/${SET_AT[1]} ★` : tier ? `${SET_AT[0]}/${SET_AT[0]}${hot ? ' SET!' : ' ✓'}` : `${after}/${SET_AT[0]}`;
+    return `<span class="${hot ? 'hot' : tier ? 'on' : ''}">${TAGS[t].icon} ${t} ${prog}</span>`;
+  }).join('');
+  return `<div class="tags">${chips}</div>${sets}`;
 }
 function cardHtml(id, i) {
   if (id === '_troops') return `<button class="card" data-i="${i}"><span class="ic">🥷</span><span><span class="nm">Reinforcements</span><div class="ds">+${Math.round(15 * g.G)} ninjas right now</div></span></button>`;
   if (id === '_gold') return `<button class="card" data-i="${i}"><span class="ic">🪙</span><span><span class="nm">Pouch of Coins</span><div class="ds">+40 coins</div></span></button>`;
   const s = SK[id], l = skl(id) + 1;
-  const tag = s.tag ? `<span class="lv" style="color:${s.tag === 'Elite' ? '#c79bff' : '#7dffa0'}">${s.tag.toUpperCase()}</span>` : '';
-  return `<button class="card${l === 1 ? ' new' : ''}" data-i="${i}"><span class="ic">${s.icon}</span><span><span class="nm">${s.name}</span><span class="lv">${l === 1 ? 'NEW' : 'Lv ' + l + (l === s.max ? ' MAX' : '')}</span>${tag}<div class="ds">${s.d(l)}</div>${evoHint(id, l)}</span></button>`;
+  return `<button class="card${l === 1 ? ' new' : ''}" data-i="${i}"><span class="ic">${s.icon}</span><span><span class="nm">${s.name}</span><span class="lv">${l === 1 ? 'NEW' : 'Lv ' + l + (l === s.max ? ' MAX' : '')}</span><div class="ds">${s.d(l)}</div>${tagHtml(id, l === 1)}${evoHint(id, l)}</span></button>`;
 }
 function openDraft() {
   const title = g.dq.shift(); running = false; dragX = null;
-  g.draft = draftOptions(); SFX.levelUp();
-  ui.innerHTML = `<div class="panel"><h2>${title}</h2><p style="margin:0 0 12px">Pick a skill</p><div class="cards">${g.draft.map(cardHtml).join('')}</div></div>`;
+  const boons = title === BOON_DRAFT ? boonOptions() : [], boon = boons.length > 0; // no boons left: a skill pick instead
+  g.draftKind = boon ? 'boon' : 'skill';
+  g.draft = boon ? boons : draftOptions(); SFX.levelUp();
+  ui.innerHTML = boon
+    ? `<div class="panel boonp"><h2>👑 ${title}</h2><p style="margin:0 0 12px">Pick one. It lasts the whole run.</p><div class="cards">${g.draft.map(boonHtml).join('')}</div></div>`
+    : `<div class="panel"><h2>${title === BOON_DRAFT ? 'GUARDIAN REWARD' : title}</h2><p style="margin:0 0 12px">Pick a skill</p><div class="cards">${g.draft.map(cardHtml).join('')}</div></div>`;
   const cards = ui.querySelectorAll('.card');
   // brief lockout so a finger that was steering doesn't pick a card by accident
   cards.forEach(b => { b.disabled = true; b.onclick = () => { initAudio(); chooseDraft(+b.dataset.i); }; });
@@ -661,7 +896,8 @@ function openDraft() {
 }
 function chooseDraft(i) {
   if (!g || !g.draft) return;
-  takeSkill(g.draft[i]); g.draft = null; SFX.power();
+  if (g.draftKind === 'boon') { takeBoon(g.draft[i]); SFX.evolve(); } else { takeSkill(g.draft[i]); SFX.power(); }
+  g.draft = null;
   if (g.dq.length) openDraft(); else { ui.innerHTML = ''; running = true; checkEvolutions(); }
 }
 
@@ -732,14 +968,18 @@ function update(dt) {
   spawnStream(dt);
   for (const k of ['spread', 'shake', 'hurt', 'flash', 'smoke', 'fire', 'evoFlash', 'invuln']) if (g[k] > 0) g[k] -= dt;
   if (g.banner) { g.banner.t -= dt; if (g.banner.t <= 0) g.banner = null; }
+  if (g.sets.Shadow && (g.shT -= dt) <= 0) { // Shadow set: vanish in smoke now and then
+    g.shT = g.sets.Shadow > 1 ? 8 : 12; g.smoke = Math.max(g.smoke, 2); pop(g.sx, SQY - 60, '🌑 VANISH', '#c79bff'); SFX.smoke();
+  }
 
   // fire
   g.fireT -= dt;
-  const rate = Math.min(20, g.rate * (1 + .1 * skl('headband')));
+  g.momT += dt; g.ovfPop = (g.ovfPop || 0) - dt;
+  const rate = Math.min(24, g.rate * (1 + .1 * skl('headband')) * (1 + momBonus()));
   while (g.fireT <= 0 && g.count > 0) {
     g.fireT += 1 / rate;
-    const fire = g.fire > 0, evo = g.evo.volley; // Thousand Stars: more stars, +50% damage, each pierces once
-    const n = Math.min(g.count, evo ? 18 : 10), dmg = power() * (1 + .2 * (skl('volley') - 1)) * (evo ? 1.5 : 1) / n * (g.spread > 0 ? 1.2 : 1) * (fire ? 1.8 : 1);
+    const fire = g.fire > 0, evo = g.evo.volley; // Thousand Stars: more stars, +30% damage, each pierces once
+    const n = Math.min(g.count, evo ? 18 : 10), dmg = power() * (1 + volleyBonus(skl('volley'))) * (1 + heroSig('kage')) * (evo ? 1.3 : 1) / n * (g.spread > 0 ? 1.2 : 1) * (fire ? 1.8 : 1);
     for (let i = 0; i < n; i++) {
       const f = n > 1 ? i / (n - 1) - 0.5 : 0;
       g.bullets.push({ x: g.sx + f * r * 1.4, y: SQY - r * 0.6, vx: g.spread > 0 ? f * 300 : 0, vy: -560, dmg, a: Math.random() * 6, fire, gold: evo, pierce: evo ? 1 : 0 });
@@ -762,7 +1002,7 @@ function update(dt) {
     }
     if (o.k === 'boss' && g.bossMode) updateBoss(o, y, dt);
     if (o.k === 'mini' && y > -40) {
-      if (!o.seen && y > 60) { o.seen = true; g.banner = { txt: 'GUARDIAN: ' + MINIS[o.t].name, sub: '⚠ ONE TOUCH = DEFEAT', t: 1.8, red: true, small: true }; SFX.boss(); }
+      if (!o.seen && y > 60) { o.seen = true; g.banner = { txt: 'GUARDIAN: ' + MINIS[o.t].name, sub: '⚠ ONE TOUCH = DEFEAT' + (boonNext() ? ' · 👑 BOON REWARD' : ''), t: 1.8, red: true, small: true }; SFX.boss(); }
       o.ph += dt * 5; o.atkT -= dt;
       // A guardian touch ends the run, so it must be fair: advance to a standoff line, hold there attacking
       // (the window to kill it), flash a warning, then charge straight down. Dodge sideways and it escapes.
@@ -791,6 +1031,7 @@ function update(dt) {
 
   // bullets
   const vis = g.objs.filter(o => { const y = sy(o); return y > -80 && y < SQY + 40 && !o.dead; });
+  const ignite = g.sets.Fire ? power() * (g.sets.Fire > 1 ? .25 : .15) : 0; // Fire set: burn damage per second
   for (const b of g.bullets) {
     b.x += b.vx * dt; b.y += b.vy * dt;
     if (b.y < -20 || b.x < RL - 10 || b.x > RR + 10) { b.dead = true; continue; }
@@ -810,6 +1051,7 @@ function update(dt) {
       const rr = o.k === 'crate' ? 20 : o.r;
       if (Math.abs(b.x - o.x) < rr && Math.abs(b.y - oy) < rr) {
         if (b.fire) spark(b.x, b.y, '#ff8a3d', 2);
+        if (ignite && !o.burn && o.k !== 'crate') o.burn = { t: 2, dps: ignite };
         damage(o, b.dmg, b.x, b.y);
         if (b.pierce > 0) { b.pierce--; b.last = o; continue; }
         b.dead = true;
@@ -994,22 +1236,44 @@ function updateWeapons(dt, r) {
     const s = TALIS(skl('talisman'));
     if (tick('talisman', s.cd) && tg().some(o => o.k !== 'crate')) {
       const n = s.n + mir + (g.evo.talisman ? 1 : 0);
-      for (let i = 0; i < n; i++) g.proj.push({ k: 'tal', x: g.sx, y: SQY - r * .6, vx: (i - (n - 1) / 2) * 140, vy: -260, dmg: T * s.dmg, burn: T * s.burn, life: 3.5, a: 0 });
+      const ph = g.evo.talisman ? [1.5, 2] : [1, 1]; // Phoenix Seal: harder hits, hotter burn
+      for (let i = 0; i < n; i++) g.proj.push({ k: 'tal', x: g.sx, y: SQY - r * .6, vx: (i - (n - 1) / 2) * 140, vy: -260, dmg: T * s.dmg * ph[0], burn: T * s.burn * ph[1], life: 3.5, a: 0 });
       SFX.fire();
     }
   }
+  // lightning: strikes the toughest enemy on screen, then chains to its neighbours
+  const lightning = (foes, dmg, jumps, fall, gold) => {
+    let cur = foes.reduce((a, b) => b.hp > a.hp ? b : a);
+    const hit = new Set(), pts = [[cur.x, -10]];
+    for (let j = 0; j < jumps && cur; j++) {
+      hit.add(cur); const cy = sy(cur); pts.push([cur.x, cy]);
+      damage(cur, dmg, cur.x, cy); dmg *= fall;
+      cur = nearest(cur.x, cy, foes, hit, 150);
+    }
+    g.bolts.push({ pts, t: .25, gold }); SFX.zap();
+  };
   if (skl('seal')) {
-    const s = SEAL(skl('seal')), evo = g.evo.seal; // Raijin's Drum: twice as often, +3 jumps, no falloff
+    const s = SEAL(skl('seal')), evo = g.evo.seal; // Raijin's Drum: ~3× as often, 2.5× as hard, +3 jumps, no falloff
     const foes = tg().filter(o => o.k !== 'crate');
-    if (foes.length && tick('seal', s.cd * (evo ? .5 : 1))) {
-      let cur = foes.reduce((a, b) => b.hp > a.hp ? b : a), dmg = T * s.dmg;
-      const hit = new Set(), pts = [[cur.x, -10]];
-      for (let j = 0; j < s.jumps + mir + (evo ? 3 : 0) && cur; j++) {
-        hit.add(cur); const cy = sy(cur); pts.push([cur.x, cy]);
-        damage(cur, dmg, cur.x, cy); if (!evo) dmg *= .8;
-        cur = nearest(cur.x, cy, foes, hit, 150);
+    if (foes.length && tick('seal', s.cd * (evo ? .35 : 1))) lightning(foes, T * s.dmg * (evo ? 2.5 : 1), s.jumps + mir + (evo ? 3 : 0), evo ? 1 : .8, evo);
+  }
+  if (g.sets.Storm) { // Storm set: a free strike every few seconds
+    const foes = tg().filter(o => o.k !== 'crate');
+    if (foes.length && tick('storm', g.sets.Storm > 1 ? 1 : 2)) lightning(foes, T * 1.2, 3, .8, false);
+  }
+  if (skl('clones') && g.count > 0) {
+    // Smoke Clones: shadow ninjas around the squad, each throwing a star at the enemy nearest to it
+    const s = CLONES(skl('clones')), evo = g.evo.clones, k = Math.min(g.clones, CLONE_DRAW);
+    g.clA += dt * .8;
+    const foes = tg().filter(o => o.k !== 'crate');
+    if (foes.length && tick('clones', s.cd)) {
+      const dmg = T * s.dmg * (g.clones / k);
+      for (let i = 0; i < k; i++) {
+        const [x, y] = clonePos(i, k, r), t = nearest(x, y, foes);
+        if (!t) break;
+        const dx = t.x - x, dy = sy(t) - y, L = Math.hypot(dx, dy) || 1;
+        g.proj.push({ k: 'sstar', x, y, vx: dx / L * 620, vy: dy / L * 620, dmg, pierce: 1, hit: new Set(), life: 1.4, a: 0 });
       }
-      g.bolts.push({ pts, t: .25, gold: evo }); SFX.zap();
     }
   }
   if (skl('chain')) {
@@ -1025,9 +1289,20 @@ function updateWeapons(dt, r) {
       }
       if (evo) for (const e of g.ebullets) if (!e.dead && Math.abs(e.x - bx) < 18 && Math.abs(e.y - by) < 18) { e.dead = true; spark(e.x, e.y, '#c9ced6', 6); }
     }
+    // Iron Cyclone also hurls a spinning blade at the toughest enemy, so it matters in guardian and boss fights too
+    const foes = evo && tg().filter(o => o.k !== 'crate');
+    if (evo && foes.length && tick('cyclone', 1)) {
+      const t = foes.reduce((a, b) => b.hp > a.hp ? b : a), dx = t.x - g.sx, dy = sy(t) - SQY, L = Math.hypot(dx, dy) || 1;
+      g.proj.push({ k: 'blade', x: g.sx, y: SQY - r * .6, vx: dx / L * 700, vy: dy / L * 700, dmg: T * 1.3, pierce: 3, hit: new Set(), life: 1.6, w: 10, a: 0 });
+    }
   }
 }
 
+// where clone i of k stands: a slow ring around the squad
+function clonePos(i, k, r) {
+  const a = g.clA + i / k * 6.283, rad = r + 22 + (i % 2) * 10;
+  return [clamp(g.sx + Math.cos(a) * rad, RL + 8, RR - 8), SQY + Math.sin(a) * rad * .45];
+}
 function updateProjectiles(dt) {
   if (!g.proj.length) return;
   const targets = g.objs.filter(hittable);
@@ -1041,6 +1316,7 @@ function updateProjectiles(dt) {
       }
       p.a += dt * 6;
     }
+    if (p.k === 'sstar' || p.k === 'blade') p.a += dt * 20;
     p.x += p.vx * dt; p.y += p.vy * dt;
     if (p.life <= 0 || p.y < -30 || p.y > H + 30 || p.x < RL - 20 || p.x > RR + 20) { p.dead = true; continue; }
     for (const o of targets) {
@@ -1141,6 +1417,7 @@ function draw() {
   drawWeapons();
   for (const e of g.ebullets) drawEnemyShot(e);
 
+  drawClones();
   drawSquad();
   if (g.invuln > 0) {
     // revive shield: pulsing gold ring while nothing can hurt the squad
@@ -1212,6 +1489,12 @@ function drawWeapons() {
       cx.fillStyle = '#eafff4'; cx.beginPath(); cx.moveTo(0, -34); cx.lineTo(13, 0); cx.lineTo(6, 14); cx.lineTo(-6, 14); cx.lineTo(-13, 0); cx.fill();
       cx.fillStyle = '#2fbf71'; cx.beginPath(); cx.moveTo(0, -20); cx.lineTo(5, 0); cx.lineTo(0, 8); cx.lineTo(-5, 0); cx.fill();
       cx.fillStyle = '#d4a52c'; cx.fillRect(-10, 14, 20, 4);
+    } else if (p.k === 'blade') {
+      cx.rotate(p.a); cx.scale(1.8, 1.8);
+      for (let j = 0; j < 3; j++) { cx.rotate(2.094); cx.fillStyle = '#dbeeff'; cx.beginPath(); cx.moveTo(0, -10); cx.quadraticCurveTo(9, -4, 3, 6); cx.lineTo(0, 0); cx.fill(); }
+      cx.fillStyle = '#5a3b22'; cx.beginPath(); cx.arc(0, 0, 2.5, 0, 7); cx.fill();
+    } else if (p.k === 'sstar') {
+      cx.restore(); drawStar(p.x, p.y, 5, p.a, false, false, g.evo.clones ? '#e3c8ff' : '#a98be0'); continue;
     } else if (p.k === 'kunai') {
       cx.fillStyle = 'rgba(180,220,255,.35)'; cx.fillRect(-1.5, 6, 3, 22);
       cx.fillStyle = '#d7dde5'; cx.beginPath(); cx.moveTo(0, -12); cx.lineTo(4, 0); cx.lineTo(0, 4); cx.lineTo(-4, 0); cx.fill();
@@ -1285,9 +1568,9 @@ function drawEnemyShot(e) {
   cx.restore();
 }
 
-function drawStar(x, y, r, a, fire, gold) {
+function drawStar(x, y, r, a, fire, gold, col) {
   cx.save(); cx.translate(x, y); cx.rotate(a);
-  cx.fillStyle = fire ? '#ffb347' : gold ? '#ffe680' : '#d7dde5'; cx.beginPath();
+  cx.fillStyle = col || (fire ? '#ffb347' : gold ? '#ffe680' : '#d7dde5'); cx.beginPath();
   for (let i = 0; i < 8; i++) {
     const rr = i % 2 === 0 ? r : r * .35, an = i * Math.PI / 4;
     cx.lineTo(Math.cos(an) * rr, Math.sin(an) * rr);
@@ -1488,9 +1771,29 @@ function drawMini(o, y) {
   cx.fillText(m.name, o.x, y - r - 26);
 }
 
+function drawClones() {
+  if (!skl('clones') || g.count <= 0) return;
+  const r = squadR(), k = Math.min(g.clones, CLONE_DRAW), now = performance.now(), legion = g.evo.clones;
+  for (let i = 0; i < k; i++) {
+    const [x, y0] = clonePos(i, k, r), y = y0 + Math.sin(now / 110 + i) * 1.5;
+    cx.globalAlpha = .35; cx.fillStyle = '#6a4a9a'; cx.beginPath(); cx.arc(x - 2, y + 3, 9, 0, 7); cx.fill(); // smoke wisp
+    cx.globalAlpha = .8;
+    cx.fillStyle = legion ? '#2a1a40' : '#1a1424'; cx.beginPath(); cx.arc(x, y, 6.5, 0, 7); cx.fill();
+    cx.fillStyle = legion ? '#e3c8ff' : '#a98be0'; cx.fillRect(x - 5, y - 4.5, 10, 2);
+    cx.fillStyle = '#c79bff'; cx.fillRect(x - 3, y - 2, 2, 2); cx.fillRect(x + 1, y - 2, 2, 2);
+  }
+  cx.globalAlpha = 1;
+  if (legion) {
+    cx.font = '900 12px system-ui,sans-serif'; cx.textAlign = 'center';
+    cx.lineWidth = 3; cx.strokeStyle = 'rgba(0,0,0,.7)'; cx.strokeText('👥 ' + g.clones, g.sx, SQY + r * .6 + 22);
+    cx.fillStyle = '#e3c8ff'; cx.fillText('👥 ' + g.clones, g.sx, SQY + r * .6 + 22);
+  }
+}
 function drawSquad() {
-  const r = squadR(), n = Math.min(g.count, 70);
+  const r = squadR(), n = Math.min(g.count, 70), hero = HEROES[g.hero];
   cx.fillStyle = 'rgba(0,0,0,.25)'; cx.beginPath(); cx.ellipse(g.sx, SQY + r * .55, r, r * .35, 0, 0, 7); cx.fill();
+  // the hero's colour rings the squad's shadow, so the leader reads at a glance with any skin
+  cx.strokeStyle = hero.col; cx.globalAlpha = .45; cx.lineWidth = 2; cx.beginPath(); cx.ellipse(g.sx, SQY + r * .55, r + 2, r * .35 + 2, 0, 0, 7); cx.stroke(); cx.globalAlpha = 1;
   const pts = [];
   for (let i = 0; i < n; i++) {
     const a = i * 2.39996, d = (r - 6) * Math.sqrt((i + .5) / n);
@@ -1510,6 +1813,7 @@ function drawSquad() {
     cx.fillStyle = '#f1c27d'; cx.fillRect(x - 3.5, yy - 2, 7, 2.5);
     if (g.flash > 0 && i % 3 === 0) drawStar(x, yy - 11, 3.5, now / 30);
   }
+  if (g.count > 0) drawLeader(g.sx, SQY + r * .3 + Math.sin(now / 120) * 1.2, hero, sk, now);
   const t = String(g.count);
   cx.font = '900 18px system-ui,sans-serif'; cx.textAlign = 'center';
   const w = cx.measureText(t).width + 20, by = SQY - r * .6 - 30;
@@ -1517,6 +1821,44 @@ function drawSquad() {
   cx.fillStyle = '#fff'; cx.fillText(t, g.sx, by + 5);
 }
 
+// the hero, drawn in front of the squad: bigger, in their own garb, wearing the squad skin's headband
+function drawLeader(x, y, h, sk, now) {
+  const big = h === HEROES.goro ? 11 : 9, tail = Math.sin(now / 60) * 3;
+  cx.strokeStyle = h === HEROES.kage ? h.col : sk.col; cx.lineWidth = 3; // Kage's long blue scarf, the others wear the skin colour
+  cx.beginPath(); cx.moveTo(x + 4, y + 1); cx.lineTo(x + 13, y + 8 + tail); cx.moveTo(x + 4, y + 1); cx.lineTo(x + 8, y + 12 - tail); cx.stroke();
+  cx.fillStyle = h.col; cx.beginPath(); cx.arc(x, y, big + 2, 0, 7); cx.fill(); // coloured outline
+  cx.fillStyle = h.body; cx.beginPath(); cx.arc(x, y, big, 0, 7); cx.fill();
+  cx.fillStyle = sk.col; cx.fillRect(x - big + 2, y - big * .65, big * 2 - 4, 3);
+  cx.fillStyle = '#f1c27d'; cx.fillRect(x - big * .55, y - big * .25, big * 1.1, 3.5);
+  if (h === HEROES.kage) drawStar(x, y - big - 3, 3.5, now / 200, false, true);
+  else if (h === HEROES.tsubaki) { // a blossom in her hair
+    cx.fillStyle = h.trim; for (let i = 0; i < 5; i++) { const a = i * 1.257; cx.beginPath(); cx.arc(x + 6 + Math.cos(a) * 3, y - big + Math.sin(a) * 3, 2.2, 0, 7); cx.fill(); }
+    cx.fillStyle = '#ffd84d'; cx.beginPath(); cx.arc(x + 6, y - big, 1.6, 0, 7); cx.fill();
+  } else { // Goro's gold kabuto horns
+    cx.fillStyle = h.col;
+    cx.beginPath(); cx.moveTo(x - 7, y - big + 2); cx.lineTo(x - 11, y - big - 9); cx.lineTo(x - 3, y - big + 1); cx.fill();
+    cx.beginPath(); cx.moveTo(x + 7, y - big + 2); cx.lineTo(x + 11, y - big - 9); cx.lineTo(x + 3, y - big + 1); cx.fill();
+  }
+}
+// active set bonuses and boons, as small chips just above the build tray (scaling boons show their bonus)
+function drawRunMods() {
+  const sets = Object.keys(g.sets), boons = Object.keys(g.boons);
+  if (!sets.length && !boons.length) return;
+  cx.font = '800 11px system-ui,sans-serif'; cx.textAlign = 'center';
+  const build = short => [
+    ...sets.map(t => [TAGS[t].icon + (short ? '' : ' ' + t) + (g.sets[t] > 1 ? '★' : ''), TAGS[t].col, 'rgba(0,0,0,.55)']),
+    ...boons.map(b => { const v = b === 'momentum' ? momBonus() : b === 'laststand' ? lsBonus() : b === 'overflow' ? ovfBonus() : 0;
+      return [BOONS[b].icon + (v >= .01 ? ' +' + Math.round(v * 100) + '%' : ''), '#f0e2ff', 'rgba(70,35,120,.8)']; })];
+  const gap = 4, y = H - 66, widths = list => list.map(([t]) => cx.measureText(t).width + 12);
+  let it = build(false), ws = widths(it);
+  if (ws.reduce((a, b) => a + b + gap, 0) > RR - RL + 30) { it = build(true); ws = widths(it); } // too many: icons only
+  let x = MID - (ws.reduce((a, b) => a + b, 0) + gap * (it.length - 1)) / 2;
+  it.forEach(([t, col, bg], i) => {
+    cx.fillStyle = bg; rrect(x, y, ws[i], 18, 6); cx.fill();
+    cx.fillStyle = col; cx.fillText(t, x + ws[i] / 2, y + 13);
+    x += ws[i] + gap;
+  });
+}
 function drawHUD() {
   cx.fillStyle = 'rgba(0,0,0,.55)'; rrect(12, 12, W - 24, 46, 12); cx.fill();
   // pause button
@@ -1532,7 +1874,7 @@ function drawHUD() {
   cx.fillStyle = 'rgba(0,0,0,.55)';
   for (let i = 1; i < g.stageD.length; i++) cx.fillRect(prog(g.stageD[i]) - 1, 28, 2, 14);
   cx.textAlign = 'right'; cx.fillStyle = '#ffd84d'; cx.font = '800 14px system-ui,sans-serif';
-  cx.fillText('🪙 ' + (save.coins + Math.floor(g.coins)), W - 24, 40);
+  cx.fillText('🪙 ' + (save.coins + (g.banked ? 0 : Math.floor(g.coins))), W - 24, 40);
   // XP bar
   cx.fillStyle = 'rgba(0,0,0,.55)'; rrect(12, 62, W - 24, 8, 4); cx.fill();
   cx.fillStyle = '#5cc8ff'; rrect(12, 62, Math.max(4, (W - 24) * g.xp / g.xpNeed), 8, 4); cx.fill();
@@ -1552,6 +1894,7 @@ function drawHUD() {
     cx.font = '17px system-ui,sans-serif'; cx.textAlign = 'center'; cx.fillStyle = '#fff'; cx.fillText(ev ? EVOS[id].icon : SK[id].icon, x + tw / 2, y + 21);
     for (let k = 0; k < SK[id].max; k++) { cx.fillStyle = k < g.sk[id] ? '#ffb020' : 'rgba(255,255,255,.2)'; cx.fillRect(x + 3 + k * ((tw - 6) / SK[id].max), y + tw, (tw - 6) / SK[id].max - 1.5, 3); }
   });
+  drawRunMods();
   const fx = [];
   if (g.spread > 0) fx.push(['✷ FAN ' + Math.ceil(g.spread) + 's', '#ffd84d']);
   if (g.fire > 0) fx.push(['🔥 FIRE ' + Math.ceil(g.fire) + 's', '#ff8a3d']);
@@ -1603,6 +1946,7 @@ function home() {
   if (dailyReady()) btns.push(['🎁 Claim Daily Reward', claimDaily]);
   const c = save.chapter;
   const ms = ensureMissions(), mDone = ms.list.filter(m => m.prog >= m.goal).length, claim = missionsClaimable();
+  btns.push([heroChip(), heroScreen, 'herochip']);
   btns.push(['▶ Play Chapter ' + c + (c > MAX_CHAPTER ? ' (Endless)' : ' / ' + MAX_CHAPTER), () => newGame()],
      [`📋 Daily Missions ${mDone}/3${claim ? ' · 🎁 ' + claim + ' to claim' : ''}`, missions, claim ? '' : 'sec'],
      ['Upgrades', () => shop(home), 'sec third'], [(save.armoryNew ? '🔔 ' : '') + 'Armory', armory, 'sec third'], ['Skins', skins, 'sec third']);
@@ -1610,7 +1954,130 @@ function home() {
   panel(`<h1>SHURIKEN <span>SQUAD</span></h1>${coinTag()}
     <div class="help">Drag to steer · Your ninjas throw stars automatically<br>Take <b style="color:#5cc8ff">blue</b> gates, dodge <b style="color:#ff6b6b">red</b> ones and spikes<br>Hit gates with stars to raise their number<br>Kill enemies to <b style="color:#5cc8ff">level up</b> and pick new skills<br>${STAGES} stages per chapter · Boss: <b>${bossName((c - 1) % 3)}</b>${best}</div>`, btns,
     [[(save.sound ? '🔊' : '🔇') + ' Sound ' + (save.sound ? 'on' : 'off'), () => { save.sound = !save.sound; persist(); home(); }],
+     ['💾 Save', () => backup()],
      [`v${GAME_VERSION} · 📜 What's New`, patchNotes]]);
+}
+
+// ---------- heroes screen ----------
+const heroPortrait = h => `<span class="hp" style="background:${h.body};border-color:${h.col}">${h.icon}</span>`;
+// compact chip above Play: who leads, their weapon, and a 🔔 when a hero was just unlocked
+function heroChip() {
+  const h = HEROES[save.hero] || HEROES.kage, w = SK[h.weapon];
+  return `${heroPortrait(h)}<span class="hn"><b>${h.name}</b> · Mastery ${save.heroes[save.hero] || 1}<small>${w.icon} ${w.name} · ${h.sig}</small></span><span class="go">${save.heroNew ? '🔔 NEW' : 'HEROES ▸'}</span>`;
+}
+function unlockHero(id) {
+  if (id in save.heroes) return false;
+  save.heroes[id] = 1; save.heroNew = true; persist();
+  return true;
+}
+// heroes the player's chapter has earned since last time (called after a cleared chapter)
+function checkHeroUnlocks() { return Object.keys(HEROES).filter(id => !(id in save.heroes) && save.chapter >= HEROES[id].unlock && unlockHero(id)); }
+function heroScreen() {
+  save.heroNew = false; persist();
+  const dots = m => `<div class="dots">${Array.from({ length: MASTERY_MAX }, (_, i) => `<i class="${i < m ? 'on' : ''}"></i>`).join('')}</div>`;
+  const rows = Object.keys(HEROES).map(id => {
+    const h = HEROES[id], own = id in save.heroes, m = save.heroes[id] || 1, sel = save.hero === id, w = SK[h.weapon];
+    const start = `<div class="d">Starts with ${w.icon} <b>${w.name}</b>${h.weapon === 'volley' ? '' : ' instead of ✴️ Volley'}</div>`;
+    const sig = `<div class="d">✦ <b style="color:${h.col}">${h.sig}:</b> ${h.sd(m)}${h.con ? `. <span style="color:#ff9c9c">${h.con}</span>` : ''}</div>`;
+    if (!own) {
+      const goal = h.unlock - 1, cur = Math.min(goal, save.chapter - 1);
+      return `<div class="arm hero locked">${heroPortrait(h)}<div class="info"><div class="n">${h.name}<span class="pill lock">🔒 LOCKED</span></div><div class="tg">${h.role.toUpperCase()}</div>${start}${sig}
+        <div class="d">🎯 Clear Chapter ${goal} to unlock</div><div class="pbar"><i style="width:${cur / goal * 100}%"></i></div><div class="d">${cur} / ${goal} chapters</div></div></div>`;
+    }
+    const cost = masteryCost(m), maxed = m >= MASTERY_MAX;
+    const mbtn = maxed ? '<span class="mx">✦ MASTERY MAX</span>'
+      : `<button data-mh="${id}" class="${sel ? '' : 'sec'}" ${save.coins < cost ? 'disabled' : ''}>⬆ Mastery 🪙${fmtN(cost)}</button>`;
+    return `<div class="arm hero${sel ? ' sel' : ''}">${heroPortrait(h)}<div class="info"><div class="n">${h.name}${sel ? '<span class="pill own">LEADING</span>' : ''}</div><div class="tg">${h.role.toUpperCase()}</div>${start}${sig}
+      ${dots(m)}${maxed ? '' : `<div class="d">Next: ${h.sd(m + 1).split('. ')[0]}</div>`}<div class="hb">${sel ? '' : `<button data-hs="${id}" class="lead">Lead</button>`}${mbtn}</div></div></div>`;
+  }).join('');
+  panel(`<h2>🥷 Heroes</h2>${coinTag()}<div class="notes">${rows}</div><div class="help" style="margin:0 0 10px">Your hero leads the squad and picks its first weapon. Upgrades power up every hero.</div>`,
+    [['Back', home, 'sec']]);
+  ui.querySelectorAll('button[data-hs]').forEach(b => b.onclick = () => { initAudio(); SFX.good(); save.hero = b.dataset.hs; persist(); heroScreen(); });
+  ui.querySelectorAll('button[data-mh]').forEach(b => b.onclick = () => {
+    const id = b.dataset.mh, m = save.heroes[id], c = masteryCost(m);
+    if (!(id in save.heroes) || m >= MASTERY_MAX || save.coins < c) return;
+    save.coins -= c; save.heroes[id] = m + 1; persist(); initAudio(); SFX.power(); heroScreen();
+  });
+}
+
+// ---------- save backup / restore codes ----------
+// Testers lose progress when they switch device or browser, or clear site data. A save code carries the whole
+// save: SS1.<base64url of the UTF-8 JSON>.<checksum>. The checksum (FNV-1a, base36) rejects truncated or
+// mistyped codes, the JSON is then sanity-checked, and a restored save goes through migrateSave() exactly
+// like one loaded from localStorage. (It stops accidents, not cheaters: the save is client-side anyway.)
+const CODE_VER = 'SS1';
+const codeSum = body => hashStr(CODE_VER + '.' + body).toString(36);
+function b64url(bytes) {
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+const unb64url = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), ch => ch.charCodeAt(0));
+function saveCode() {
+  const body = b64url(new TextEncoder().encode(JSON.stringify(save)));
+  return `${CODE_VER}.${body}.${codeSum(body)}`;
+}
+const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+const isNum = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
+function validSave(s) {
+  if (!isObj(s) || !Number.isInteger(s.chapter) || !isNum(s.chapter, 1, 1e6) || !isNum(s.coins, 0, 1e15)) return false;
+  if ('up' in s && (!isObj(s.up) || Object.keys(s.up).some(k => !Number.isInteger(s.up[k]) || !isNum(s.up[k], 0, MAXUP)))) return false;
+  if ('stats' in s && (!isObj(s.stats) || Object.keys(s.stats).some(k => !isNum(s.stats[k], 0, 1e15)))) return false;
+  for (const k of ['skins', 'unlocked', 'evoSeen']) if (k in s && (!Array.isArray(s[k]) || s[k].some(v => typeof v !== 'string'))) return false;
+  if ('daily' in s && !isObj(s.daily)) return false;
+  if ('heroes' in s && (!isObj(s.heroes) || Object.values(s.heroes).some(m => !Number.isInteger(m) || !isNum(m, 1, MASTERY_MAX)))) return false;
+  if ('hero' in s && typeof s.hero !== 'string') return false;
+  if ('missions' in s && s.missions !== null && !(isObj(s.missions) && Array.isArray(s.missions.list))) return false;
+  return true;
+}
+// → { save } for a good code, { error } with a player-facing reason otherwise
+function readSaveCode(code) {
+  const txt = String(code || '').replace(/\s+/g, '');
+  if (!txt) return { error: 'Paste a save code first.' };
+  const m = /^SS(\d+)\.([A-Za-z0-9_-]+)\.([0-9a-z]{1,7})$/.exec(txt);
+  if (!m) return { error: "That isn't a Shuriken Squad save code. Codes start with SS1." };
+  if ('SS' + m[1] !== CODE_VER) return { error: 'This code comes from a newer version of the game. Reload the page to update, then try again.' };
+  if (codeSum(m[2]) !== m[3]) return { error: "This code is incomplete or has a typo. Copy the whole code again and paste it here." };
+  let s = null;
+  try { s = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(unb64url(m[2]))); } catch (e) {}
+  if (!validSave(s)) return { error: "This code is damaged and can't be loaded." };
+  return { save: s };
+}
+const escHtml = s => String(s).replace(/[&<>"']/g, ch => '&#' + ch.charCodeAt(0) + ';');
+function backup(err = '', pasted = '') {
+  const code = saveCode();
+  panel(`<h2>💾 Save Backup</h2><div class="bk">
+    <div class="sect">Back up</div>
+    <div class="help">Keep this code somewhere safe (notes, email, a message to yourself). It holds all your progress.</div>
+    <textarea id="bkcode" class="code" rows="3" readonly spellcheck="false">${code}</textarea>
+    <button id="bkcopy">📋 Copy code</button><div id="bkmsg" class="bkmsg"></div>
+    <div class="sect">Restore</div>
+    <div class="help">New phone or browser? Paste your code here to load that progress.</div>
+    <textarea id="rscode" class="code" rows="3" placeholder="SS1.…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">${escHtml(pasted)}</textarea>
+    ${err ? `<div class="bkmsg bad">${err}</div>` : ''}<button id="rsgo" class="sec">Restore</button></div>`,
+    [['Back', home, 'sec']]);
+  document.getElementById('bkcopy').onclick = () => {
+    initAudio(); SFX.click();
+    const ta = document.getElementById('bkcode'), msg = document.getElementById('bkmsg');
+    const done = () => { msg.textContent = '✓ Copied! Paste it somewhere safe.'; SFX.good(); };
+    const manual = () => { // no clipboard access: select it so the player can copy it themselves
+      let ok = false;
+      try { ta.focus(); ta.select(); ta.setSelectionRange(0, code.length); ok = document.execCommand('copy'); } catch (e) {}
+      if (ok) done(); else msg.textContent = "Couldn't copy automatically. The code is selected: copy it with your device's Copy option.";
+    };
+    try { navigator.clipboard.writeText(code).then(done, manual); } catch (e) { manual(); }
+  };
+  document.getElementById('rsgo').onclick = () => {
+    initAudio(); SFX.click();
+    const txt = document.getElementById('rscode').value || '', r = readSaveCode(txt);
+    if (r.error) { SFX.bad(); backup(r.error, txt); } else confirmRestore(r.save);
+  };
+}
+function confirmRestore(s) {
+  const row = (lbl, x) => `<div class="up"><div class="info"><div class="n">${lbl}</div><div class="d">Chapter <b>${x.chapter}</b> · 🪙 <b>${fmtN(Math.floor(x.coins))}</b> · upgrades Lv <b>${Object.values(x.up).reduce((a, b) => a + b, 0)}</b> · ${x.unlocked.length} skills</div></div></div>`;
+  panel(`<h2>💾 Load this save?</h2>${row('📥 From the code', migrateSave(s))}${row('📱 On this device now', save)}
+    <div class="help">Your current progress on this device will be <b>replaced</b>. Back it up first if you might want it again.</div>`,
+    [['✓ Load save', () => { loadSave(s); persist(); SFX.daily(); home(); }], ['Cancel', () => backup(), 'sec']]);
 }
 
 function patchNotes() {
@@ -1621,8 +2088,11 @@ function patchNotes() {
   panel(`<h2>${fresh ? '🎉 Game Updated!' : "📜 What's New"}</h2><div class="notes">${html}</div>`, [[fresh ? "Let's go!" : 'Back', home]]);
 }
 const bossName = bt => BOSSES[bt].name.toLowerCase().replace(/\b\w/g, ch => ch.toUpperCase());
-const buildHtml = (sk, evo = {}) => `<div class="build">${Object.keys(sk).map(id => evo[id]
-  ? `<span style="color:#ffd84d">${EVOS[id].icon} ${EVOS[id].name}</span>` : `<span>${SK[id].icon} ${sk[id]}</span>`).join('')}</div>`;
+// results / pause build chips; bn === null leaves out set bonuses and boons (the pause screen lists them itself)
+const buildHtml = (sk, evo = {}, bn = g ? g.boons : {}) => `<div class="build">${Object.keys(sk).map(id => evo[id]
+  ? `<span style="color:#ffd84d">${EVOS[id].icon} ${EVOS[id].name}</span>` : `<span>${SK[id].icon} ${sk[id]}</span>`).join('')}${
+  Object.keys(TAGS).filter(t => bn && setTier(tagCount(t, sk, bn))).map(t => `<span style="color:${TAGS[t].col}">${TAGS[t].icon} ${t}</span>`).join('')}${
+  Object.keys(bn || {}).map(b => `<span style="background:#3b2160;color:#f0e2ff">${BOONS[b].icon} ${BOONS[b].name}</span>`).join('')}</div>`;
 
 // ---------- armory: every skill, locked ones with their challenge and progress ----------
 const fmtN = n => n.toLocaleString('en-US');
@@ -1638,7 +2108,7 @@ function armory() {
     const s = SK[id];
     if (isUnlocked(id)) {
       const pill = STARTER.includes(id) ? '<span class="pill own">STARTER</span>' : '<span class="pill own">✓ UNLOCKED</span>';
-      return `<div class="arm"><span class="ai">${s.icon}</span><div class="info"><div class="n">${s.name}${pill}${s.tag ? ` <span class="tg">${s.tag.toUpperCase()}</span>` : ''}</div><div class="d">${s.d(1)}</div></div></div>`;
+      return `<div class="arm"><span class="ai">${s.icon}</span><div class="info"><div class="n">${s.name}${pill}</div><div class="tg">${s.tags.map(t => TAGS[t].icon + ' ' + t.toUpperCase()).join(' · ')}</div><div class="d">${s.d(1)}</div></div></div>`;
     }
     const { cur, goal, p } = unlockProgress(id);
     const bar = goal > 1 ? `<div class="pbar"><i style="width:${p * 100}%"></i></div><div class="d">${fmtN(cur)} / ${fmtN(goal)}</div>` : '';
@@ -1651,11 +2121,13 @@ function armory() {
       ? `<div class="arm"><span class="ai">${e.icon}</span><div class="info"><div class="n" style="color:#ffd84d">${e.name}</div><div class="d">${w.icon} ${w.name} + ${p.icon} ${p.name}</div></div></div>`
       : `<div class="arm locked"><span class="ai">❓</span><div class="info"><div class="n">???</div><div class="d">Evolves from ${w.icon} ${w.name}</div></div></div>`;
   };
+  const setRow = t => `<div class="arm"><span class="ai">${TAGS[t].icon}</span><div class="info"><div class="n" style="color:${TAGS[t].col}">${t}</div><div class="d">${TAGS[t].d[0]}<br>★ ${TAGS[t].d[1]}</div><div class="d">${Object.keys(SK).filter(id => SK[id].tags.includes(t)).map(id => SK[id].icon).join(' ')}</div></div></div>`;
   const ids = Object.keys(SK), got = ids.filter(isUnlocked).length;
   panel(`<h2>⚔️ Armory</h2><p style="margin:0 0 10px">${got} / ${ids.length} skills · ${save.evoSeen.length} / ${Object.keys(EVOS).length} evolutions</p>
     <div class="notes"><div class="sect">Weapons</div>${list(id => SK[id].a)}
     <div class="sect">Passive skills</div>${list(id => !SK[id].a)}
-    <div class="sect">Evolutions</div>${Object.keys(EVOS).map(evoRow).join('')}</div>`, [['Back', home, 'sec']]);
+    <div class="sect">Evolutions</div>${Object.keys(EVOS).map(evoRow).join('')}
+    <div class="sect">Synergy sets</div><div class="help" style="text-align:left;margin:0 0 7px">Own ${SET_AT[0]} skills with the same tag for a set bonus, ${SET_AT[1]} for the ★ version.</div>${Object.keys(TAGS).map(setRow).join('')}</div>`, [['Back', home, 'sec']]);
 }
 
 // ---------- daily missions ----------
@@ -1722,7 +2194,7 @@ function missions() {
 function commitRun(won) {
   const st = save.stats, before = new Set(save.unlocked);
   st.kills += g.kills;
-  for (const k of ['dodges', 'gateBumps', 'rallies', 'evolves', 'fullBoss']) st[k] += g.st[k];
+  for (const k of ['dodges', 'gateBumps', 'rallies', 'evolves', 'fullBoss', 'muls']) st[k] += g.st[k] || 0;
   if (won) { st.chapters++; if (g.st.sac) st.sacClears++; }
   for (const id in g.evo) if (!save.evoSeen.includes(id)) save.evoSeen.push(id);
   for (const id in UNLOCKS) if (!isUnlocked(id) && st[UNLOCKS[id].stat] >= UNLOCKS[id].goal) save.unlocked.push(id);
@@ -1740,8 +2212,9 @@ function commitRun(won) {
   return { fresh, done };
 }
 // results-screen block: missions just completed, what just unlocked, and the closest next unlock to chase
-function resultsExtras({ fresh, done }) {
-  let h = done.map(m => `<div class="nextu" style="color:#7dffa0">📋 Mission complete: <b>${MISSIONS.find(d => d.stat === m.stat).txt(m.goal)}</b>. Claim it in Daily Missions!</div>`).join('');
+function resultsExtras({ fresh, done, heroes = [] }) {
+  let h = heroes.map(id => `<div class="unl">🎉 NEW HERO UNLOCKED<b>${HEROES[id].icon} ${HEROES[id].name}</b><span>${HEROES[id].role} · starts with ${SK[HEROES[id].weapon].icon} ${SK[HEROES[id].weapon].name}. Pick them in 🥷 Heroes on the home screen.</span></div>`).join('');
+  h += done.map(m => `<div class="nextu" style="color:#7dffa0">📋 Mission complete: <b>${MISSIONS.find(d => d.stat === m.stat).txt(m.goal)}</b>. Claim it in Daily Missions!</div>`).join('');
   h += fresh.map(id => `<div class="unl">🔓 NEW ${SK[id].a ? 'WEAPON' : 'SKILL'} UNLOCKED<b>${SK[id].icon} ${SK[id].name}</b></div>`).join('');
   const next = Object.keys(UNLOCKS).filter(id => !isUnlocked(id)).map(id => ({ id, ...unlockProgress(id) })).sort((a, b) => b.p - a.p)[0];
   if (next) h += `<div class="nextu">Next unlock: <b>${SK[next.id].icon} ${SK[next.id].name}</b><br>${UNLOCKS[next.id].cond}${next.goal > 1 ? ` (${fmtN(next.cur)} / ${fmtN(next.goal)})` : ''}</div>`;
@@ -1825,35 +2298,71 @@ function revive() {
   ui.innerHTML = ''; running = true;
 }
 
+// pause screen: build, synergy progress (active sets spelled out) and boons
+function runInfoHtml() {
+  const tags = Object.keys(TAGS).map(t => [t, tagCount(t)]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+  const chips = tags.map(([t, n]) => { const tier = setTier(n);
+    return `<span class="${tier ? 'on' : ''}">${TAGS[t].icon} ${t} ${tier > 1 ? SET_AT[1] + '/' + SET_AT[1] + ' ★' : tier ? SET_AT[0] + '/' + SET_AT[0] + ' ✓' : n + '/' + SET_AT[0]}</span>`; }).join('');
+  const sets = Object.keys(g.sets).map(t => `<div class="setl">${TAGS[t].icon} ${t} set${g.sets[t] > 1 ? ' ★' : ''}: ${TAGS[t].d[g.sets[t] - 1]}</div>`).join('');
+  const boons = Object.keys(g.boons).map(b => `<div class="bnr"><span style="font-size:20px">${BOONS[b].icon}</span><span><b>${BOONS[b].name}</b><br>${BOONS[b].d}</span></div>`).join('');
+  const h = HEROES[g.hero], hero = `<div class="bnr" style="background:#1a2230;border-color:${h.col}"><span style="font-size:20px">${h.icon}</span><span><b>${h.name}</b> · Mastery ${g.mastery}<br>${h.sig}: ${h.sd(g.mastery)}</span></div>`;
+  return `<div class="notes" style="max-height:min(360px,50vh)">${hero}${buildHtml(g.sk, g.evo, null)}<div class="tags" style="justify-content:center;margin:0 0 6px">${chips}</div>${sets}${boons ? '<div class="sect" style="margin-top:10px">Boons</div>' + boons : ''}</div>`;
+}
 function pauseGame() {
   if (!running) return;
   running = false; dragX = null;
-  panel('<h2>Paused</h2>', [['Resume', () => { ui.innerHTML = ''; running = true; }], ['Quit to menu', home, 'sec']]);
+  panel('<h2>Paused</h2>' + runInfoHtml(), [['Resume', () => { ui.innerHTML = ''; running = true; }], ['Quit to menu', home, 'sec']]);
 }
 
 function bank(extra) {
   const mult = 1 + ECON.coinUp * save.up.coin, earned = Math.round((g.coins * g.G + extra) * mult);
-  save.coins += earned; persist(); return earned;
+  save.coins += earned; g.banked = true; persist(); return earned; // banked: the HUD stops adding run coins on top
 }
+
+// ---------- ×2 coins (rewarded ad on the results screens) ----------
+// Run coins are only credited at the end of a run (bank), so doubling banks exactly that amount once more,
+// never daily reward, mission or chest coins. Every results screen gets its own reward object whose state
+// (open → pending while the ad plays → done) makes a second claim impossible: double taps, a screen re-opened
+// from Upgrades, or a late ad callback all hit the state check.
+let rewardSeq = 0;
+const newReward = earned => ({ id: ++rewardSeq, earned, state: 'open' });
+const rewardShown = r => ui.innerHTML.includes(`data-x2="${r.id}"`);
+function claimDouble(r, rerender) {
+  if (!r || r.state !== 'open' || !(r.earned > 0)) return false;
+  r.state = 'pending';
+  showRewardedAd('double', ok => {
+    if (r.state !== 'pending') return;
+    r.state = ok ? 'done' : 'open';
+    if (ok) { save.coins += r.earned; persist(); initAudio(); SFX.daily(); }
+    if (rerender && rewardShown(r)) rerender(); // only redraw if that results screen is still up
+  });
+  if (r.state === 'pending' && rerender && rewardShown(r)) rerender(); // the ad is still playing
+  return true;
+}
+const earnedHtml = (r, txt) => r.state === 'done'
+  ? `${txt} <b data-x2="${r.id}" class="x2done">🪙 ${fmtN(r.earned * 2)} <span>×2</span></b>`
+  : `${txt} <b data-x2="${r.id}" style="color:#ffd84d">🪙 ${fmtN(r.earned)}</b>`;
+const x2Btn = (r, rerender) => r.earned > 0 && r.state !== 'done'
+  ? [[r.state === 'pending' ? '🎬 Loading…' : `🎬 ×2 Coins <small>(+🪙 ${fmtN(r.earned)})</small>`, () => claimDouble(r, rerender), 'ad']] : [];
 
 function win() {
   running = false; SFX.win();
-  const c = g.c, left = g.count, kills = g.kills, sk = g.sk, evo = g.evo, run = commitRun(true), earned = bank(ECON.clearPer * g.lv + left);
-  save.chapter = c + 1; save.bestStage = 0; persist();
-  if (run.fresh.length || run.done.length) setTimeout(() => SFX.daily(), 600);
+  const c = g.c, left = g.count, kills = g.kills, sk = g.sk, evo = g.evo, run = commitRun(true), earned = bank(ECON.clearPer * g.lv + left), rw = newReward(earned);
+  save.chapter = c + 1; save.bestStage = 0; run.heroes = checkHeroUnlocks(); persist();
+  if (run.fresh.length || run.done.length || run.heroes.length) setTimeout(() => SFX.daily(), 600);
   const champ = c === MAX_CHAPTER ? `<p style="color:#ffd84d"><b>🏆 You beat all ${MAX_CHAPTER} chapters! You are a true ninja master. Endless mode unlocked.</b></p>` : '';
-  const after = () => panel(`<h1>CHAPTER ${c} <span>CLEARED</span></h1>${champ}<p>${bossName((c - 1) % 3)} defeated with <b>${left}</b> ninjas left.<br>⚔ <b>${kills}</b> enemies defeated<br>You earned <b style="color:#ffd84d">🪙 ${earned}</b></p>${buildHtml(sk, evo)}${resultsExtras(run)}${coinTag()}`,
-    [['▶ Next Chapter', () => newGame()], ['Upgrades', () => shop(after), 'sec'], ['Menu', home, 'sec']]);
+  const after = () => panel(`<h1>CHAPTER ${c} <span>CLEARED</span></h1>${champ}<p>${bossName((c - 1) % 3)} defeated with <b>${left}</b> ninjas left.<br>⚔ <b>${kills}</b> enemies defeated<br>${earnedHtml(rw, 'You earned')}</p>${buildHtml(sk, evo)}${resultsExtras(run)}${coinTag()}`,
+    [...x2Btn(rw, after), ['▶ Next Chapter', () => newGame()], ['Upgrades', () => shop(after), 'sec third'], ['Menu', home, 'sec third']]);
   after();
 }
 
 function lose() {
   running = false; SFX.lose();
-  const c = g.c, stage = g.stage, kills = g.kills, sk = g.sk, evo = g.evo, cause = g.lossCause || 'Your squad was wiped out', run = commitRun(false), earned = bank(0);
+  const c = g.c, stage = g.stage, kills = g.kills, sk = g.sk, evo = g.evo, cause = g.lossCause || 'Your squad was wiped out', run = commitRun(false), earned = bank(0), rw = newReward(earned);
   save.bestStage = Math.max(save.bestStage, stage); persist();
   if (run.fresh.length || run.done.length) setTimeout(() => SFX.daily(), 900);
-  const after = () => panel(`<h1>CLAN <span>DEFEATED</span></h1><p><b style="color:#ff6b6b">${cause}.</b><br>Chapter <b>${c}</b> · reached <b>stage ${stage}/${STAGES}</b> · ⚔ <b>${kills}</b> defeated<br>You still earned <b style="color:#ffd84d">🪙 ${earned}</b> — spend it on upgrades.</p>${buildHtml(sk, evo)}${resultsExtras(run)}${coinTag()}`,
-    [['↻ Try Again', () => newGame()], ['Upgrades', () => shop(after), 'sec'], ['Menu', home, 'sec']]);
+  const after = () => panel(`<h1>CLAN <span>DEFEATED</span></h1><p><b style="color:#ff6b6b">${cause}.</b><br>Chapter <b>${c}</b> · reached <b>stage ${stage}/${STAGES}</b> · ⚔ <b>${kills}</b> defeated<br>${earnedHtml(rw, 'You still earned')} — spend it on upgrades.</p>${buildHtml(sk, evo)}${resultsExtras(run)}${coinTag()}`,
+    [...x2Btn(rw, after), ['↻ Try Again', () => newGame()], ['Upgrades', () => shop(after), 'sec third'], ['Menu', home, 'sec third']]);
   after();
 }
 
