@@ -171,11 +171,16 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- patch notes ----------
 // Newest first. Bump GAME_VERSION and add an entry for every player-facing update;
 // returning players see the notes once, new players only see the "What's New" button.
-const GAME_VERSION = '1.8';
+const GAME_VERSION = '1.8.1';
 // Playtest build: every hero is owned from the start so testers can try them all.
 // Set to false for release; heroes then unlock at their chapter (HEROES[id].unlock).
 const TESTER_ALL_HEROES = true;
 const PATCH_NOTES = [
+  { v: '1.8.1', title: 'Solid Gates', date: 'Nov 2026', notes: [
+    ['🚧', '<b>Gates block stars:</b> stars that hit a gate stop there (and still raise its number). No more hitting enemies through a gate.'],
+    ['👹', 'Gates never appear right in front of a guardian or boss anymore, so nothing can hide behind one.'],
+    ['⚖️', 'To balance it out, kills give 25% more XP and bosses have a bit less health.'],
+  ] },
   { v: '1.8', title: 'Heroes', date: 'Nov 2026', notes: [
     ['🥷', '<b>Heroes:</b> choose who leads your squad with the new hero button above Play. Each hero starts with a different weapon and has a signature skill.'],
     ['🦊', '<b>Tsubaki</b> (clear Chapter 4) starts with Fire Talisman and counts as an extra 🔥 Fire skill. Burning enemies take extra damage from everything.'],
@@ -428,7 +433,7 @@ const SR = s => .6 * Math.pow(2.0, s - 1);
 // HPK: global enemy-HP knob, retuned whenever in-run power changes (M3: choice gates + evolutions; M4: boons + set bonuses, 1.8 → 2.0)
 const HPK = 2.0;
 // BOSS_HPK: extra boss HP so the phased boss fight lasts ~20-40 s instead of a 5 s damage check (M4: 3 → 3.2)
-const BOSS_HPK = 3.2;
+const BOSS_HPK = 2.6; // was 3.2 before gates absorbed stars (1.8.1)
 const Hm = (lv, s = 1) => HPK * Gs(lv) * (1 + 0.7 * Dr(lv)) * Pw(lv) * (0.45 + 0.55 * Math.min(1, (lv - 1) / 15)) * SR(s);
 const lanesFor = lv => lv < 15 ? 2 : lv < 60 ? 3 : lv < 150 ? 4 : 5;
 // ninjas lost to a hit; grows with the stage at the same rate as the squad cap so late hits still sting
@@ -437,6 +442,7 @@ const stageLen = c => 3000 + Math.min(c - 1, 8) * 400;
 
 // guardian standoff: where it stops (screen y, relative to the squad), how long it holds, and the charge warning
 const GUARD_Y_OFF = 230, GUARD_HOLD = 6, CHARGE_WARN = 1.2;
+const GATE_CLEAR = 500; // no gates in the last 500 px of a stage, i.e. right in front of its guardian / boss
 const MINIS = [
   { id: 'blade', name: 'BLADE MASTER', col: '#2a4a8a' },
   { id: 'monk',  name: 'BOMB MONK',    col: '#d9772b' },
@@ -482,6 +488,8 @@ function genStage(c, s, d0, objs) {
   while (d < end) {
     let kind = k % 3 === 0 ? 'gate' : (k % 3 === 1 ? 'enemies' : pick(['crate', 'enemies', 'gate']));
     if (lv >= 2 && k % 3 === 2 && R() < Math.min(.55, .3 + D * .3)) kind = 'spike';
+    // Gates absorb stars, so none may sit in the run-up to the guardian / boss: a gate there would shield it.
+    if (kind === 'gate' && d > end - GATE_CLEAR) kind = 'enemies';
     if (kind === 'gate' && gi++ % 3 === 1) {
       objs.push({ k: 'gate', choice: true, d, opts: choiceGate(lv, lanes), used: false });
     } else if (kind === 'gate') {
@@ -628,6 +636,9 @@ function refreshSets() {
 }
 const evoOf = passive => Object.keys(EVOS).find(a => EVOS[a].with === passive);
 const evoReady = id => EVOS[id] && !g.evo[id] && skl(id) >= SK[id].max && skl(EVOS[id].with) >= 1;
+// Gates absorb stars (fewer kills while a gate is between you and the stream), so kills give 25% more XP to keep
+// the number of level-ups per run where it was.
+const XP_MUL = 1.25;
 const xpNeed = l => Math.round(8 + l * 7 + l * l * .6); // steeper since the endless stream gives far more kills
 const skl = id => g.sk[id] || 0;
 
@@ -800,7 +811,7 @@ function kill(o) {
   } else if (o.k === 'boss') { g.coins += 30 + g.lv * ECON.bossPer; SFX.boom(); g.won = true; }
 }
 function gainXp(n) {
-  g.xp += n * (g.boons.insight ? 1.4 : 1);
+  g.xp += n * XP_MUL * (g.boons.insight ? 1.4 : 1);
   while (g.xp >= g.xpNeed) { g.xp -= g.xpNeed; g.xpLv++; g.xpNeed = xpNeed(g.xpLv); g.dq.push('LEVEL ' + g.xpLv + '!'); }
 }
 const hittable = o => { if (o.dead) return false; const y = sy(o);
@@ -1050,13 +1061,12 @@ function update(dt) {
       if (o.dead) continue;
       const oy = sy(o);
       if (o.k === 'gate') {
-        // Stars fly through gates: each star raises the gate's number once on the way, but never stops there.
-        // (Gates used to absorb stars, which shielded guardians and enemies walking in behind them.)
-        if (o.used || o === b.lastGate || Math.abs(b.y - oy) > 22) continue;
-        b.lastGate = o;
+        // Gates absorb stars (raising a + gate's number), so nothing behind a gate can be hit through it.
+        // Stage generation keeps gates out of the guardian / boss run-up (GATE_CLEAR) so a gate never shields them.
+        if (o.used || Math.abs(b.y - oy) > 22) continue;
         const s = o.opts[laneOf(b.x, o.opts.length)];
         if (s.t === 'add') { s.acc += 1; if (s.acc >= 6) { s.acc = 0; s.v += Math.max(1, Math.round(g.G)); s.bump = .15; g.st.gateBumps++; } }
-        spark(b.x, b.y, '#9be8ff', 1); continue;
+        spark(b.x, b.y, '#9be8ff', 1); b.dead = true; break;
       }
       if (o.k === 'spike' || o.k === 'stage' || o.k === 'torii' || o === b.last || (o.k === 'mini' && oy < 60)) continue;
       const rr = o.k === 'crate' ? 20 : o.r;
