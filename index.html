@@ -123,7 +123,18 @@ button.card.boon .lv{color:#e3c8ff;background:#5a3590;border-radius:5px;padding:
 .herochip .hstars i{font-style:normal;opacity:.25}
 .herochip .hchg{position:relative;flex:none;display:flex;flex-direction:column;align-items:center;font-size:9px;font-weight:900;letter-spacing:.06em;color:#ffb020}
 .herochip .hchg b{font-size:30px;line-height:.8;font-weight:900}
-.herochip .hnew{position:absolute;top:-8px;right:10px;background:#ff3b5c;color:#fff;font-size:10px;font-weight:900;letter-spacing:.08em;padding:3px 7px;border-radius:8px;box-shadow:0 2px 6px rgba(255,59,92,.5);animation:hnew 1.2s ease-in-out infinite}
+.btns button .rgn{display:block;font-size:12px;font-weight:800;opacity:.8;margin-top:3px;letter-spacing:0}
+.rgcard{margin:-4px 0 14px}
+.rgcard .rgi{font-size:56px;line-height:1.1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5))}
+.rgcard .rgk{font-size:11px;font-weight:900;letter-spacing:1.5px;color:var(--rc);margin-top:4px}
+.rgcard h1{font-size:30px;margin:2px 0 10px;color:#fff;text-shadow:0 0 18px var(--rc)}
+.rgcard .rgt{background:#1a2230;border-left:4px solid var(--rc);border-radius:10px;padding:9px 11px;font-size:14px;line-height:1.4;text-align:left;color:#e6ebf2;font-weight:700}
+.rgcard .rgb{font-size:13px;color:#b8c2cc;margin-top:10px;line-height:1.4}
+.rgcard .rgp{font-size:12px;color:#7dffa0;margin-top:8px;line-height:1.35}
+.prac{display:inline-block;background:#1d3b2a;color:#7dffa0;font-size:11px;font-weight:900;letter-spacing:1px;border-radius:8px;padding:3px 9px;margin:0 0 8px}
+.arm.rgrow{border-left:4px solid var(--rc)}
+.herochip .hnew{
+position:absolute;top:-8px;right:10px;background:#ff3b5c;color:#fff;font-size:10px;font-weight:900;letter-spacing:.08em;padding:3px 7px;border-radius:8px;box-shadow:0 2px 6px rgba(255,59,92,.5);animation:hnew 1.2s ease-in-out infinite}
 @keyframes hnew{50%{transform:scale(1.12)}}
 </style>
 </head>
@@ -171,11 +182,21 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- patch notes ----------
 // Newest first. Bump GAME_VERSION and add an entry for every player-facing update;
 // returning players see the notes once, new players only see the "What's New" button.
-const GAME_VERSION = '1.8.1';
+const GAME_VERSION = '1.9';
 // Playtest build: every hero is owned from the start so testers can try them all.
 // Set to false for release; heroes then unlock at their chapter (HEROES[id].unlock).
 const TESTER_ALL_HEROES = true;
 const PATCH_NOTES = [
+  { v: '1.9', title: 'Regions', date: 'Nov 2026', notes: [
+    ['🗺️', '<b>Regions:</b> every 10 chapters is a new land with its own look, rule and boss: ❄️ <b>Snow Pass</b> (ch 11), 🏯 <b>Night Castle</b> (ch 21) and 🌊 <b>Storm Coast</b> (ch 31). Past chapter 40 they come back tougher.'],
+    ['❄️', '<b>Snow Pass:</b> icy footing makes your squad slide, and ice sheets before gates mean you line up early. Boss <b>Yuki-onna</b> freezes your lane.'],
+    ['🏯', '<b>Night Castle:</b> the road ahead is dark until your stars light it up. Boss <b>Ghost Shogun</b> vanishes and bursts out somewhere else.'],
+    ['🌊', '<b>Storm Coast:</b> wind gusts (watch for 💨) blow your stars sideways. Boss <b>Raijin</b> calls down thunder lanes and tidal waves. Find the gap!'],
+    ['🌬️', '<b>New weapon: Wind Fan.</b> Wind blades sweep across the lanes. Unlock it by taking 25 ⚡ SPEED or 💥 POWER gates. With the Mirror it evolves into <b>Fujin\'s Tempest</b>.'],
+    ['🏹', '<b>New weapon: Yumi Longbow.</b> A heavy arrow at the toughest enemy, extra strong against guardians and bosses. Unlock it by defeating 16 guardians. With the Whetstone it evolves into <b>Heaven Piercer</b>.'],
+    ['🚧', 'Gates now block everything you throw (kunai, talismans, clone stars and more), not just stars. To make up for it, several weapons hit harder.'],
+    ['🧪', '<b>Playtest:</b> tap 🗺️ Regions at the bottom of the home screen to practise any region now. Practice runs don\'t change your progress.'],
+  ] },
   { v: '1.8.1', title: 'Solid Gates', date: 'Nov 2026', notes: [
     ['🚧', '<b>Gates block stars:</b> stars that hit a gate stop there (and still raise its number). No more hitting enemies through a gate.'],
     ['👹', 'Gates never appear right in front of a guardian or boss anymore, so nothing can hide behind one.'],
@@ -246,7 +267,7 @@ const PATCH_NOTES = [
 const STAGES = 5, MAX_CHAPTER = 100;
 const SAVE_KEY = 'gatesquad_v1';
 const saveDefaults = () => ({ chapter: 1, bestStage: 0, coins: 0, sound: true, up: { troops: 0, rate: 0, dmg: 0, coin: 0 },
-             skins: ['azure'], skin: 'azure', daily: { last: '', streak: 0 }, seenVersion: '', hero: 'kage', heroes: { kage: 1 } });
+             skins: ['azure'], skin: 'azure', daily: { last: '', streak: 0 }, seenVersion: '', hero: 'kage', heroes: { kage: 1 }, regionSeen: [] });
 // `save` is only ever filled in place (see loadSave), so it is safe to hold on to.
 const save = saveDefaults();
 let storedSave = null;
@@ -266,6 +287,8 @@ const UNLOCKS = {
   banner:   { stat: 'fullBoss',   goal: 1,    cond: 'Reach a boss with a full squad' },
   ronin:    { stat: 'sacClears',  goal: 1,    cond: 'Clear a chapter after taking a ÷2 Sacrifice lane' },
   clones:   { stat: 'muls',       goal: 8,    cond: 'Run through ×2 or ×3 gates 8 times' }, // teaches multipliers, Shadow Legion's trick
+  fan:      { stat: 'boosts',     goal: 25,   cond: 'Take 25 ⚡ SPEED or 💥 POWER gates' }, // teaches the full-squad pick (Storm = speed)
+  bow:      { stat: 'guardians',  goal: 16,   cond: 'Defeat 16 guardians' },                 // teaches the standoff window, the Longbow's job
 };
 // ---------- heroes (M5) ----------
 // The leader of the squad. Heroes are sidegrades, not a second power ladder: the 4 account upgrades stay the shared
@@ -307,9 +330,11 @@ function migrateSave(s) {
   // Saves from before unlocks existed start from the kit too, but anything the save already proves
   // (chapters cleared) counts right away.
   if (!Array.isArray(out.unlocked)) out.unlocked = [...STARTER];
-  out.stats = Object.assign({ kills: 0, dodges: 0, gateBumps: 0, rallies: 0, evolves: 0, fullBoss: 0, sacClears: 0, muls: 0,
+  out.stats = Object.assign({ kills: 0, dodges: 0, gateBumps: 0, rallies: 0, evolves: 0, fullBoss: 0, sacClears: 0, muls: 0, boosts: 0, guardians: 0,
                               chapters: Math.max(0, out.chapter - 1) }, out.stats || {});
   if (!Array.isArray(out.evoSeen)) out.evoSeen = [];
+  // region title cards already shown (region id + lap); older saves see their current region's card once
+  if (!Array.isArray(out.regionSeen)) out.regionSeen = [];
   for (const id in UNLOCKS) if (!out.unlocked.includes(id) && out.stats[UNLOCKS[id].stat] >= UNLOCKS[id].goal) out.unlocked.push(id);
   // heroes: id → mastery (1-5); Kage is always owned. Saves from before heroes get every hero their chapter already earned.
   const hs = {}, inHs = isObjS(out.heroes) ? out.heroes : {};
@@ -343,11 +368,41 @@ const SKINS = [
 ];
 const curSkin = () => SKINS.find(s => s.id === save.skin) || SKINS[0];
 
+// bt 0-2 rotate through every chapter; 3-5 are the region bosses (see REGIONS / bossOf)
 const BOSSES = [
   { name: 'ONI WARLORD',    hp: 1.0 },
   { name: 'TENGU',          hp: 0.8 },
   { name: 'IRON SAMURAI',   hp: 1.2 },
+  { name: 'YUKI-ONNA',      hp: 0.9,  d: 'freezes whole lanes' },
+  { name: 'GHOST SHOGUN',   hp: 0.85, d: 'vanishes and reappears' },
+  { name: 'RAIJIN',         hp: 0.9,  d: 'thunder lanes and tidal waves' },
 ];
+// ---------- regions ----------
+// Every 10 chapters is a region with its own look, a rule twist and a boss. Ch 1-10 is the Bamboo Grove (no twist);
+// from ch 41 the four regions repeat (lap II, III...) on the rising difficulty curve, into endless after ch 100.
+// In a twist region its boss is the chapter boss on odd chapters and on the ★ chapter; the others use bosses 0-2.
+const REGIONS = [
+  { id: 'bamboo', name: 'Bamboo Grove', icon: '🎋', col: '#9bd36a', twist: '', tw: 'No tricks here. Learn the ropes!' },
+  { id: 'snow',  name: 'Snow Pass',    icon: '❄️', col: '#a9e2ff', twist: 'ice',  boss: 3, short: 'ICY FOOTING',
+    tw: 'Icy footing: your squad slides a little when you steer, and a lot on ice patches. Line up early!' },
+  { id: 'night', name: 'Night Castle', icon: '🏯', col: '#c9a8ff', twist: 'dark', boss: 4, short: 'DARKNESS',
+    tw: 'Darkness: the road ahead is in shadow. Your stars light it up, and gates and attacks always glow.' },
+  { id: 'storm', name: 'Storm Coast',  icon: '🌊', col: '#7fd8ff', twist: 'wind', boss: 5, short: 'WIND GUSTS',
+    tw: 'Wind gusts: after a 💨 warning, wind blows your stars sideways for a few seconds. Aim into the wind!' },
+];
+const regionIdx = c => Math.floor((Math.max(1, c) - 1) / 10) % REGIONS.length;
+const regionOf = c => REGIONS[regionIdx(c)];
+const regionLap = c => Math.floor((Math.max(1, c) - 1) / (10 * REGIONS.length)) + 1;
+const ROMAN = ['', '', ' II', ' III', ' IV', ' V', ' VI', ' VII', ' VIII', ' IX', ' X'];
+const regionName = c => regionOf(c).name + (ROMAN[regionLap(c)] ?? ' ' + regionLap(c));
+const regionTag = c => regionOf(c).icon + ' ' + regionName(c);
+const regionFirst = c => (c - 1) % 10 === 0; // first chapter of a region
+// the twist line; the grove has none, so on a later lap it warns about the tougher enemies instead
+const regionTw = c => regionIdx(c) || regionLap(c) === 1 ? regionOf(c).tw : 'Back where it all began, but every enemy has grown far stronger.';
+const bossOf = c => { const rg = regionOf(c); return rg.boss !== undefined && (c % 2 === 1 || c % 10 === 0) ? rg.boss : (c - 1) % 3; };
+// Playtest build: a 🗺️ Regions link on the home screen lets testers play a practice run of each region's first chapter
+// (no progress, coins or missions). Set to false for release. The tools force it off.
+const TESTER_REGION_PREVIEW = true;
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
 
 const UPG = {
@@ -398,6 +453,8 @@ const SFX = {
   click() { tone(600, .05, 'triangle', .06); },
   boss() { tone(110, .6, 'sawtooth', .08, -40); tone(82, .8, 'sawtooth', .08, -20, .3); },
   arrow() { tone(1800, .08, 'sine', .03, -1200); },
+  wind() { noise(.18, .05); tone(700, .18, 'sine', .025, -450); },
+  bow() { tone(260, .07, 'triangle', .07, 500); tone(2200, .12, 'sine', .03, -1700, .04); },
   smoke() { noise(.5, .12); tone(300, .4, 'sine', .05, -200); },
   fire() { noise(.25, .1); tone(400, .3, 'sawtooth', .05, 400); },
   daily() { [659, 784, 988, 1319].forEach((f, i) => tone(f, .15, 'triangle', .09, 0, i * .09)); },
@@ -482,7 +539,7 @@ function choiceGate(lv, lanes) {
 function genStage(c, s, d0, objs) {
   const lv = tierOf(c, s), G = Gs(lv), D = Dr(lv), H = Hm(lv, s), lanes = lanesFor(lv), lw = (RR - RL) / lanes;
   const pus = ['spread', 'troops', 'rate', 'smoke', 'fire'];
-  const end = d0 + stageLen(c);
+  const end = d0 + stageLen(c), ice = regionOf(c).twist === 'ice';
   objs.push({ k: 'stage', s, lv, d: d0 });
   let d = d0 + 360, k = 0, gi = 0;
   while (d < end) {
@@ -490,6 +547,8 @@ function genStage(c, s, d0, objs) {
     if (lv >= 2 && k % 3 === 2 && R() < Math.min(.55, .3 + D * .3)) kind = 'spike';
     // Gates absorb stars, so none may sit in the run-up to the guardian / boss: a gate there would shield it.
     if (kind === 'gate' && d > end - GATE_CLEAR) kind = 'enemies';
+    // Snow Pass: a sheet of ice right before some gates, so you have to line up before you reach it
+    if (kind === 'gate' && ice && R() < .5) objs.push({ k: 'ice', d: d - 250, len: 190 });
     if (kind === 'gate' && gi++ % 3 === 1) {
       objs.push({ k: 'gate', choice: true, d, opts: choiceGate(lv, lanes), used: false });
     } else if (kind === 'gate') {
@@ -543,7 +602,7 @@ function genChapter(c) {
     waves.push({ s, from: d + 200, to: d + stageLen(c) });
     d = genStage(c, s, d, objs);
   }
-  const lv = tierOf(c, STAGES), bt = (c - 1) % 3;
+  const lv = tierOf(c, STAGES), bt = bossOf(c);
   // the first few bosses are softened so new players reach the build-up before the wall
   const bh = Math.round(1750 * BOSS_HPK * Hm(lv, STAGES) * BOSSES[bt].hp * (c % 10 === 0 ? 1.5 : 1) * Math.min(1, .3 + .175 * (c - 1)));
   objs.push({ k: 'boss', bt, d: d + 520, x: MID, hp: bh, max: bh, r: 46, ph: 0, atkT: 2 });
@@ -552,11 +611,17 @@ function genChapter(c) {
 
 // ---------- skills (drafted during a run) ----------
 // Weapon damage is a fraction of T: one full volley from the whole squad (see power()).
-const KUNAI = l => ({ cd: 1.6 - .15 * l, n: 1 + Math.floor((l - 1) / 2), pierce: 2 + l, dmg: .35 + .1 * l });
-const CHAIN = l => ({ n: 1 + Math.ceil(l / 2), dmg: .12 + .05 * l });
-const TALIS = l => ({ cd: 2.4 - .25 * l, n: 1 + Math.floor((l - 1) / 2), dmg: .5 + .1 * l, burn: .15 + .05 * l });
+const KUNAI = l => ({ cd: 1.6 - .15 * l, n: 1 + Math.floor((l - 1) / 2), pierce: 2 + l, dmg: .4 + .11 * l });
+const CHAIN = l => ({ n: 1 + Math.ceil(l / 2), dmg: .14 + .06 * l });
+const TALIS = l => ({ cd: 2.4 - .25 * l, n: 1 + Math.floor((l - 1) / 2), dmg: .6 + .12 * l, burn: .2 + .06 * l });
 const SEAL = l => ({ cd: 2.6 - .25 * l, jumps: 2 + l, dmg: .7 + .2 * l });
-const CLONES = l => ({ n: 1 + l, cd: .9 - .06 * l, dmg: .12 + .03 * l });
+const CLONES = l => ({ n: 1 + l, cd: .9 - .06 * l, dmg: .16 + .045 * l });
+// Wind Fan: crescent blades fly out to both sides and sweep across the lanes, bouncing off the walls, hitting every enemy they cross
+const FAN = l => ({ cd: 2.1 - .18 * l, n: 1 + Math.floor(l / 2), dmg: .4 + .1 * l });
+// Yumi Longbow: a heavy arrow at the toughest enemy in a clear line of fire (it never wastes a shot into a gate); extra damage
+// to guardians, bosses and big enemies. It passes through anything on the way and only spends its pierce after the target.
+const BOW = l => ({ cd: 2.8 - .2 * l, dmg: 1.2 + .3 * l, pierce: Math.floor((l + 1) / 2) });
+const BOW_ELITE = 1.5, MARK_T = 4, MARK_MUL = 1.15; // Heaven Piercer marks its target: +15% damage taken for 4 s
 // Shadow Legion: × gates multiply the clones (up to CLONE_MAX); only CLONE_DRAW are drawn and throw, scaled up to the rest
 const CLONE_MAX = 32, CLONE_DRAW = 14;
 // Volley: +20% per pick. Kage starts with Lv 1 for free (+0%); other heroes draft it from scratch, so their Lv 1 is +20%.
@@ -569,11 +634,14 @@ const SK = {
   talisman:  { a: 1, max: 5, icon: '📜', name: 'Fire Talisman', tags: ['Fire'], d: l => { const s = TALIS(l); return `${s.n} homing talisman${s.n > 1 ? 's' : ''} every ${s.cd.toFixed(1)}s that set enemies on fire`; } },
   seal:      { a: 1, max: 5, icon: '⚡', name: 'Lightning Seal', tags: ['Storm', 'Fire'], d: l => { const s = SEAL(l); return `Lightning every ${s.cd.toFixed(1)}s, chaining through ${s.jumps} enemies`; } },
   clones:    { a: 1, max: 5, icon: '👥', name: 'Smoke Clones', tags: ['Shadow', 'Swarm'], d: l => { const s = CLONES(l); return `${s.n} shadow clones fight beside the squad, each throwing a star every ${s.cd.toFixed(1)}s`; } },
+  // crowd weapon (Storm) vs single-target weapon (Elite)
+  fan:       { a: 1, max: 5, icon: '🌬️', name: 'Wind Fan', tags: ['Storm'], d: l => { const s = FAN(l); return `${s.n} wind blade${s.n > 1 ? 's' : ''} every ${s.cd.toFixed(1)}s that sweep across the lanes, slicing every enemy they pass`; } },
+  bow:       { a: 1, max: 5, icon: '🏹', name: 'Yumi Longbow', tags: ['Elite', 'Shadow'], d: l => { const s = BOW(l); return `A heavy arrow every ${s.cd.toFixed(1)}s at the toughest enemy, then through ${s.pierce} more. +${Math.round((BOW_ELITE - 1) * 100)}% vs guardians, bosses and brutes`; } },
   headband:  { a: 0, max: 5, icon: '🎌', name: 'Headband', tags: ['Storm'], d: l => `+${10 * l}% throw speed` },
   whetstone: { a: 0, max: 5, icon: '🪨', name: 'Whetstone', tags: ['Fire', 'Elite'], d: l => `+${15 * l}% damage for every weapon` },
   abacus:    { a: 0, max: 5, icon: '🧮', name: 'Abacus', tags: ['Swarm'], d: l => `+ gates give ${25 * l}% more ninjas, − gates take ${12 * l}% fewer` },
   gourd:     { a: 0, max: 5, icon: '🍶', name: 'Sake Gourd', tags: ['Fire', 'Swarm'], d: l => `Recruit ${gourdN(l)} ninja${gourdN(l) > 1 ? 's' : ''} every 4 seconds` },
-  mirror:    { a: 0, max: 3, icon: '🪞', name: 'Mirror', tags: ['Shadow', 'Storm'], d: l => `+${l} kunai, talisman and lightning chain` },
+  mirror:    { a: 0, max: 3, icon: '🪞', name: 'Mirror', tags: ['Shadow', 'Storm'], d: l => `+${l} kunai, talisman, wind blade and lightning chain` },
   tabi:      { a: 0, max: 5, icon: '🥾', name: 'Iron Tabi', tags: ['Steel'], d: l => `Lose ${12 * l}% fewer ninjas to arrows, rocks and spikes` },
   // Swarm vs Elite: Banner rewards a full squad, Ronin lets a small squad hit like a full one
   banner:    { a: 0, max: 5, icon: '🚩', name: 'War Banner', tags: ['Swarm'], d: l => `+${12 * l}% squad size, and +${8 * l}% damage while the squad is full` },
@@ -588,6 +656,8 @@ const EVOS = {
   talisman: { with: 'gourd',    icon: '☀️', name: 'Phoenix Seal',   d: 'Talismans hit 50% harder and burn twice as hot. Fire spreads on kill, and burning kills recruit ninjas' },
   seal:     { with: 'headband', icon: '🥁', name: "Raijin's Drum",  d: 'Lightning strikes almost 3× as often and 2.5× as hard, and never weakens as it chains' },
   clones:   { with: 'abacus',   icon: '🌘', name: 'Shadow Legion',  d: `× gates multiply your clones too (up to ${CLONE_MAX}), so every multiplier grows a shadow army` },
+  fan:      { with: 'mirror',   icon: '🌪️', name: "Fujin's Tempest", d: 'Giant gale blades that knock enemies back, and a tornado every 3s that drags enemies in and shreds them' },
+  bow:      { with: 'whetstone', icon: '🌠', name: 'Heaven Piercer', d: 'Two arrows at a time, more often. They pierce everything, burst in a pillar of light and mark the target to take +15% damage' },
 };
 // Synergy tags: owning 3 skills that share a tag activates its set bonus; a 4th upgrades it (★).
 // Tags pull drafts toward a coherent build instead of "highest number wins".
@@ -644,9 +714,10 @@ const skl = id => g.sk[id] || 0;
 
 let g = null, running = false;
 
-function newGame(seed) {
+// practice: a chapter number to play as a PRACTICE run (playtest Regions screen), which never touches the save
+function newGame(seed, practice) {
   g = null; // capFor() reads the live run, so clear the previous one first
-  const c = save.chapter, runSeed = (seed ?? Math.random() * 4294967296) >>> 0;
+  const c = practice || save.chapter, runSeed = (seed ?? Math.random() * 4294967296) >>> 0;
   R = makeRng(runSeed);
   const ch = genChapter(c);
   R = makeRng(runSeed ^ 0x9E3779B9); // separate stream for in-run rolls (drafts, enemy AI)
@@ -658,8 +729,32 @@ function newGame(seed) {
         bullets: [], ebullets: [], proj: [], bolts: [], smoke: 0, fire: 0, parts: [], pops: [], bossMode: false, shake: 0, hurt: 0, coins: 0,
         kills: 0, st: { gateBumps: 0, rallies: 0, dodges: 0, evolves: 0, sac: 0, fullBoss: 0, choices: 0, guardians: 0, stages: 0, muls: 0 }, revived: false, invuln: 0, xp: 0, xpLv: 1, xpNeed: xpNeed(1), dq: [], draft: null, sk: { [H0.weapon]: 1 }, evo: {}, toriiFor: {}, wt: {}, chainA: 0, regenT: 4, won: false,
         slow: 0, evoFlash: 0, sets: {}, shT: 0, boons: {}, momT: 0, ovf: 0, clones: 0, clA: 0,
-        banner: { txt: 'CHAPTER ' + c + (c % 10 === 0 ? ' ★' : ''), sub: H0.icon + ' ' + H0.name.toUpperCase() + ' LEADS THE SQUAD', t: 1.8 } };
+        // regions: bt = this chapter's boss, twist = the region rule, tx/vx = steering target and slide (ice),
+        // hz = boss lane hazards (frost, thunder, waves), wind = Storm Coast gust cycle
+        practice: !!practice, bt: bossOf(c), rg: regionOf(c), twist: regionOf(c).twist, tx: MID, vx: 0, onIce: false, hz: [],
+        wind: { state: 'calm', t: 7, dir: 1 }, windA: 0,
+        banner: regionFirst(c) && c > 1
+          ? { txt: regionTag(c).toUpperCase(), sub: 'CHAPTER ' + c + (regionOf(c).short ? ' · ' + regionOf(c).short : ''), t: 2.4, small: true }
+          : { txt: 'CHAPTER ' + c + (c % 10 === 0 ? ' ★' : ''), sub: H0.icon + ' ' + H0.name.toUpperCase() + ' LEADS THE SQUAD', t: 1.8 } };
   running = true; ui.innerHTML = '';
+}
+// Play from the menus: a region's title card the first time a save reaches it (and on every practice run)
+const regionKey = c => regionOf(c).id + regionLap(c);
+const regionNew = c => (regionIdx(c) > 0 || regionLap(c) > 1) && !save.regionSeen.includes(regionKey(c));
+function play() { newGame(); if (regionNew(g.c)) regionCard(); }
+function practice(c) { newGame(undefined, c); regionCard(); }
+function regionCard() {
+  running = false; dragX = null;
+  const c = g.c, rg = g.rg, c0 = c - (c - 1) % 10, rb = rg.boss;
+  panel(`<div class="rgcard" style="--rc:${rg.col}">${g.practice ? '<div class="prac">🧪 PRACTICE RUN</div>' : ''}<div class="rgi">${rg.icon}</div>
+    <div class="rgk">${regionLap(c) > 1 ? 'BACK TO' : 'NEW REGION'} · CHAPTERS ${c0}–${c0 + 9}</div><h1>${regionName(c).toUpperCase()}</h1>
+    <div class="rgt">${regionTw(c)}</div><div class="rgb">👹 Boss to watch for: <b>${bossName(rb ?? g.bt)}</b>${rb !== undefined ? ' · ' + BOSSES[rb].d : ''}</div>
+    ${g.practice ? '<div class="rgp">Practice uses your upgrades and hero. It never changes your chapter, coins or missions.</div>' : ''}</div>`,
+    [['▶ Begin', () => {
+      if (!g || running) return;
+      if (!g.practice && !save.regionSeen.includes(regionKey(c))) { save.regionSeen.push(regionKey(c)); persist(); }
+      ui.innerHTML = ''; running = true;
+    }]]);
 }
 
 function enterStage(o) {
@@ -732,6 +827,7 @@ function applyGate(s) {
   }
   if (echo) pop(g.sx, y - 34, '🔁 ECHO ×2', '#e3c8ff');
   if (s.t === 'mul') g.st.muls++;
+  if (s.t === 'rate' || s.t === 'dmg') g.st.boosts = (g.st.boosts || 0) + 1; // Wind Fan unlock
   if (s.t === 'div') g.count = Math.floor(g.count / s.v);
   else if (s.t === 'skill') { g.count = Math.max(1, Math.ceil(g.count * .7)); g.dq.push('SKILL GATE'); }
   else if (s.t === 'rally') { addNinjas(g.cap, true); g.st.rallies++; }
@@ -776,10 +872,11 @@ const fighters = () => g.count + Math.max(0, g.cap - g.count) * Math.min(1, .2 *
 const power = () => g.dmg * (1 + .15 * skl('whetstone')) * fighters() * (g.count >= g.cap ? 1 + .08 * skl('banner') : 1)
   * (g.boons.pact ? 1.6 : 1) * (g.boons.kindred ? .92 : 1) * (1 + lsBonus()) * (1 + ovfBonus());
 function damage(o, amt, x, y, quiet) {
-  if (o.dead) return;
+  if (o.dead || o.hidden) return; // the Ghost Shogun can't be hit while faded out
   o.hitT = .06;
   if (g.boons.slayer && (o.k === 'mini' || o.k === 'boss')) amt *= 1.25;
   if (o.burn && g.hero === 'tsubaki') amt *= 1 + heroSig('tsubaki'); // Foxfire
+  if (o.mark > 0) amt *= MARK_MUL; // Heaven Piercer's mark
   if (!quiet && g.sets.Elite && R() < (g.sets.Elite > 1 ? .25 : .15)) { amt *= g.sets.Elite > 1 ? 2.5 : 2; spark(x, y, '#5cf0ff', 3, 120); }
   if (o.shield > 0) { o.shield -= amt; if (!quiet) { spark(x, y, '#9fb4c8', 2); SFX.hit(); } return; }
   o.hp -= amt;
@@ -815,7 +912,7 @@ function gainXp(n) {
   while (g.xp >= g.xpNeed) { g.xp -= g.xpNeed; g.xpLv++; g.xpNeed = xpNeed(g.xpLv); g.dq.push('LEVEL ' + g.xpLv + '!'); }
 }
 const hittable = o => { if (o.dead) return false; const y = sy(o);
-  return (o.k === 'en' || o.k === 'crate' || o.k === 'boss' || (o.k === 'mini' && y >= 60)) && y > 30 && y < SQY + 30; };
+  return (o.k === 'en' || o.k === 'crate' || (o.k === 'boss' && !o.hidden) || (o.k === 'mini' && y >= 60)) && y > 30 && y < SQY + 30; };
 function nearest(x, y, list, skip, maxD = Infinity) {
   let best = null, bd = maxD;
   for (const o of list) { if (o.dead || o.k === 'crate' || (skip && skip.has(o))) continue; const d = Math.hypot(o.x - x, sy(o) - y); if (d < bd) { bd = d; best = o; } }
@@ -962,7 +1059,7 @@ cv.addEventListener('pointerdown', e => {
 });
 cv.addEventListener('pointermove', e => {
   if (dragX === null || !g || !running) return;
-  g.sx += (e.clientX - dragX) / S * 1.25; dragX = e.clientX;
+  g[g.twist === 'ice' ? 'tx' : 'sx'] += (e.clientX - dragX) / S * 1.25; dragX = e.clientX;
 });
 const endDrag = () => dragX = null;
 cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
@@ -972,9 +1069,12 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && run
 
 // ---------- update ----------
 function update(dt) {
-  if (keys.ArrowLeft || keys.a) g.sx -= 320 * dt;
-  if (keys.ArrowRight || keys.d) g.sx += 320 * dt;
+  const st = g.twist === 'ice' ? 'tx' : 'sx'; // on ice, input moves a target the squad slides after
+  if (keys.ArrowLeft || keys.a) g[st] -= 320 * dt;
+  if (keys.ArrowRight || keys.d) g[st] += 320 * dt;
+  if (st === 'tx') steerIce(dt);
   g.sx = clamp(g.sx, RL + 16, RR - 16);
+  if (g.twist === 'wind') updateWind(dt);
   const r = squadR();
 
   const boss = g.objs.find(o => o.k === 'boss');
@@ -993,6 +1093,8 @@ function update(dt) {
   if (g.sets.Shadow && (g.shT -= dt) <= 0) { // Shadow set: vanish in smoke now and then
     g.shT = g.sets.Shadow > 1 ? 8 : 12; g.smoke = Math.max(g.smoke, 2); pop(g.sx, SQY - 60, '🌑 VANISH', '#c79bff'); SFX.smoke();
   }
+
+  liveGates = g.objs.filter(o => o.k === 'gate' && !o.used && !o.dead); // gates that absorb squad projectiles this frame
 
   // fire
   g.fireT -= dt;
@@ -1045,6 +1147,7 @@ function update(dt) {
     }
     if (o.hitT > 0) o.hitT -= dt;
     if (o.chT > 0) o.chT -= dt;
+    if (o.mark > 0) o.mark -= dt;
     if (o.burn && !o.dead) {
       o.burn.t -= dt; damage(o, o.burn.dps * dt, o.x, y, true);
       if (o.burn.t <= 0) o.burn = null;
@@ -1055,20 +1158,16 @@ function update(dt) {
   const vis = g.objs.filter(o => { const y = sy(o); return y > -80 && y < SQY + 40 && !o.dead; });
   const ignite = g.sets.Fire ? power() * (g.sets.Fire > 1 ? .25 : .15) : 0; // Fire set: burn damage per second
   for (const b of g.bullets) {
+    const y0 = b.y;
+    if (g.windA) b.vx += g.windA * dt; // Storm Coast gust
     b.x += b.vx * dt; b.y += b.vy * dt;
     if (b.y < -20 || b.x < RL - 10 || b.x > RR + 10) { b.dead = true; continue; }
+    // Gates absorb stars (raising a + gate's number), so nothing behind a gate can be hit through it (see gateAbsorb).
+    if (gateAbsorb(b.x, y0, b.y)) { b.dead = true; continue; }
     for (const o of vis) {
       if (o.dead) continue;
       const oy = sy(o);
-      if (o.k === 'gate') {
-        // Gates absorb stars (raising a + gate's number), so nothing behind a gate can be hit through it.
-        // Stage generation keeps gates out of the guardian / boss run-up (GATE_CLEAR) so a gate never shields them.
-        if (o.used || Math.abs(b.y - oy) > 22) continue;
-        const s = o.opts[laneOf(b.x, o.opts.length)];
-        if (s.t === 'add') { s.acc += 1; if (s.acc >= 6) { s.acc = 0; s.v += Math.max(1, Math.round(g.G)); s.bump = .15; g.st.gateBumps++; } }
-        spark(b.x, b.y, '#9be8ff', 1); b.dead = true; break;
-      }
-      if (o.k === 'spike' || o.k === 'stage' || o.k === 'torii' || o === b.last || (o.k === 'mini' && oy < 60)) continue;
+      if (o.k === 'gate' || o.k === 'spike' || o.k === 'stage' || o.k === 'torii' || o.k === 'ice' || o.hidden || o === b.last || (o.k === 'mini' && oy < 60)) continue;
       const rr = o.k === 'crate' ? 20 : o.r;
       if (Math.abs(b.x - o.x) < rr && Math.abs(b.y - oy) < rr) {
         if (b.fire) spark(b.x, b.y, '#ff8a3d', 2);
@@ -1081,6 +1180,7 @@ function update(dt) {
     }
   }
   g.bullets = g.bullets.filter(b => !b.dead);
+  if (g.hz.length) updateHazards(dt);
   updateProjectiles(dt);
   if (g.won) { win(); return; }
 
@@ -1089,9 +1189,9 @@ function update(dt) {
     if (e.dead) continue; // smashed by Iron Cyclone
     e.x += e.vx * dt; e.y += e.vy * dt; e.a += dt * 8;
     if (e.y > H + 20 || e.x < -20 || e.x > W + 20) { e.dead = true; continue; }
-    const hitR = (e.kind === 'rock' || e.kind === 'bomb') ? 14 : 6;
+    const hitR = (e.kind === 'rock' || e.kind === 'bomb') ? 14 : e.kind === 'orb' ? 12 : e.kind === 'wisp' ? 10 : 6;
     if (Math.abs(e.x - g.sx) < r * .8 + hitR && Math.abs(e.y - SQY) < r * .5 + hitR) {
-      e.dead = true; hurtSquad(loss(e.kind === 'rock' ? 4 : e.kind === 'bomb' ? 2 : e.kind === 'feather' ? 2 : 1, g.lv), e.x, e.y, true);
+      e.dead = true; hurtSquad(loss(e.kind === 'rock' ? 4 : e.kind === 'bomb' || e.kind === 'feather' || e.kind === 'wisp' || e.kind === 'orb' ? 2 : 1, g.lv), e.x, e.y, true);
     }
   }
   g.ebullets = g.ebullets.filter(e => !e.dead);
@@ -1130,6 +1230,7 @@ function update(dt) {
   for (const o of g.objs) if (o.k === 'gate') for (const s of o.opts) if (s.bump > 0) s.bump -= dt;
   for (const b of g.bolts) b.t -= dt;
   g.bolts = g.bolts.filter(b => b.t > 0);
+  if (g.fx) { for (const f of g.fx) f.t -= dt; g.fx = g.fx.filter(f => f.t > 0); }
 
   if (skl('gourd')) {
     g.regenT -= dt;
@@ -1150,9 +1251,9 @@ function updateBoss(o, y, dt) {
   const setY = ny => { o.d = g.dist + SQY - ny; };
   const rage = o.phase === 2, D = g.D, spd = (rage ? .7 : 1) * (1 - .4 * D); // attack cooldown multiplier
   o.ph += dt * 4; o.fightT = (o.fightT || 0) + dt;
-  if (o.homeY === undefined) { o.homeY = y; o.state = 'idle'; o.specT = 4; }
+  if (o.homeY === undefined) { o.homeY = y; o.state = 'idle'; o.specT = 4; o.spT = 2.5; }
   if (!rage && o.hp <= o.max / 2) {
-    o.phase = 2; o.state = 'roar'; o.stT = .9; setY(o.homeY);
+    o.phase = 2; o.state = 'roar'; o.stT = .9; setY(o.homeY); o.hidden = false; o.alpha = 1;
     g.banner = { txt: BOSSES[o.bt].name + ' ENRAGED!', t: 1.4, red: true, small: true }; SFX.boss(); g.shake = .45;
     return;
   }
@@ -1169,6 +1270,18 @@ function updateBoss(o, y, dt) {
       return;
     case 'charge': setY(y + BOSS_CHARGE_V * dt); if (y > SQY + 70) o.state = 'return'; return;
     case 'return': { const ny = Math.max(o.homeY, y - BOSS_RETURN_V * dt); setY(ny); if (ny <= o.homeY) { o.state = 'idle'; g.st.dodges++; } return; }
+    case 'vanish': { // Ghost Shogun: fades out (can't be hit), a marker shows where it returns, then it bursts out there
+      o.stT -= dt; setY(o.homeY);
+      o.alpha = clamp((o.stT - GHOST_GONE) / GHOST_FADE, 0, 1); o.hidden = o.alpha < .35;
+      if (o.stT <= GHOST_GONE) o.x = o.nx;
+      if (o.stT <= 0) {
+        o.state = 'idle'; o.alpha = 1; o.hidden = false; SFX.smoke(); spark(o.x, y, '#c9a8ff', 24, 160);
+        const fan = rage ? [-.75, -.5, -.25, 0, .25, .5, .75] : [-.6, -.3, 0, .3, .6];
+        for (const a of fan) enemyShot(o.x, y + 26, 'wisp', 150 * (1 + .3 * D), a);
+        if (rage) o.specT = Math.min(o.specT, 1.2); // enraged: often follows up with a charge
+      }
+      return;
+    }
   }
   // idle: hold position and use this boss's pattern
   setY(o.homeY);
@@ -1182,7 +1295,7 @@ function updateBoss(o, y, dt) {
       for (const a of fan) enemyShot(o.x, y + 20, 'feather', 230 * (1 + .3 * D), a);
       SFX.arrow();
     }
-  } else {
+  } else if (o.bt < 3) { // (region bosses move in regionBoss)
     // Oni and Samurai drift toward the squad so their attacks stay aimed
     o.x += clamp(g.sx - o.x, -1, 1) * Math.min(Math.abs(g.sx - o.x), 30 * dt);
     if (o.bt === 0 && o.atkT <= 0) { // Oni: boulders (a spread of three when enraged)
@@ -1199,6 +1312,10 @@ function updateBoss(o, y, dt) {
       SFX.bad();
     }
   }
+  if (o.bt >= 3 && regionBoss(o, y, dt, rage, spd, D)) return;
+  // a lane hazard is still being telegraphed (or a wave is rolling, or lanes are frozen): the charge waits for it,
+  // so there is always somewhere safe to dodge to
+  if (o.specT <= 0 && g.hz.length && (g.hz.some(h => h.warn > 0 || h.k === 'wave') || frozenLanes() >= g.lanes - 1)) o.specT = .5;
   if (o.specT <= 0) {
     // lock onto the squad's lane and warn before charging
     o.state = 'tele'; o.stT = BOSS_TELE * (rage ? .75 : 1) * (1 - .25 * D);
@@ -1206,6 +1323,107 @@ function updateBoss(o, y, dt) {
     o.specT = (rage ? 4.5 : 6.5) * (1 - .3 * D) * (o.berserk ? .6 : 1);
     SFX.boss();
   }
+}
+
+// ---------- region bosses ----------
+// Built on the same phases (idle → telegraph → charge → return, enrage, berserk); each adds a telegraphed signature
+// attack that costs ninjas, never the run: only touching the boss is instant defeat.
+const GHOST_FADE = .45, GHOST_GONE = .95;
+const FROST_WARN = 1.4, FROST_LIVE = 2.6, BOLT_WARN = 1.15, WAVE_WARN = 1.1, WAVE_V = 210;
+// returns true when the boss started a move that ends this frame's idle
+function regionBoss(o, y, dt, rage, spd, D) {
+  o.spT -= dt;
+  if (o.bt === 3) { // Yuki-onna: glides, ice shards, freezes the squad's lane (2 lanes when enraged)
+    const tx = MID + Math.sin(o.ph * .22) * 95; o.x += (tx - o.x) * Math.min(1, dt * 2);
+    if (o.atkT <= 0) { o.atkT = 2 * spd; for (const a of rage ? [-.22, 0, .22] : [-.11, .11]) enemyShot(o.x, y + 24, 'ice', 230 * (1 + .3 * D), a); SFX.arrow(); }
+    if (o.spT <= 0 && o.specT > 1) { o.spT = (rage ? 4.4 : 5.8) * (1 - .2 * D); laneHazards('frost', rage ? 2 : 1, FROST_WARN * (rage ? .85 : 1)); }
+  } else if (o.bt === 4) { // Ghost Shogun: stalks the squad, will-o-wisps, vanishes and bursts out somewhere else
+    o.x += clamp(g.sx - o.x, -1, 1) * Math.min(Math.abs(g.sx - o.x), 26 * dt);
+    if (o.atkT <= 0) { o.atkT = 2.3 * spd; for (const a of rage ? [-.22, 0, .22] : [-.13, .13]) enemyShot(o.x, y + 26, 'wisp', 165 * (1 + .3 * D), a); SFX.arrow(); }
+    if (o.spT <= 0 && o.specT > 1.4) {
+      o.spT = (rage ? 4.6 : 6) * (1 - .2 * D); o.state = 'vanish'; o.stT = GHOST_FADE + GHOST_GONE;
+      o.nx = clamp(g.sx + rnd(-110, 110), RL + o.r, RR - o.r); SFX.smoke(); return true;
+    }
+  } else { // Raijin: sways, thunder orbs, then alternates thunder lanes and a tidal wave with one safe gap
+    const tx = MID + Math.sin(o.ph * (rage ? .4 : .28)) * 100; o.x += (tx - o.x) * Math.min(1, dt * 3);
+    if (o.atkT <= 0) { o.atkT = 2.4 * spd; enemyShot(o.x, y + 24, 'orb', 200 * (1 + .3 * D)); SFX.zap(); }
+    if (o.spT <= 0 && o.specT > 1) {
+      o.spT = (rage ? 4.6 : 6) * (1 - .2 * D);
+      if ((o.spN = (o.spN || 0) + 1) % 2) laneHazards('bolt', rage ? 2 : 1, BOLT_WARN * (rage ? .85 : 1));
+      else tidalWave(y);
+    }
+  }
+  return false;
+}
+const laneX = i => RL + i * (RR - RL) / g.lanes;
+const inHz = h => g.sx >= h.x0 && g.sx < h.x1;
+const hzOn = (h, i) => h.k !== 'wave' && h.x0 <= laneX(i) + 1 && h.x1 > laneX(i) + 1;
+const frozenLanes = () => { let n = 0; for (let i = 0; i < g.lanes; i++) if (g.hz.some(h => h.k === 'frost' && hzOn(h, i))) n++; return n; };
+// n lanes (the squad's own lane first), always leaving at least one lane free of hazards
+function laneHazards(k, n, warn) {
+  const free = [...Array(g.lanes).keys()].filter(i => !g.hz.some(h => hzOn(h, i))), pickd = [];
+  const mine = laneOf(g.sx);
+  if (free.includes(mine) && free.length > 1) pickd.push(mine);
+  while (pickd.length < Math.min(n, free.length - 1)) { const i = pick(free); if (!pickd.includes(i)) pickd.push(i); }
+  for (const i of pickd) g.hz.push({ k, x0: laneX(i), x1: laneX(i + 1), warn, live: k === 'frost' ? FROST_LIVE : .35, tick: .35 });
+  if (pickd.length) SFX.boss();
+}
+// a wall of water across the road with one safe gap, rolling down from the boss
+function tidalWave(y) {
+  const i = ri(0, g.lanes - 1);
+  g.hz.push({ k: 'wave', x0: laneX(i), x1: laneX(i + 1), y: y + 40, warn: WAVE_WARN, hit: false });
+  SFX.boss();
+}
+function updateHazards(dt) {
+  for (const h of g.hz) {
+    if (h.warn > 0) {
+      h.warn -= dt;
+      if (h.warn <= 0) { // strike
+        if (h.k === 'frost') { SFX.boom(); if (inHz(h)) { hurtSquad(loss(3, g.lv), g.sx, SQY, true); h.tick = .7; } }
+        else if (h.k === 'bolt') { SFX.zap(); SFX.boom(); g.shake = .3; if (inHz(h)) hurtSquad(loss(4, g.lv), g.sx, SQY, true); }
+        else SFX.smoke();
+      }
+      continue;
+    }
+    if (h.k === 'wave') {
+      h.y += WAVE_V * (1 + .3 * g.D) * dt;
+      if (!h.hit && h.y >= SQY - 8) { h.hit = true; if (!inHz(h)) { hurtSquad(loss(4, g.lv), g.sx, SQY, true); spark(g.sx, SQY, '#9fe6ff', 20, 160); } else g.st.dodges++; }
+      if (h.y > H + 40) h.dead = true;
+      continue;
+    }
+    h.live -= dt;
+    if (h.k === 'frost') { // frozen lane: ninjas standing in it keep freezing
+      if (inHz(h)) { h.tick -= dt; if (h.tick <= 0) { h.tick = .7; hurtSquad(loss(1, g.lv), g.sx, SQY, true); } } else h.tick = .35;
+    }
+    if (h.live <= 0) h.dead = true;
+  }
+  g.hz = g.hz.filter(h => !h.dead);
+}
+
+// ---------- region twists ----------
+// Snow Pass: the squad chases the steering target on a spring, so it slides a little, and a lot on an ice patch
+const ICE_K = [110, 15], ICE_PATCH_K = [30, 3.6];
+const onIcePatch = () => g.objs.some(o => o.k === 'ice' && g.dist >= o.d && g.dist <= o.d + o.len);
+function steerIce(dt) {
+  g.tx = clamp(g.tx, RL + 16, RR - 16);
+  const was = g.onIce; g.onIce = onIcePatch();
+  if (g.onIce && !was) pop(g.sx, SQY - 70, '❄ SLIPPERY!', '#bfeaff');
+  const [k, c] = g.onIce ? ICE_PATCH_K : ICE_K;
+  g.vx += ((g.tx - g.sx) * k - g.vx * c) * dt; g.sx += g.vx * dt;
+  if (g.sx < RL + 16 || g.sx > RR - 16) { g.vx = 0; g.sx = clamp(g.sx, RL + 16, RR - 16); }
+}
+// Storm Coast: a gust is announced (WIND_WARN s), then blows the squad's stars sideways for WIND_BLOW s
+const WIND_WARN = 1.6, WIND_BLOW = 3.2, WIND_ACC = 300;
+function updateWind(dt) {
+  const w = g.wind;
+  w.t -= dt;
+  if (w.t <= 0) {
+    if (w.state === 'calm') { w.state = 'warn'; w.t = WIND_WARN; w.dir = R() < .5 ? -1 : 1; SFX.smoke(); }
+    else if (w.state === 'warn') { w.state = 'blow'; w.t = WIND_BLOW; }
+    else { w.state = 'calm'; w.t = rnd(6.5, 9.5); }
+  }
+  // the gust swells and dies away instead of switching on and off
+  g.windA = w.state === 'blow' ? w.dir * WIND_ACC * Math.min(1, (WIND_BLOW - w.t) * 3, w.t * 3) : 0;
 }
 
 // ---------- endless enemy stream ----------
@@ -1224,6 +1442,29 @@ function spawnStream(dt) {
     for (let i = 0; i < n; i++) g.objs.push({ k: 'en', stream: true, d: top + rnd(0, 30) + i * 14, x: clamp(x + rnd(-18, 18), RL + 15, RR - 15), hp, max: hp, r: 10, ph: rnd(0, 6) });
   }
 }
+
+// ---------- gates absorb squad projectiles ----------
+// Everything the squad throws that flies up the path (stars, kunai, talismans, clone stars, Dragon Fang, Iron Cyclone's
+// blade, wind blades, tornadoes, arrows) stops at an unused gate, and raises a + lane's number like a star does, so
+// nothing is ever hit through a gate. Instant or area effects (lightning, the chain orbit, burning) ignore gates.
+// The check is swept over the move (y0 → y1) so a fast shot can't skip over the gate in a long frame.
+// Stage generation keeps gates out of the guardian / boss run-up (GATE_CLEAR), so a gate never shields them.
+let liveGates = [];
+const GATE_BAND = 22;
+function gateAbsorb(x, y0, y1) {
+  for (const o of liveGates) {
+    if (o.used) continue;
+    const oy = sy(o);
+    if (Math.min(y0, y1) > oy + GATE_BAND || Math.max(y0, y1) < oy - GATE_BAND) continue;
+    const s = o.opts[laneOf(x, o.opts.length)];
+    if (s.t === 'add') { s.acc += 1; if (s.acc >= 6) { s.acc = 0; s.v += Math.max(1, Math.round(g.G)); s.bump = .15; g.st.gateBumps++; } }
+    spark(x, clamp(y1, oy - GATE_BAND, oy + GATE_BAND), '#9be8ff', 1);
+    return true;
+  }
+  return false;
+}
+// an unused gate between screen height y and the squad (aimed weapons don't waste their shot into it)
+const gateBetween = y => liveGates.some(o => !o.used && sy(o) > y && sy(o) < SQY);
 
 // ---------- weapons ----------
 function updateWeapons(dt, r) {
@@ -1297,9 +1538,46 @@ function updateWeapons(dt, r) {
       }
     }
   }
+  if (skl('fan') && g.count > 0) {
+    // Wind Fan: blades leave the squad to the left and right and level off at the height of the enemy front line (the
+    // closest foe, so a guardian or boss too), sweeping across the lanes there.
+    // Fujin's Tempest: +2 giant blades, 70% harder and 33% more often, knocking enemies back; plus a tornado every 3 s.
+    const s = FAN(skl('fan')), evo = g.evo.fan, foes = tg().filter(o => o.k !== 'crate');
+    if (foes.length && tick('fan', s.cd * (evo ? .75 : 1))) {
+      const n = s.n + mir + (evo ? 2 : 0), front = foes.reduce((m, o) => Math.max(m, Math.min(sy(o), SQY - r - 30)), -1e9);
+      for (let i = 0; i < n; i++) {
+        const dir = i % 2 ? -1 : 1, row = Math.floor(i / 2), ty = clamp(front - 45 * row, 90, SQY - 100);
+        g.proj.push({ k: 'gust', x: g.sx, y: SQY - r * .6, vx: dir * (320 + 30 * row), vy: -400, ty, dmg: T * s.dmg * (evo ? 1.7 : 1),
+                      pierce: Infinity, hit: new Set(), life: 1.8, w: evo ? 17 : 11, kb: evo ? 14 : 0, a: 0 });
+      }
+      SFX.wind();
+    }
+    if (evo && foes.length && tick('tornado', 3)) {
+      g.proj.push({ k: 'tornado', x: g.sx, y: SQY - r - 14, vx: 0, vy: -130, dmg: T * .55, pierce: Infinity, life: 3.4, w: 30, a: 0, tk: 0 });
+      SFX.wind(); g.shake = Math.max(g.shake, .12);
+    }
+  }
+  if (skl('bow') && g.count > 0) {
+    // Yumi Longbow: aims at the toughest enemy with a clear line of fire (no unused gate in between) and keeps a reticle on it.
+    // Heaven Piercer: 2 arrows (the two toughest), every 1.1 s, ×1.15 damage, pierce everything, burst + mark on impact.
+    const s = BOW(skl('bow')), evo = g.evo.bow;
+    const foes = tg().filter(o => o.k !== 'crate' && !gateBetween(sy(o)));
+    const tough = o => o.hp + Math.max(0, o.shield || 0);
+    foes.sort((a, b) => tough(b) - tough(a));
+    g.bowTgt = foes[0] || null; g.bowCd = evo ? 1.1 : s.cd;
+    if (foes.length && tick('bow', g.bowCd)) {
+      for (const t of foes.slice(0, evo ? 2 : 1)) {
+        const x0 = g.sx, y0 = SQY - r * .6, dx = t.x - x0, dy = sy(t) - y0, L = Math.hypot(dx, dy) || 1, v = evo ? 1250 : 1100;
+        g.proj.push({ k: 'arrow', x: x0, y: y0, vx: dx / L * v, vy: dy / L * v, v, tgt: t, dmg: T * s.dmg * (evo ? 1.15 : 1),
+                      pierce: evo ? Infinity : s.pierce, hit: new Set(), life: 1.5, w: evo ? 8 : 5, gold: evo });
+        fxAdd({ k: 'aim', x0, y0, x1: t.x, y1: sy(t), t: .14, gold: evo });
+      }
+      SFX.bow();
+    }
+  } else g.bowTgt = null;
   if (skl('chain')) {
     const evo = g.evo.chain; // Iron Cyclone: 7 bigger blades on a wider orbit that also smash projectiles
-    const s = CHAIN(skl('chain')), n = evo ? 7 : s.n, rad = r + (evo ? 46 : 26), dmg = T * s.dmg * (evo ? 1.35 : 1);
+    const s = CHAIN(skl('chain')), n = evo ? 7 : s.n, rad = r + (evo ? 46 : 26), dmg = T * s.dmg * (evo ? 1.5 : 1);
     g.chainA += dt * 3.4;
     for (let i = 0; i < n; i++) {
       const a = g.chainA + i / n * 6.283, bx = g.sx + Math.cos(a) * rad, by = SQY + Math.sin(a) * rad * .6;
@@ -1314,11 +1592,13 @@ function updateWeapons(dt, r) {
     const foes = evo && tg().filter(o => o.k !== 'crate');
     if (evo && foes.length && tick('cyclone', 1)) {
       const t = foes.reduce((a, b) => b.hp > a.hp ? b : a), dx = t.x - g.sx, dy = sy(t) - SQY, L = Math.hypot(dx, dy) || 1;
-      g.proj.push({ k: 'blade', x: g.sx, y: SQY - r * .6, vx: dx / L * 700, vy: dy / L * 700, dmg: T * 1.3, pierce: 3, hit: new Set(), life: 1.6, w: 10, a: 0 });
+      g.proj.push({ k: 'blade', x: g.sx, y: SQY - r * .6, vx: dx / L * 700, vy: dy / L * 700, dmg: T * 1.6, pierce: 3, hit: new Set(), life: 1.6, w: 10, a: 0 });
     }
   }
 }
 
+// short-lived weapon effects (aim lines, light pillars); the list is created on first use
+function fxAdd(f) { (g.fx || (g.fx = [])).push(f); }
 // where clone i of k stands: a slow ring around the squad
 function clonePos(i, k, r) {
   const a = g.clA + i / k * 6.283, rad = r + 22 + (i % 2) * 10;
@@ -1338,25 +1618,75 @@ function updateProjectiles(dt) {
       p.a += dt * 6;
     }
     if (p.k === 'sstar' || p.k === 'blade') p.a += dt * 20;
-    p.x += p.vx * dt; p.y += p.vy * dt;
-    if (p.life <= 0 || p.y < -30 || p.y > H + 30 || p.x < RL - 20 || p.x > RR + 20) { p.dead = true; continue; }
-    for (const o of targets) {
-      if (o.dead || (p.hit && p.hit.has(o))) continue;
-      const rr = (o.k === 'crate' ? 20 : o.r) + (p.w || 4);
-      if (Math.abs(p.x - o.x) < rr && Math.abs(p.y - sy(o)) < rr + 4) {
-        damage(o, p.dmg, p.x, p.y);
-        if (p.k === 'tal') { if (!o.dead) o.burn = { t: 3, dps: p.burn }; spark(p.x, p.y, '#ff8a3d', 8, 120); p.dead = true; break; }
-        p.hit.add(o); if (--p.pierce <= 0) { p.dead = true; break; }
-      }
+    if (p.k === 'gust') { p.vy += ((p.ty - p.y) * 3 - p.vy) * Math.min(1, dt * 5); p.ty -= 25 * dt; } // glides to its sweep height
+    if (p.k === 'arrow' && p.tgt && p.tgt.dead) p.tgt = null; // someone else got it first: fly on
+    if (p.k === 'arrow' && p.tgt) { // the arrow tracks its target until it lands
+      const dx = p.tgt.x - p.x, dy = sy(p.tgt) - p.y, L = Math.hypot(dx, dy) || 1;
+      p.vx = dx / L * p.v; p.vy = dy / L * p.v;
+    }
+    if (p.k === 'tornado') { p.a += dt * 12; p.tk -= dt; }
+    if (p.life <= 0) { p.dead = true; continue; }
+    // fast shots move in sub-steps so they can't skip over a small enemy or a gate in one long frame
+    const steps = Math.max(1, Math.ceil(Math.hypot(p.vx, p.vy) * dt / 18));
+    for (let st = 0; st < steps && !p.dead; st++) {
+      const y0 = p.y;
+      p.x += p.vx * dt / steps; p.y += p.vy * dt / steps;
+      // wind blades bounce off the path's walls and may hit everything again on the way back
+      if (p.k === 'gust' && ((p.x < RL + 8 && p.vx < 0) || (p.x > RR - 8 && p.vx > 0))) { p.vx = -p.vx; p.hit.clear(); }
+      if (p.y < -30 || p.y > H + 30 || p.x < RL - 20 || p.x > RR + 20) { p.dead = true; break; }
+      if (gateAbsorb(p.x, y0, p.y)) { p.dead = true; break; }
+      if (p.k === 'tornado') tornado(p, targets, dt / steps); else projHits(p, targets);
     }
   }
   g.proj = g.proj.filter(p => !p.dead);
+}
+// Longbow arrow: full damage to everything it passes, extra to guardians, bosses and brutes; it only spends its pierce
+// once it has reached the target it was aimed at, so small fry on the way can't stop it.
+function arrowHit(p, o) {
+  const elite = o.k === 'mini' || o.k === 'boss' || o.big || o.smax, main = o === p.tgt, oy = sy(o);
+  p.hit.add(o);
+  damage(o, p.dmg * (elite ? BOW_ELITE : 1), p.x, p.y);
+  spark(p.x, p.y, p.gold ? '#ffe680' : '#e8f4ff', main ? 10 : 4, main ? 160 : 100);
+  if (main && p.gold) {
+    // Heaven Piercer: a pillar of light, a burst around the target and a mark (+15% damage taken)
+    if (!o.dead) o.mark = MARK_T;
+    for (const n of g.objs) if (n !== o && !n.dead && n.k !== 'crate' && hittable(n) && Math.hypot(n.x - o.x, sy(n) - oy) < 70) damage(n, p.dmg * .3, n.x, sy(n), true);
+    fxAdd({ k: 'pillar', x: o.x, y: oy, t: .45 }); spark(o.x, oy, '#fff2a8', 18, 220); g.shake = Math.max(g.shake, .1);
+  }
+  if (main) { p.tgt = null; if (p.pierce <= 0) p.dead = true; } // then fly on straight through `pierce` more
+  else if (!p.tgt && --p.pierce < 0) p.dead = true;
+}
+// Fujin's Tempest tornado: drags nearby enemies (not guardians or bosses) into its funnel and shreds whatever is inside
+function tornado(p, targets, dt) {
+  const tickNow = p.tk <= 0;
+  if (tickNow) p.tk = .25;
+  for (const o of targets) {
+    if (o.dead || o.k === 'crate') continue;
+    const oy = sy(o), dx = p.x - o.x, dy = p.y - oy;
+    if (o.k === 'en' && Math.abs(dx) < 95 && Math.abs(dy) < 80) o.x += Math.sign(dx) * Math.min(Math.abs(dx), 160 * dt);
+    if (tickNow && Math.abs(dx) < p.w + o.r && Math.abs(dy) < 44 + o.r) damage(o, p.dmg, o.x, oy);
+  }
+}
+function projHits(p, targets) {
+  for (const o of targets) {
+    if (o.dead || (p.hit && p.hit.has(o))) continue;
+    const rr = (o.k === 'crate' ? 20 : o.r) + (p.w || 4);
+    if (Math.abs(p.x - o.x) < rr && Math.abs(p.y - sy(o)) < rr + 4) {
+      if (p.k === 'arrow') { arrowHit(p, o); if (p.dead) return; continue; }
+      damage(o, p.dmg, p.x, p.y);
+      if (p.kb && o.k === 'en' && !o.dead) o.d += p.kb; // Tempest blades blow enemies back up the path
+      if (p.k === 'tal') { if (!o.dead) o.burn = { t: 3, dps: p.burn }; spark(p.x, p.y, '#ff8a3d', 8, 120); p.dead = true; return; }
+      p.hit.add(o); if (--p.pierce <= 0) { p.dead = true; return; }
+    }
+  }
 }
 
 // ---------- draw ----------
 function rrect(x, y, w, h, r) { cx.beginPath(); if (cx.roundRect) cx.roundRect(x, y, w, h, r); else cx.rect(x, y, w, h); }
 
-function drawScene(dist) {
+function drawScene(dist, rgi) {
+  lampN = 0;
+  if (rgi) return drawRegionScene(dist, rgi);
   // moss garden
   cx.fillStyle = '#2f4a2a'; cx.fillRect(-10, -10, W + 20, H + 20);
   cx.fillStyle = 'rgba(255,255,255,.035)';
@@ -1397,38 +1727,108 @@ function drawScene(dist) {
   }
 }
 
+// Snow Pass, Night Castle and Storm Coast: same layout as the grove (side strips, stone path, decor tile), own palette and props
+const RPAL = [null,
+  { gnd: '#dfe8f1', stripe: 'rgba(150,180,210,.18)', path: '#b3c1cf', line: 'rgba(80,100,130,.32)', e1: '#5d6f84', e2: '#c4d4e4' },
+  { gnd: '#151a2c', stripe: 'rgba(140,120,220,.06)', path: '#3a3d4e', line: 'rgba(8,8,18,.55)', e1: '#1b1a24', e2: '#5a5068' },
+  { gnd: '#1b4a62', stripe: 'rgba(255,255,255,.08)', path: '#6d5a44', line: 'rgba(40,28,18,.5)', e1: '#3a2d20', e2: '#9a8160' },
+];
+function drawRegionScene(dist, rgi) {
+  const P = RPAL[rgi], now = performance.now();
+  cx.fillStyle = P.gnd; cx.fillRect(-10, -10, W + 20, H + 20);
+  if (rgi === 3) { // the sea on both sides, with rolling foam
+    cx.fillStyle = 'rgba(255,255,255,.16)';
+    for (let y = -60 + (dist * .6 + now / 40) % 60; y < H; y += 60) { cx.fillRect(0, y, RL - 10, 4); cx.fillRect(RR + 10, y + 30, W - RR - 10, 4); }
+  } else {
+    cx.fillStyle = P.stripe;
+    for (let y = -80 + dist % 80; y < H; y += 80) { cx.fillRect(0, y, RL, 40); cx.fillRect(RR, y, W - RR, 40); }
+  }
+  cx.fillStyle = P.path; cx.fillRect(RL, -10, RR - RL, H + 20);
+  cx.strokeStyle = P.line; cx.lineWidth = 2;
+  if (rgi === 3) { // wet boardwalk planks
+    cx.beginPath();
+    for (let y = -22 + dist % 22; y < H + 22; y += 22) { cx.moveTo(RL, y); cx.lineTo(RR, y); }
+    cx.stroke();
+  } else {
+    const off = dist % 40;
+    for (let y = -40 + off, row = Math.floor(dist / 40); y < H + 40; y += 40, row--) {
+      cx.beginPath(); cx.moveTo(RL, y); cx.lineTo(RR, y); cx.stroke();
+      const shift = (row & 1) ? 0 : 26;
+      for (let x = RL + shift; x < RR; x += 52) { cx.beginPath(); cx.moveTo(x, y); cx.lineTo(x, y + 40); cx.stroke(); }
+    }
+  }
+  cx.fillStyle = P.e1; cx.fillRect(RL - 7, -10, 7, H + 20); cx.fillRect(RR, -10, 7, H + 20);
+  cx.fillStyle = P.e2; cx.fillRect(RL - 7, -10, 2, H + 20); cx.fillRect(RR + 5, -10, 2, H + 20);
+  for (const o of decor) {
+    const rel = ((o.d - dist) % TILE + TILE) % TILE - 250, y = SQY - rel;
+    if (y < -60 || y > H + 50) continue;
+    const s = o.s, big = o.t === 0 && o.d % 3 < 1.6, x = o.x;
+    cx.fillStyle = 'rgba(0,0,0,.22)'; cx.beginPath(); cx.ellipse(x + 3, y + 9, 12 * s, 5 * s, 0, 0, 7); cx.fill();
+    if (rgi === 1) {
+      if (big) { // snowy pine
+        cx.fillStyle = '#4a3a2a'; cx.fillRect(x - 2, y, 4, 9);
+        for (let k = 0; k < 3; k++) {
+          const ty = y - k * 9 * s, tw = (14 - k * 3.5) * s;
+          cx.fillStyle = '#2f5a48'; cx.beginPath(); cx.moveTo(x - tw, ty + 2); cx.lineTo(x, ty - 14 * s); cx.lineTo(x + tw, ty + 2); cx.fill();
+          cx.fillStyle = '#f4f9ff'; cx.beginPath(); cx.moveTo(x - tw * .45, ty - 7 * s); cx.lineTo(x, ty - 14 * s); cx.lineTo(x + tw * .45, ty - 7 * s); cx.fill();
+        }
+      } else if (o.t === 0) { // snow-capped rock
+        cx.fillStyle = '#7d8794'; cx.beginPath(); cx.ellipse(x, y, 12 * s, 8 * s, 0, 0, 7); cx.fill();
+        cx.fillStyle = '#f4f9ff'; cx.beginPath(); cx.ellipse(x - 1, y - 4 * s, 10 * s, 4 * s, 0, 0, 7); cx.fill();
+      } else { // stone lantern under snow
+        cx.fillStyle = '#6e6a62'; cx.fillRect(x - 3, y - 4, 6, 12);
+        cx.fillStyle = '#8f8a80'; cx.fillRect(x - 7, y - 12, 14, 9);
+        cx.fillStyle = '#ffcf6b'; cx.fillRect(x - 3, y - 10, 6, 5);
+        cx.fillStyle = '#f4f9ff'; cx.beginPath(); cx.moveTo(x - 11, y - 12); cx.lineTo(x, y - 20); cx.lineTo(x + 11, y - 12); cx.fill();
+      }
+    } else if (rgi === 2) {
+      if (big) { // castle wall turret with a lit window
+        cx.fillStyle = '#2a2738'; cx.fillRect(x - 11 * s, y - 26 * s, 22 * s, 32 * s);
+        for (let k = -1; k <= 1; k++) cx.fillRect(x + k * 8 * s - 3 * s, y - 31 * s, 6 * s, 6 * s);
+        cx.fillStyle = '#3b3750'; cx.fillRect(x - 11 * s, y - 26 * s, 22 * s, 3);
+        cx.fillStyle = '#ffcf6b'; cx.fillRect(x - 2.5, y - 16 * s, 5, 7);
+      } else if (o.t === 0) { // bare tree
+        cx.strokeStyle = '#2e2a36'; cx.lineWidth = 3; cx.beginPath();
+        cx.moveTo(x, y + 6); cx.lineTo(x, y - 18 * s); cx.moveTo(x, y - 8 * s); cx.lineTo(x - 9 * s, y - 18 * s); cx.moveTo(x, y - 12 * s); cx.lineTo(x + 8 * s, y - 22 * s); cx.stroke();
+      } else { // red paper lantern on a post (lights the dark)
+        cx.fillStyle = '#2a1e18'; cx.fillRect(x - 1.5, y - 14, 3, 22);
+        cx.fillStyle = 'rgba(255,120,60,.22)'; cx.beginPath(); cx.arc(x, y - 18, 14, 0, 7); cx.fill();
+        cx.fillStyle = '#e0483a'; cx.beginPath(); cx.ellipse(x, y - 18, 6, 8, 0, 0, 7); cx.fill();
+        cx.fillStyle = '#ffb36b'; cx.fillRect(x - 4, y - 19, 8, 2);
+        if (lampN < lampX.length) { lampX[lampN] = x; lampY[lampN++] = y - 18; }
+      }
+    } else {
+      if (big) { // black rocks in the surf
+        cx.fillStyle = '#262c33'; cx.beginPath(); cx.arc(x - 4, y, 9 * s, 0, 7); cx.arc(x + 6, y + 3, 7 * s, 0, 7); cx.fill();
+        cx.strokeStyle = 'rgba(255,255,255,.55)'; cx.lineWidth = 2; cx.beginPath(); cx.arc(x, y + 6, 13 * s, .2, Math.PI - .2); cx.stroke();
+      } else if (o.t === 0) { // wind-bent pine
+        cx.strokeStyle = '#4a3626'; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(x, y + 6); cx.quadraticCurveTo(x + 2, y - 10, x + 10 * s, y - 18 * s); cx.stroke();
+        cx.fillStyle = '#24493a'; cx.beginPath(); cx.ellipse(x + 10 * s, y - 20 * s, 12 * s, 5 * s, -.3, 0, 7); cx.fill();
+      } else { // shrine lantern with a blue flame
+        cx.fillStyle = '#5b5750'; cx.fillRect(x - 3, y - 4, 6, 12);
+        cx.fillStyle = '#7a756c'; cx.fillRect(x - 7, y - 12, 14, 9);
+        cx.fillStyle = '#7fd8ff'; cx.fillRect(x - 3, y - 10, 6, 5);
+        cx.fillStyle = '#45413b'; cx.beginPath(); cx.moveTo(x - 10, y - 12); cx.lineTo(x, y - 19); cx.lineTo(x + 10, y - 12); cx.fill();
+      }
+    }
+  }
+}
+
 function draw() {
   cx.save();
   if (g && g.shake > 0 && running) cx.translate(frnd(-4, 4), frnd(-4, 4));
-  drawScene(g ? g.dist : idleDist);
-  if (!g) { cx.restore(); return; }
+  const rgi = regionIdx(g ? g.c : save.chapter);
+  drawScene(g ? g.dist : idleDist, rgi);
+  if (!g) { drawWeather(rgi); cx.restore(); return; }
   cx.fillStyle = 'rgba(255,255,255,.12)';
   for (let i = 1; i < g.lanes; i++) { const lx = RL + i * (RR - RL) / g.lanes; for (let y = -60 + g.dist % 60; y < H; y += 60) cx.fillRect(lx - 1.5, y, 3, 28); }
+  for (const o of g.objs) if (o.k === 'ice') drawIce(o, sy(o)); // ice sheets lie under everything
 
-  // boss charge warning: a pulsing red strip down the locked lane
-  const bossObj = g.bossMode && g.objs.find(o => o.k === 'boss' && o.state === 'tele');
-  if (bossObj) {
-    const by = sy(bossObj), w = bossObj.r * 2 + 12, x0 = bossObj.lane - w / 2, p = .25 + .2 * Math.sin(performance.now() / 70);
-    cx.fillStyle = `rgba(255,40,40,${p})`; cx.fillRect(x0, by, w, H - by);
-    cx.fillStyle = 'rgba(255,90,90,.85)'; cx.fillRect(x0, by, 3, H - by); cx.fillRect(x0 + w - 3, by, 3, H - by);
-    cx.font = '900 20px system-ui,sans-serif'; cx.textAlign = 'center'; cx.fillStyle = 'rgba(255,220,220,.9)';
-    for (let yy = by + 70 + (performance.now() / 6) % 60; yy < H; yy += 60) cx.fillText('▼', bossObj.lane, yy);
-  }
-
+  // Night Castle: gates, guardians, the boss, torii, stage lines, telegraphs and enemy shots are drawn above the darkness
+  const dark = g.twist === 'dark', lit = o => o.k === 'gate' || o.k === 'mini' || o.k === 'boss' || o.k === 'torii' || o.k === 'stage';
+  if (!dark) drawTele();
   const sorted = g.objs.slice().sort((a, b) => sy(a) - sy(b));
-  for (const o of sorted) {
-    const y = sy(o);
-    if (y < -90 || y > H + 90) continue;
-    if (o.k === 'gate') drawGate(o, y);
-    else if (o.k === 'spike') drawSpike(o, y);
-    else if (o.k === 'en') drawEnemy(o, y);
-    else if (o.k === 'crate') drawCrate(o, y);
-    else if (o.k === 'boss') drawBoss(o, y);
-    else if (o.k === 'mini') drawMini(o, y);
-    else if (o.k === 'stage' && o.s > 1) drawStageLine(o, y);
-    else if (o.k === 'torii') drawTorii(o, y);
-    if (o.burn) { const br = o.r || 20; cx.fillStyle = Math.random() < .5 ? '#ff8a3d' : '#ffd84d'; cx.beginPath(); cx.arc(o.x + frnd(-br * .5, br * .5), y - br * .6 + frnd(-3, 3), 3.5, 0, 7); cx.fill(); }
-  }
+  for (const o of sorted) if (!dark || !lit(o)) drawObj(o);
 
   const spin = performance.now() / 40;
   for (const b of g.bullets) {
@@ -1436,10 +1836,21 @@ function draw() {
     drawStar(b.x, b.y, 6, b.a + spin, b.fire, b.gold);
   }
   drawWeapons();
+  if (dark) {
+    drawDark();
+    drawTele();
+    for (const o of sorted) {
+      if (lit(o)) drawObj(o);
+      else if (o.k === 'spike') { const y = sy(o); if (y > -20 && y < H) { cx.fillStyle = '#ff6b6b'; cx.font = '800 11px system-ui,sans-serif'; cx.textAlign = 'center'; cx.fillText('⚠ SPIKES', (o.x0 + o.x1) / 2, y - 16); } }
+    }
+  }
   for (const e of g.ebullets) drawEnemyShot(e);
 
   drawClones();
   drawSquad();
+  drawWind();
+  drawWeather(rgi);
+
   if (g.invuln > 0) {
     // revive shield: pulsing gold ring while nothing can hurt the squad
     const rr = squadR() + 18, a = .35 + .25 * Math.sin(performance.now() / 60);
@@ -1493,6 +1904,185 @@ function draw() {
   drawHUD();
 }
 
+function drawObj(o) {
+  const y = sy(o);
+  if (y < -90 || y > H + 90) return;
+  if (o.k === 'gate') drawGate(o, y);
+  else if (o.k === 'spike') drawSpike(o, y);
+  else if (o.k === 'en') drawEnemy(o, y);
+  else if (o.k === 'crate') drawCrate(o, y);
+  else if (o.k === 'boss') drawBoss(o, y);
+  else if (o.k === 'mini') drawMini(o, y);
+  else if (o.k === 'stage' && o.s > 1) drawStageLine(o, y);
+  else if (o.k === 'torii') drawTorii(o, y);
+  if (o.mark > 0) { // Heaven Piercer's mark: a gold ring and a diamond over the target (+15% damage taken)
+    const mr = (o.r || 20) + 4, a = Math.min(1, o.mark * 2), bob = Math.sin(performance.now() / 120) * 2;
+    cx.globalAlpha = a; cx.strokeStyle = '#ffd84d'; cx.lineWidth = 2; cx.beginPath(); cx.ellipse(o.x, y + mr * .5, mr, mr * .4, 0, 0, 7); cx.stroke();
+    const dy = y - mr - 16 + bob; cx.fillStyle = '#ffe680'; cx.beginPath(); cx.moveTo(o.x, dy - 7); cx.lineTo(o.x + 5, dy); cx.lineTo(o.x, dy + 7); cx.lineTo(o.x - 5, dy); cx.fill();
+    cx.globalAlpha = 1;
+  }
+  if (o.burn) { const br = o.r || 20; cx.fillStyle = Math.random() < .5 ? '#ff8a3d' : '#ffd84d'; cx.beginPath(); cx.arc(o.x + frnd(-br * .5, br * .5), y - br * .6 + frnd(-3, 3), 3.5, 0, 7); cx.fill(); }
+}
+// boss telegraphs: the charge strip and the region bosses' lane hazards (frost, thunder, waves)
+function drawTele() {
+  const now = performance.now();
+  const bossObj = g.bossMode && g.objs.find(o => o.k === 'boss' && o.state === 'tele');
+  if (bossObj) { // a pulsing red strip down the locked lane
+    const by = sy(bossObj), w = bossObj.r * 2 + 12, x0 = bossObj.lane - w / 2, p = .25 + .2 * Math.sin(now / 70);
+    cx.fillStyle = `rgba(255,40,40,${p})`; cx.fillRect(x0, by, w, H - by);
+    cx.fillStyle = 'rgba(255,90,90,.85)'; cx.fillRect(x0, by, 3, H - by); cx.fillRect(x0 + w - 3, by, 3, H - by);
+    cx.font = '900 20px system-ui,sans-serif'; cx.textAlign = 'center'; cx.fillStyle = 'rgba(255,220,220,.9)';
+    for (let yy = by + 70 + (now / 6) % 60; yy < H; yy += 60) cx.fillText('▼', bossObj.lane, yy);
+  }
+  const ghost = g.bossMode && g.objs.find(o => o.k === 'boss' && o.state === 'vanish');
+  if (ghost) { // where the Ghost Shogun will burst out
+    const gy = sy(ghost), a = .5 + .3 * Math.sin(now / 60);
+    cx.strokeStyle = `rgba(200,160,255,${a})`; cx.lineWidth = 4; cx.setLineDash([8, 6]);
+    cx.beginPath(); cx.arc(ghost.nx, gy, ghost.r + 6, 0, 7); cx.stroke(); cx.setLineDash([]);
+    cx.font = '900 22px system-ui,sans-serif'; cx.textAlign = 'center'; cx.fillStyle = `rgba(233,221,255,${a})`; cx.fillText('👁', ghost.nx, gy + 8);
+  }
+  for (const h of g.hz) {
+    const w = h.x1 - h.x0, cxm = (h.x0 + h.x1) / 2, top = 110, p = .22 + .16 * Math.sin(now / 65);
+    cx.textAlign = 'center';
+    if (h.k === 'frost') {
+      if (h.warn > 0) {
+        cx.fillStyle = `rgba(140,215,255,${p})`; cx.fillRect(h.x0, top, w, H - top);
+        cx.fillStyle = 'rgba(200,240,255,.9)'; cx.fillRect(h.x0, top, 3, H - top); cx.fillRect(h.x1 - 3, top, 3, H - top);
+        cx.font = '900 18px system-ui,sans-serif'; cx.fillStyle = 'rgba(235,250,255,.95)';
+        for (let yy = top + 40 + (now / 8) % 70; yy < H; yy += 70) cx.fillText('❄', cxm, yy);
+        cx.font = '900 13px system-ui,sans-serif'; cx.fillText('FREEZE!', cxm, SQY - 100);
+      } else {
+        cx.fillStyle = 'rgba(205,240,255,.5)'; cx.fillRect(h.x0, top, w, H - top);
+        cx.fillStyle = '#e8f8ff';
+        for (let yy = top + 30; yy < H; yy += 46) for (let xx = h.x0 + 8; xx < h.x1 - 10; xx += 20) {
+          cx.beginPath(); cx.moveTo(xx, yy + 14); cx.lineTo(xx + 6, yy - 10); cx.lineTo(xx + 12, yy + 14); cx.fill();
+        }
+        cx.strokeStyle = 'rgba(120,200,255,.9)'; cx.lineWidth = 2; cx.strokeRect(h.x0 + 1, top, w - 2, H - top);
+      }
+    } else if (h.k === 'bolt') {
+      if (h.warn > 0) {
+        const f = Math.sin(now / 40) > 0 ? .34 : .16;
+        cx.fillStyle = `rgba(255,225,70,${f})`; cx.fillRect(h.x0, top, w, H - top);
+        cx.strokeStyle = 'rgba(255,240,150,.95)'; cx.lineWidth = 3; cx.setLineDash([10, 8]);
+        cx.strokeRect(h.x0 + 2, top, w - 4, H - top); cx.setLineDash([]);
+        cx.font = '900 20px system-ui,sans-serif'; cx.fillStyle = '#fff3a0';
+        for (let yy = top + 50 + (now / 5) % 80; yy < H; yy += 80) cx.fillText('⚡', cxm, yy);
+      } else {
+        cx.fillStyle = 'rgba(255,250,210,.55)'; cx.fillRect(h.x0, top, w, H - top);
+        for (const [lw, col] of [[12, 'rgba(255,220,60,.6)'], [4, '#ffffff']]) {
+          cx.strokeStyle = col; cx.lineWidth = lw; cx.beginPath(); cx.moveTo(cxm, top);
+          for (let yy = top, k = 0; yy < H; yy += 40, k++) cx.lineTo(cxm + (k % 2 ? 14 : -14), yy + 40);
+          cx.stroke();
+        }
+      }
+    } else { // wave: a water wall with one safe gap (green)
+      cx.fillStyle = `rgba(80,255,150,${.16 + p * .5})`; cx.fillRect(h.x0, h.y, w, Math.max(0, H - h.y));
+      cx.font = '900 13px system-ui,sans-serif'; cx.fillStyle = '#b8ffd2'; cx.fillText('SAFE', cxm, SQY - 96);
+      cx.font = '900 18px system-ui,sans-serif';
+      for (let yy = h.y + 40 + (now / 7) % 60; yy < SQY - 110; yy += 60) cx.fillText('▼', cxm, yy);
+      const a = h.warn > 0 ? .35 + .3 * (1 - h.warn / WAVE_WARN) : .92, wy = h.y - 16;
+      for (const [x0, x1] of [[RL - 6, h.x0], [h.x1, RR + 6]]) {
+        if (x1 <= x0) continue;
+        cx.fillStyle = `rgba(30,120,190,${a})`; cx.fillRect(x0, wy, x1 - x0, 30);
+        cx.fillStyle = `rgba(235,250,255,${a})`;
+        for (let xx = x0; xx < x1; xx += 14) { cx.beginPath(); cx.arc(xx + 7, wy, 7, Math.PI, 0); cx.fill(); }
+      }
+    }
+  }
+}
+
+// ---------- region visuals ----------
+// Ice sheet before a gate (Snow Pass): the squad slides on it, so line up first
+function drawIce(o, y) {
+  const top = y - o.len;
+  if (y < -20 || top > H + 20) return;
+  cx.fillStyle = 'rgba(200,238,255,.55)'; cx.fillRect(RL, top, RR - RL, o.len);
+  cx.strokeStyle = 'rgba(255,255,255,.65)'; cx.lineWidth = 2; cx.beginPath();
+  for (let x = RL + 10; x < RR; x += 46) { cx.moveTo(x, y - 12); cx.lineTo(x + 26, top + 14); }
+  cx.stroke();
+  cx.strokeStyle = 'rgba(120,190,235,.9)'; cx.strokeRect(RL + 1, top, RR - RL - 2, o.len);
+  cx.font = '900 12px system-ui,sans-serif'; cx.textAlign = 'center';
+  cx.lineWidth = 4; cx.strokeStyle = 'rgba(20,50,80,.6)'; cx.strokeText('❄ ICE · LINE UP FIRST', MID, y - 6);
+  cx.fillStyle = '#eafaff'; cx.fillText('❄ ICE · LINE UP FIRST', MID, y - 6);
+}
+// Night Castle darkness: a low-res mask, lit by the squad, its stars, fire, lightning, lanterns and torii.
+// Lights are one pre-rendered soft sprite punched out with destination-out, so there are no per-frame gradients.
+let darkCv = null, darkX = null, lightSpr = null;
+const DK = 4, lampX = new Float32Array(48), lampY = new Float32Array(48); let lampN = 0;
+function darkInit() {
+  try {
+    darkCv = document.createElement('canvas'); darkX = darkCv.getContext('2d');
+    lightSpr = document.createElement('canvas'); lightSpr.width = lightSpr.height = 64;
+    const lx = lightSpr.getContext('2d'), gr = lx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(.5, 'rgba(0,0,0,.85)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    lx.fillStyle = gr; lx.fillRect(0, 0, 64, 64);
+    if (!darkX) darkCv = false;
+  } catch (e) { darkCv = false; }
+}
+function drawDark() {
+  if (darkCv === null) darkInit();
+  if (!darkCv) { // no offscreen canvas: a plain gradient over the far road
+    const gr = cx.createLinearGradient(0, 0, 0, SQY - 140);
+    gr.addColorStop(0, 'rgba(4,5,18,.9)'); gr.addColorStop(.75, 'rgba(4,5,18,.8)'); gr.addColorStop(1, 'rgba(4,5,18,0)');
+    cx.fillStyle = gr; cx.fillRect(0, 0, W, SQY - 140); return;
+  }
+  const w = Math.ceil(W / DK), h = Math.ceil(H / DK), d = darkX;
+  if (darkCv.width !== w || darkCv.height !== h) { darkCv.width = w; darkCv.height = h; }
+  d.globalCompositeOperation = 'source-over'; d.clearRect(0, 0, w, h);
+  d.fillStyle = 'rgba(4,5,18,.9)'; d.fillRect(0, 0, w, h);
+  d.globalCompositeOperation = 'destination-out';
+  const L = (x, y, rx, ry = rx) => d.drawImage(lightSpr, (x - rx) / DK, (y - ry) / DK, 2 * rx / DK, 2 * ry / DK);
+  L(g.sx, SQY - 40, 200, 250); L(g.sx, SQY - 40, 140, 180); // the squad's own torches
+  for (let i = 0; i < g.bullets.length && i < 120; i += 3) { const b = g.bullets[i]; L(b.x, b.y, b.fire ? 46 : 32); }
+  for (let i = 0; i < g.proj.length && i < 24; i++) L(g.proj[i].x, g.proj[i].y, 38);
+  for (const b of g.bolts) for (const [x, y] of b.pts) L(x, y, 70);
+  for (const o of g.objs) if (!o.dead && (o.burn || o.k === 'torii')) { const y = sy(o); if (y > -100 && y < H + 50) L(o.k === 'torii' ? MID : o.x, y, o.k === 'torii' ? 190 : 42); }
+  for (let i = 0; i < lampN; i++) L(lampX[i], lampY[i], 56);
+  d.globalCompositeOperation = 'source-over';
+  cx.drawImage(darkCv, 0, 0, W, H);
+}
+// Storm Coast gusts: a flashing warning with the direction, then streaks blowing across the road
+function drawWind() {
+  if (g.twist !== 'wind') return;
+  const w = g.wind, now = performance.now();
+  if (w.state === 'warn') {
+    const a = .55 + .45 * Math.sin(now / 80), txt = w.dir > 0 ? '💨 GUST ⟶' : '⟵ GUST 💨';
+    cx.globalAlpha = a; cx.font = '900 22px system-ui,sans-serif'; cx.textAlign = 'center';
+    cx.lineWidth = 5; cx.strokeStyle = 'rgba(0,30,50,.8)'; cx.strokeText(txt, MID, 152);
+    cx.fillStyle = '#bfeaff'; cx.fillText(txt, MID, 152); cx.globalAlpha = 1;
+  }
+  const k = Math.abs(g.windA) / WIND_ACC;
+  if (k > .05) {
+    const dir = w.dir, span = W + 60;
+    cx.strokeStyle = `rgba(225,245,255,${.35 * k})`; cx.lineWidth = 2; cx.beginPath();
+    for (let i = 0; i < 28; i++) {
+      const x = ((i * 67 + dir * now * .55) % span + span) % span - 30, y = 110 + (i * 97) % (H - 200);
+      cx.moveTo(x, y); cx.lineTo(x - dir * 30, y);
+    }
+    cx.stroke();
+    cx.font = '900 12px system-ui,sans-serif'; cx.textAlign = 'center'; cx.fillStyle = `rgba(191,234,255,${.5 + .5 * k})`;
+    cx.fillText(dir > 0 ? 'WIND ⟶' : '⟵ WIND', MID, 152);
+  }
+}
+// falling snow (Snow Pass), rain and lightning flashes (Storm Coast); purely visual
+let stormFlash = 0;
+function drawWeather(rgi) {
+  const t = performance.now() / 1000;
+  if (rgi === 1) {
+    cx.fillStyle = 'rgba(255,255,255,.75)';
+    for (let i = 0; i < 40; i++) {
+      const sp = 26 + (i % 4) * 12, x = ((i * 97.3 + Math.sin(t * .8 + i) * 18 + t * 12) % W + W) % W, y = (i * 53.7 + t * sp) % (H + 10) - 5;
+      cx.fillRect(x, y, 2 + (i % 3), 2 + (i % 3));
+    }
+  } else if (rgi === 3) {
+    cx.strokeStyle = 'rgba(180,215,255,.3)'; cx.lineWidth = 1.5; cx.beginPath();
+    for (let i = 0; i < 44; i++) { const x = (i * 71.7 + t * 90) % (W + 40) - 20, y = (i * 113.3 + t * 620) % (H + 40) - 20; cx.moveTo(x, y); cx.lineTo(x - 5, y + 16); }
+    cx.stroke();
+    if (stormFlash <= 0 && Math.random() < .002) stormFlash = .22;
+    if (stormFlash > 0) { cx.fillStyle = `rgba(230,240,255,${stormFlash * 1.6})`; cx.fillRect(-10, -10, W + 20, H + 20); stormFlash -= 1 / 60; }
+  }
+}
+
 function drawStageLine(o, y) {
   cx.fillStyle = 'rgba(255,176,32,.85)'; cx.fillRect(RL, y - 2, RR - RL, 4);
   cx.font = '900 13px system-ui,sans-serif'; cx.textAlign = 'center';
@@ -1516,6 +2106,31 @@ function drawWeapons() {
       cx.fillStyle = '#5a3b22'; cx.beginPath(); cx.arc(0, 0, 2.5, 0, 7); cx.fill();
     } else if (p.k === 'sstar') {
       cx.restore(); drawStar(p.x, p.y, 5, p.a, false, false, g.evo.clones ? '#e3c8ff' : '#a98be0'); continue;
+    } else if (p.k === 'gust') {
+      // wind blade: a pale crescent facing where it flies, with a soft streak behind it (bigger and greener for the Tempest)
+      const R = p.w * 1.25, big = p.kb > 0;
+      cx.rotate(Math.atan2(p.vy, p.vx));
+      cx.fillStyle = big ? 'rgba(170,255,220,.22)' : 'rgba(190,240,255,.2)'; cx.beginPath(); cx.ellipse(-R * 1.4, 0, R * 1.6, R * .55, 0, 0, 7); cx.fill();
+      cx.fillStyle = big ? '#effff8' : '#e6fbff'; cx.beginPath(); cx.arc(0, 0, R, -1.35, 1.35); cx.arc(-R * .5, 0, R * .9, 1.2, -1.2, true); cx.fill();
+      cx.strokeStyle = big ? '#5ff0b8' : '#7fd8ff'; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(0, 0, R, -1.35, 1.35); cx.stroke();
+    } else if (p.k === 'tornado') {
+      // tornado: stacked swirling rings that widen toward the top, with leaves caught in it
+      for (let i = 0; i < 7; i++) {
+        const k = i / 6, yy = 26 - i * 10, rx = 8 + k * 26, off = Math.sin(p.a + i * .9) * (4 + k * 6);
+        cx.strokeStyle = `rgba(${i % 2 ? '220,255,240' : '160,235,210'},${.75 - k * .3})`; cx.lineWidth = 3.5 - k;
+        cx.beginPath(); cx.ellipse(off, yy, rx, 3 + k * 4, 0, 0, 7); cx.stroke();
+      }
+      cx.fillStyle = '#7fb04a';
+      for (let i = 0; i < 4; i++) { const a = p.a * 1.7 + i * 1.57; cx.fillRect(Math.cos(a) * (14 + i * 5) - 2, -i * 12 + Math.sin(a) * 4, 4, 3); }
+    } else if (p.k === 'arrow') {
+      // longbow arrow: a long shaft with fletching and a bright streak; Heaven Piercer's is a golden beam
+      cx.rotate(Math.atan2(p.vy, p.vx));
+      if (p.gold) { cx.fillStyle = 'rgba(255,230,120,.3)'; cx.fillRect(-90, -6, 96, 12); cx.fillStyle = 'rgba(255,250,210,.75)'; cx.fillRect(-80, -2, 86, 4); }
+      else { cx.fillStyle = 'rgba(220,240,255,.35)'; cx.fillRect(-60, -1.5, 40, 3); }
+      cx.fillStyle = p.gold ? '#fff6c8' : '#8a6a44'; cx.fillRect(-24, -1.2, 30, 2.4);
+      cx.fillStyle = p.gold ? '#ffd84d' : '#e8edf3'; cx.beginPath(); cx.moveTo(14, 0); cx.lineTo(4, -4.5); cx.lineTo(4, 4.5); cx.fill();
+      cx.fillStyle = p.gold ? '#ffb020' : '#5cf0ff';
+      cx.beginPath(); cx.moveTo(-24, 0); cx.lineTo(-30, -5); cx.lineTo(-20, -1); cx.moveTo(-24, 0); cx.lineTo(-30, 5); cx.lineTo(-20, 1); cx.fill();
     } else if (p.k === 'kunai') {
       cx.fillStyle = 'rgba(180,220,255,.35)'; cx.fillRect(-1.5, 6, 3, 22);
       cx.fillStyle = '#d7dde5'; cx.beginPath(); cx.moveTo(0, -12); cx.lineTo(4, 0); cx.lineTo(0, 4); cx.lineTo(-4, 0); cx.fill();
@@ -1540,6 +2155,29 @@ function drawWeapons() {
       cx.fillStyle = evo ? '#dbeeff' : '#c9ced6'; cx.beginPath(); cx.moveTo(0, -10); cx.quadraticCurveTo(9, -4, 3, 6); cx.lineTo(0, 0); cx.fill();
       cx.fillStyle = '#5a3b22'; cx.fillRect(-2, -1, 4, 9);
       cx.restore();
+    }
+  }
+  if (g.fx) for (const f of g.fx) {
+    if (f.k === 'aim') { // the longbow's shot line, for a split second
+      cx.globalAlpha = Math.min(1, f.t * 7); cx.strokeStyle = f.gold ? '#ffe680' : '#bff6ff'; cx.lineWidth = f.gold ? 2 : 1;
+      cx.beginPath(); cx.moveTo(f.x0, f.y0); cx.lineTo(f.x1, f.y1); cx.stroke();
+    } else if (f.k === 'pillar') { // Heaven Piercer impact: a pillar of light falls on the target
+      const a = Math.min(1, f.t * 3), w = 14 + (0.45 - f.t) * 40;
+      cx.globalAlpha = a * .45; cx.fillStyle = '#ffe680'; cx.fillRect(f.x - w, 0, w * 2, f.y + 10);
+      cx.globalAlpha = a; cx.fillStyle = '#fffbe6'; cx.fillRect(f.x - w * .3, 0, w * .6, f.y + 10);
+      cx.strokeStyle = '#ffd84d'; cx.lineWidth = 3; cx.beginPath(); cx.ellipse(f.x, f.y, 30 + (0.45 - f.t) * 90, 12 + (0.45 - f.t) * 30, 0, 0, 7); cx.stroke();
+    }
+  }
+  cx.globalAlpha = 1;
+  const bt = g.bowTgt;
+  if (bt && !bt.dead && skl('bow')) {
+    // longbow reticle on the toughest target in a clear line; the gap closes as the next shot charges
+    const y = sy(bt), rr = (bt.r || 20) + 9, ev = g.evo.bow, ch = clamp(1 - (g.wt.bow ?? 0) / (g.bowCd || 1), 0, 1), rot = performance.now() / 400;
+    cx.strokeStyle = ev ? 'rgba(255,216,77,.9)' : 'rgba(92,240,255,.85)'; cx.lineWidth = 2;
+    for (let i = 0; i < 4; i++) {
+      const a = rot + i * 1.571;
+      cx.beginPath(); cx.arc(bt.x, y, rr, a, a + .35 + 1.0 * ch); cx.stroke();
+      cx.beginPath(); cx.moveTo(bt.x + Math.cos(a) * (rr - 5), y + Math.sin(a) * (rr - 5)); cx.lineTo(bt.x + Math.cos(a) * (rr + 4), y + Math.sin(a) * (rr + 4)); cx.stroke();
     }
   }
   for (const b of g.bolts) {
@@ -1577,7 +2215,22 @@ function drawEnemyShot(e) {
   } else if (e.kind === 'rock') {
     cx.rotate(e.a); cx.fillStyle = '#6e6a62'; cx.beginPath(); cx.arc(0, 0, 12, 0, 7); cx.fill();
     cx.fillStyle = '#8f8a80'; cx.beginPath(); cx.arc(-3, -3, 6, 0, 7); cx.fill();
+  } else if (e.kind === 'ice') {
+    cx.rotate(Math.atan2(e.vy, e.vx)); cx.fillStyle = '#e2f7ff'; cx.strokeStyle = '#6fc3ff'; cx.lineWidth = 1.5;
+    cx.beginPath(); cx.moveTo(12, 0); cx.lineTo(0, -4); cx.lineTo(-10, 0); cx.lineTo(0, 4); cx.closePath(); cx.fill(); cx.stroke();
+  } else if (e.kind === 'wisp') {
+    cx.fillStyle = 'rgba(170,120,255,.35)'; cx.beginPath(); cx.arc(0, 0, 13, 0, 7); cx.fill();
+    cx.fillStyle = '#b48cff'; cx.beginPath(); cx.arc(0, 0, 7, 0, 7); cx.fill();
+    cx.fillStyle = '#f2eaff'; cx.beginPath(); cx.arc(0, 1, 3.5, 0, 7); cx.fill();
+    cx.fillStyle = 'rgba(180,140,255,.6)'; cx.beginPath(); cx.moveTo(-6, -3); cx.lineTo(Math.sin(e.a) * 4, -18); cx.lineTo(6, -3); cx.fill();
+  } else if (e.kind === 'orb') {
+    cx.fillStyle = 'rgba(255,230,80,.35)'; cx.beginPath(); cx.arc(0, 0, 15, 0, 7); cx.fill();
+    cx.fillStyle = '#fff6b0'; cx.beginPath(); cx.arc(0, 0, 7, 0, 7); cx.fill();
+    cx.strokeStyle = '#ffe14d'; cx.lineWidth = 2; cx.beginPath();
+    for (let k = 0; k < 3; k++) { const a = e.a + k * 2.1; cx.moveTo(Math.cos(a) * 7, Math.sin(a) * 7); cx.lineTo(Math.cos(a + .3) * 14, Math.sin(a + .3) * 14); }
+    cx.stroke();
   } else if (e.kind === 'feather') {
+
     cx.rotate(Math.atan2(e.vy, e.vx)); cx.fillStyle = '#1d1d1d'; cx.beginPath(); cx.ellipse(0, 0, 10, 3.5, 0, 0, 7); cx.fill();
     cx.strokeStyle = '#d33'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(-10, 0); cx.lineTo(10, 0); cx.stroke();
   } else {
@@ -1726,7 +2379,8 @@ function drawBoss(o, y) {
     cx.fillStyle = gr; cx.beginPath(); cx.arc(o.x, y, o.r * 1.9, 0, 7); cx.fill();
   }
   cx.save(); cx.translate(o.x + wob, y);
-  if (o.bt === 1) {
+  if (o.bt >= 3) drawRegionBoss(o, flash);
+  else if (o.bt === 1) {
     // Tengu: black wings, red face, long nose
     const flap = Math.sin(o.ph * 3) * 10;
     cx.fillStyle = '#151515';
@@ -1766,6 +2420,56 @@ function drawBoss(o, y) {
   cx.restore();
 }
 
+function drawRegionBoss(o, flash) {
+  const now = performance.now();
+  if (o.bt === 3) { // Yuki-onna: snow spirit in a white kimono, icy aura, long black hair
+    cx.fillStyle = 'rgba(170,225,255,.25)'; cx.beginPath(); cx.arc(0, 0, o.r * 1.25, 0, 7); cx.fill();
+    cx.fillStyle = '#dff1ff';
+    cx.beginPath(); cx.moveTo(-28, -6); cx.lineTo(-62, 18); cx.lineTo(-36, 26); cx.fill();
+    cx.beginPath(); cx.moveTo(28, -6); cx.lineTo(62, 18); cx.lineTo(36, 26); cx.fill();
+    cx.fillStyle = flash ? '#ffffff' : '#eef7ff'; cx.beginPath(); cx.moveTo(-26, -8); cx.lineTo(26, -8); cx.lineTo(42, 46); cx.lineTo(-42, 46); cx.fill();
+    cx.fillStyle = '#5b8fd6'; cx.fillRect(-27, 6, 54, 8);
+    cx.fillStyle = '#141a2a'; cx.beginPath(); cx.arc(0, -24, 21, Math.PI, 0); cx.fill(); cx.fillRect(-21, -26, 8, 50); cx.fillRect(13, -26, 8, 50);
+    cx.fillStyle = flash ? '#fff' : '#f6faff'; cx.beginPath(); cx.arc(0, -20, 14, 0, 7); cx.fill();
+    cx.fillStyle = '#3ad0ff'; cx.fillRect(-8, -22, 5, 3); cx.fillRect(3, -22, 5, 3);
+    cx.fillStyle = '#b02a4a'; cx.fillRect(-3, -12, 6, 2);
+    cx.fillStyle = '#c8f2ff'; // icicle crown
+    for (let k = -2; k <= 2; k++) { cx.beginPath(); cx.moveTo(k * 8 - 3, -40); cx.lineTo(k * 8, -54 + Math.abs(k) * 4); cx.lineTo(k * 8 + 3, -40); cx.fill(); }
+  } else if (o.bt === 4) { // Ghost Shogun: translucent armored spirit with a gold crescent helm
+    cx.globalAlpha = Math.max(0, o.alpha ?? 1) * .92;
+    cx.fillStyle = 'rgba(170,120,255,.28)'; cx.beginPath(); cx.arc(0, 0, o.r * 1.35, 0, 7); cx.fill();
+    cx.fillStyle = flash ? '#cbb8ff' : '#2a2045';
+    cx.beginPath(); cx.moveTo(-36, -10); cx.lineTo(36, -10); cx.lineTo(30, 30);
+    for (let k = 3; k >= -3; k--) cx.lineTo(k * 10, 40 + (k % 2 ? 10 : 0) + Math.sin(now / 150 + k) * 4);
+    cx.lineTo(-30, 30); cx.fill();
+    cx.fillStyle = '#4a3a78'; for (let i = 0; i < 3; i++) cx.fillRect(-30, -4 + i * 9, 60, 5);
+    cx.fillStyle = '#1a1430'; cx.beginPath(); cx.arc(0, -18, 22, Math.PI, 0); cx.fill();
+    cx.strokeStyle = '#d4a52c'; cx.lineWidth = 4; cx.beginPath(); cx.arc(0, -46, 16, .35, Math.PI - .35); cx.stroke();
+    cx.fillStyle = '#0c0a14'; cx.fillRect(-15, -18, 30, 14);
+    cx.fillStyle = '#e9ddff'; cx.fillRect(-11, -14, 7, 3); cx.fillRect(4, -14, 7, 3);
+    cx.fillStyle = 'rgba(120,200,255,.8)'; cx.save(); cx.rotate(.55); cx.fillRect(34, -58, 4, 74); cx.restore();
+    cx.globalAlpha = 1;
+  } else { // Raijin: thunder god in a ring of drums
+    const sp = now / 900;
+    cx.strokeStyle = '#8a5a2a'; cx.lineWidth = 4; cx.beginPath(); cx.arc(0, -4, 64, 0, 7); cx.stroke();
+    for (let i = 0; i < 8; i++) {
+      const a = sp + i * .785, dx = Math.cos(a) * 64, dy = -4 + Math.sin(a) * 64;
+      cx.fillStyle = '#c23b2b'; cx.beginPath(); cx.arc(dx, dy, 9, 0, 7); cx.fill();
+      cx.fillStyle = '#f2d38a'; cx.beginPath(); cx.arc(dx, dy, 5, 0, 7); cx.fill();
+    }
+    cx.fillStyle = '#e9eef5';
+    for (let k = -3; k <= 3; k++) { cx.beginPath(); cx.moveTo(k * 9 - 6, -26); cx.lineTo(k * 12, -52 - (k % 2 ? 6 : 0)); cx.lineTo(k * 9 + 6, -26); cx.fill(); }
+    cx.fillStyle = flash ? '#c8ffe0' : '#3f8f5a'; cx.beginPath(); cx.arc(0, 0, o.r * .78, 0, 7); cx.fill();
+    cx.fillStyle = '#d4a52c';
+    cx.beginPath(); cx.moveTo(-14, -28); cx.lineTo(-22, -46); cx.lineTo(-6, -32); cx.fill();
+    cx.beginPath(); cx.moveTo(14, -28); cx.lineTo(22, -46); cx.lineTo(6, -32); cx.fill();
+    cx.fillStyle = '#fff36b'; cx.fillRect(-15, -10, 9, 5); cx.fillRect(6, -10, 9, 5);
+    cx.fillStyle = '#300'; cx.fillRect(-14, 10, 28, 8);
+    cx.fillStyle = '#fff'; for (let k = -2; k <= 1; k++) cx.fillRect(k * 7 + 1, 10, 4, 4);
+    if (Math.random() < .35) { cx.strokeStyle = '#fff36b'; cx.lineWidth = 2; cx.beginPath(); const a = Math.random() * 6.28; cx.moveTo(Math.cos(a) * 30, Math.sin(a) * 30); cx.lineTo(Math.cos(a) * 52 + 6, Math.sin(a) * 52); cx.stroke(); }
+  }
+}
+
 function drawMini(o, y) {
   const flash = o.hitT > 0, r = o.r, bob = Math.sin(o.ph * 2) * 2, yy = y + bob, m = MINIS[o.t];
   cx.fillStyle = 'rgba(0,0,0,.3)'; cx.beginPath(); cx.ellipse(o.x, y + r * .85, r, r * .35, 0, 0, 7); cx.fill();
@@ -1785,6 +2489,17 @@ function drawMini(o, y) {
       cx.fillRect(-r - 6, -r, 3, r * 1.4); cx.fillRect(r + 3, -r, 3, r * 1.4); cx.restore(); }
   }
   cx.globalAlpha = 1;
+  // region flavour: a snow-laden straw hat, ghostly eye-glow, a storm cloak
+  const rid = g.rg.id;
+  if (rid === 'snow') {
+    cx.fillStyle = '#c9a46a'; cx.beginPath(); cx.moveTo(o.x - r - 4, yy - r * .55); cx.lineTo(o.x, yy - r - 12); cx.lineTo(o.x + r + 4, yy - r * .55); cx.fill();
+    cx.fillStyle = '#f4f9ff'; cx.beginPath(); cx.moveTo(o.x - r * .55, yy - r * .8); cx.lineTo(o.x, yy - r - 12); cx.lineTo(o.x + r * .55, yy - r * .8); cx.fill();
+  } else if (rid === 'night') {
+    cx.fillStyle = 'rgba(200,150,255,.45)'; cx.beginPath(); cx.arc(o.x - 6, yy - 4, 6, 0, 7); cx.arc(o.x + 6, yy - 4, 6, 0, 7); cx.fill();
+    const a = o.ph * 1.3; cx.fillStyle = '#c9a8ff'; cx.beginPath(); cx.arc(o.x + Math.cos(a) * (r + 10), yy + Math.sin(a) * (r + 4), 4, 0, 7); cx.fill();
+  } else if (rid === 'storm') {
+    cx.strokeStyle = '#7fd8ff'; cx.lineWidth = 3; cx.beginPath(); cx.arc(o.x, yy + 2, r + 1, .15, Math.PI - .15); cx.stroke();
+  }
   const bw = r * 2.4;
   cx.fillStyle = 'rgba(0,0,0,.6)'; cx.fillRect(o.x - bw / 2, y - r - 22, bw, 7);
   cx.fillStyle = '#ffb020'; cx.fillRect(o.x - bw / 2, y - r - 22, bw * Math.max(0, o.hp) / o.max, 7);
@@ -1895,7 +2610,8 @@ function drawHUD() {
   cx.fillStyle = 'rgba(0,0,0,.55)';
   for (let i = 1; i < g.stageD.length; i++) cx.fillRect(prog(g.stageD[i]) - 1, 28, 2, 14);
   cx.textAlign = 'right'; cx.fillStyle = '#ffd84d'; cx.font = '800 14px system-ui,sans-serif';
-  cx.fillText('🪙 ' + (save.coins + (g.banked ? 0 : Math.floor(g.coins))), W - 24, 40);
+  if (g.practice) { cx.fillStyle = '#7dffa0'; cx.font = '900 12px system-ui,sans-serif'; cx.fillText('🧪 PRACTICE', W - 22, 40); }
+  else cx.fillText('🪙 ' + (save.coins + (g.banked ? 0 : Math.floor(g.coins))), W - 24, 40);
   // XP bar
   cx.fillStyle = 'rgba(0,0,0,.55)'; rrect(12, 62, W - 24, 8, 4); cx.fill();
   cx.fillStyle = '#5cc8ff'; rrect(12, 62, Math.max(4, (W - 24) * g.xp / g.xpNeed), 8, 4); cx.fill();
@@ -1968,15 +2684,41 @@ function home() {
   const c = save.chapter;
   const ms = ensureMissions(), mDone = ms.list.filter(m => m.prog >= m.goal).length, claim = missionsClaimable();
   btns.push([heroChip(), heroScreen, 'herochip']);
-  btns.push(['▶ Play Chapter ' + c + (c > MAX_CHAPTER ? ' (Endless)' : ' / ' + MAX_CHAPTER), () => newGame()],
+  btns.push(['▶ Play Chapter ' + c + (c > MAX_CHAPTER ? ' (Endless)' : ' / ' + MAX_CHAPTER) + `<span class="rgn">${regionTag(c)} · Boss: ${bossName(bossOf(c))}</span>`, play],
      [`📋 Daily Missions ${mDone}/3${claim ? ' · 🎁 ' + claim + ' to claim' : ''}`, missions, claim ? '' : 'sec'],
      ['Upgrades', () => shop(home), 'sec third'], [(save.armoryNew ? '🔔 ' : '') + 'Armory', armory, 'sec third'], ['Skins', skins, 'sec third']);
   const best = save.bestStage ? ` · Best: <b>stage ${save.bestStage}/${STAGES}</b>` : '';
   panel(`<h1>SHURIKEN <span>SQUAD</span></h1>${coinTag()}
-    <div class="help">Drag to steer · Your ninjas throw stars automatically<br>Take <b style="color:#5cc8ff">blue</b> gates, dodge <b style="color:#ff6b6b">red</b> ones and spikes<br>Hit gates with stars to raise their number<br>Kill enemies to <b style="color:#5cc8ff">level up</b> and pick new skills<br>${STAGES} stages per chapter · Boss: <b>${bossName((c - 1) % 3)}</b>${best}</div>`, btns,
+    <div class="help">Drag to steer · Your ninjas throw stars automatically<br>Take <b style="color:#5cc8ff">blue</b> gates, dodge <b style="color:#ff6b6b">red</b> ones and spikes<br>Hit gates with stars to raise their number<br>Kill enemies to <b style="color:#5cc8ff">level up</b> and pick new skills<br>${STAGES} stages per chapter${best}</div>`, btns,
     [[(save.sound ? '🔊' : '🔇') + ' Sound ' + (save.sound ? 'on' : 'off'), () => { save.sound = !save.sound; persist(); home(); }],
      ['💾 Save', () => backup()],
+     ...(TESTER_REGION_PREVIEW ? [['🗺️ Regions', regions]] : []),
      [`v${GAME_VERSION} · 📜 What's New`, patchNotes]]);
+}
+
+// ---------- regions screen (playtest) ----------
+// Every region with its twist and boss; testers can play a PRACTICE run of each region's first chapter.
+function regions() {
+  const cur = regionIdx(save.chapter);
+  const rows = REGIONS.map((rg, i) => {
+    const c0 = i * 10 + 1, rb = rg.boss;
+    const boss = rb !== undefined ? `${bossName(rb)} <span style="color:#9aa6b2">(${BOSSES[rb].d})</span>` : 'Oni Warlord · Tengu · Iron Samurai';
+    return `<div class="arm hero rgrow" style="--rc:${rg.col}"><span class="ai">${rg.icon}</span><div class="info"><div class="n" style="color:${rg.col}">${rg.name}${i === cur ? '<span class="pill own">YOU ARE HERE</span>' : ''}</div>
+      <div class="tg">CHAPTERS ${c0}–${c0 + 9}</div><div class="d">${rg.tw}</div><div class="d">👹 Boss: <b>${boss}</b></div>
+      ${i ? `<div class="hb"><button data-pr="${c0}">🧪 Practice Chapter ${c0}</button></div>` : ''}</div></div>`;
+  }).join('');
+  panel(`<h2>🗺️ Regions</h2><div class="notes">${rows}<div class="help" style="margin:4px 0 0">From chapter 41 the regions repeat, tougher each time. Practice runs use your upgrades and hero but never change your chapter, coins, missions or unlocks.</div></div>`,
+    [['Back', home, 'sec']]);
+  ui.querySelectorAll('button[data-pr]').forEach(b => b.onclick = () => { initAudio(); SFX.click(); practice(+b.dataset.pr); });
+}
+// end of a practice run: nothing is saved (no coins, chapter, missions, stats or unlocks)
+function practiceEnd(won) {
+  running = false; if (won) SFX.win(); else SFX.lose();
+  const c = g.c, cause = g.lossCause || 'Your squad was wiped out';
+  panel(`<div class="prac">🧪 PRACTICE</div><h1>${won ? 'PRACTICE <span>CLEARED</span>' : 'PRACTICE <span>OVER</span>'}</h1>
+    <p>${won ? `${bossName(g.bt)} defeated with <b>${g.count}</b> ninjas left.` : `<b style="color:#ff6b6b">${cause}.</b><br>Reached <b>stage ${g.stage}/${STAGES}</b>`}<br>${regionTag(c)} · Chapter ${c} · ⚔ <b>${g.kills}</b> defeated</p>
+    ${buildHtml(g.sk, g.evo)}<div class="help">Practice runs don't change your progress, coins or missions.</div>`,
+    [['↻ Practice Again', () => practice(c)], ['🗺️ Regions', regions, 'sec third'], ['Menu', home, 'sec third']]);
 }
 
 // ---------- heroes screen ----------
@@ -2099,7 +2841,7 @@ function validSave(s) {
   if (!isObj(s) || !Number.isInteger(s.chapter) || !isNum(s.chapter, 1, 1e6) || !isNum(s.coins, 0, 1e15)) return false;
   if ('up' in s && (!isObj(s.up) || Object.keys(s.up).some(k => !Number.isInteger(s.up[k]) || !isNum(s.up[k], 0, MAXUP)))) return false;
   if ('stats' in s && (!isObj(s.stats) || Object.keys(s.stats).some(k => !isNum(s.stats[k], 0, 1e15)))) return false;
-  for (const k of ['skins', 'unlocked', 'evoSeen']) if (k in s && (!Array.isArray(s[k]) || s[k].some(v => typeof v !== 'string'))) return false;
+  for (const k of ['skins', 'unlocked', 'evoSeen', 'regionSeen']) if (k in s && (!Array.isArray(s[k]) || s[k].some(v => typeof v !== 'string'))) return false;
   if ('daily' in s && !isObj(s.daily)) return false;
   if ('heroes' in s && (!isObj(s.heroes) || Object.values(s.heroes).some(m => !Number.isInteger(m) || !isNum(m, 1, MASTERY_MAX)))) return false;
   if ('hero' in s && typeof s.hero !== 'string') return false;
@@ -2270,7 +3012,7 @@ function missions() {
 function commitRun(won) {
   const st = save.stats, before = new Set(save.unlocked);
   st.kills += g.kills;
-  for (const k of ['dodges', 'gateBumps', 'rallies', 'evolves', 'fullBoss', 'muls']) st[k] += g.st[k] || 0;
+  for (const k of ['dodges', 'gateBumps', 'rallies', 'evolves', 'fullBoss', 'muls', 'boosts', 'guardians']) st[k] = (st[k] || 0) + (g.st[k] || 0);
   if (won) { st.chapters++; if (g.st.sac) st.sacClears++; }
   for (const id in g.evo) if (!save.evoSeen.includes(id)) save.evoSeen.push(id);
   for (const id in UNLOCKS) if (!isUnlocked(id) && st[UNLOCKS[id].stat] >= UNLOCKS[id].goal) save.unlocked.push(id);
@@ -2364,11 +3106,13 @@ function revive() {
     } else if (o.k === 'boss' && g.bossMode && o.homeY !== undefined) { // only once the fight has started
       if (o.berserk) o.homeY = Math.min(o.homeY, 170); // undo the berserk advance
       o.state = 'idle'; o.d = g.dist + SQY - o.homeY; o.specT = Math.max(o.specT || 0, 3);
+      o.hidden = false; o.alpha = 1; o.spT = Math.max(o.spT || 0, 2.5); // region bosses: reappear, next signature move later
     }
   }
   g.objs = g.objs.filter(o => !o.dead);
-  g.ebullets = [];
-  g.evoFlash = .7; g.shake = .3; spark(g.sx, SQY, '#ffffff', 50, 260);
+  g.ebullets = []; g.hz = []; // lane hazards (frost, thunder, waves) are washed away too
+  g.evoFlash = .7;
+ g.shake = .3; spark(g.sx, SQY, '#ffffff', 50, 260);
   g.banner = { txt: '❤️ REVIVED!', t: 1.4, gold: true };
   SFX.evolve();
   ui.innerHTML = ''; running = true;
@@ -2422,23 +3166,28 @@ const x2Btn = (r, rerender) => r.earned > 0 && r.state !== 'done'
   ? [[r.state === 'pending' ? '🎬 Loading…' : `🎬 ×2 Coins <small>(+🪙 ${fmtN(r.earned)})</small>`, () => claimDouble(r, rerender), 'ad']] : [];
 
 function win() {
+  if (g.practice) return practiceEnd(true);
   running = false; SFX.win();
   const c = g.c, left = g.count, kills = g.kills, sk = g.sk, evo = g.evo, run = commitRun(true), earned = bank(ECON.clearPer * g.lv + left), rw = newReward(earned);
   save.chapter = c + 1; save.bestStage = 0; run.heroes = checkHeroUnlocks(); persist();
   if (run.fresh.length || run.done.length || run.heroes.length) setTimeout(() => SFX.daily(), 600);
   const champ = c === MAX_CHAPTER ? `<p style="color:#ffd84d"><b>🏆 You beat all ${MAX_CHAPTER} chapters! You are a true ninja master. Endless mode unlocked.</b></p>` : '';
-  const after = () => panel(`<h1>CHAPTER ${c} <span>CLEARED</span></h1>${champ}<p>${bossName((c - 1) % 3)} defeated with <b>${left}</b> ninjas left.<br>⚔ <b>${kills}</b> enemies defeated<br>${earnedHtml(rw, 'You earned')}</p>${buildHtml(sk, evo)}${resultsExtras(run)}${coinTag()}`,
-    [...x2Btn(rw, after), ['▶ Next Chapter', () => newGame()], ['Upgrades', () => shop(after), 'sec third'], ['Menu', home, 'sec third']]);
+  // the next chapter opens a new region: celebrate it like an unlock
+  const nr = regionFirst(c + 1) ? regionOf(c + 1) : null, bt = g.bt;
+  const reach = nr ? `<div class="unl" style="border-color:${nr.col}">🗺️ NEW REGION REACHED<b>${regionTag(c + 1)}</b><span>${regionTw(c + 1)}${nr.boss !== undefined ? ` Boss: ${bossName(nr.boss)}.` : ''}</span></div>` : '';
+  const after = () => panel(`<h1>CHAPTER ${c} <span>CLEARED</span></h1>${champ}${reach}<p>${bossName(bt)} defeated with <b>${left}</b> ninjas left.<br>${regionTag(c)} · ⚔ <b>${kills}</b> enemies defeated<br>${earnedHtml(rw, 'You earned')}</p>${buildHtml(sk, evo)}${resultsExtras(run)}${coinTag()}`,
+    [...x2Btn(rw, after), ['▶ Next Chapter', play], ['Upgrades', () => shop(after), 'sec third'], ['Menu', home, 'sec third']]);
   after();
 }
 
 function lose() {
+  if (g.practice) return practiceEnd(false);
   running = false; SFX.lose();
   const c = g.c, stage = g.stage, kills = g.kills, sk = g.sk, evo = g.evo, cause = g.lossCause || 'Your squad was wiped out', run = commitRun(false), earned = bank(0), rw = newReward(earned);
   save.bestStage = Math.max(save.bestStage, stage); persist();
   if (run.fresh.length || run.done.length) setTimeout(() => SFX.daily(), 900);
-  const after = () => panel(`<h1>CLAN <span>DEFEATED</span></h1><p><b style="color:#ff6b6b">${cause}.</b><br>Chapter <b>${c}</b> · reached <b>stage ${stage}/${STAGES}</b> · ⚔ <b>${kills}</b> defeated<br>${earnedHtml(rw, 'You still earned')} — spend it on upgrades.</p>${buildHtml(sk, evo)}${resultsExtras(run)}${coinTag()}`,
-    [...x2Btn(rw, after), ['↻ Try Again', () => newGame()], ['Upgrades', () => shop(after), 'sec third'], ['Menu', home, 'sec third']]);
+  const after = () => panel(`<h1>CLAN <span>DEFEATED</span></h1><p><b style="color:#ff6b6b">${cause}.</b><br>${regionTag(c)} · Chapter <b>${c}</b> · reached <b>stage ${stage}/${STAGES}</b> · ⚔ <b>${kills}</b> defeated<br>${earnedHtml(rw, 'You still earned')} — spend it on upgrades.</p>${buildHtml(sk, evo)}${resultsExtras(run)}${coinTag()}`,
+    [...x2Btn(rw, after), ['↻ Try Again', play], ['Upgrades', () => shop(after), 'sec third'], ['Menu', home, 'sec third']]);
   after();
 }
 
