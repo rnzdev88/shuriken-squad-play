@@ -110,10 +110,12 @@ button.card.boon .lv{color:#e3c8ff;background:#5a3590;border-radius:5px;padding:
 .hb .mx{flex:1;font-size:11px;font-weight:900;color:#ffd84d;text-align:center;padding:8px 0}
 .arm .dots{margin-top:4px}
 .hp img{width:118%;height:118%;object-fit:cover;margin-top:6%}
+.hp img.spr{flex:none;width:170%;height:170%;max-width:none;margin:0;object-fit:cover;object-position:50% 0;align-self:flex-start}
 .btns button.herochip{position:relative;display:flex;align-items:center;gap:10px;text-align:left;color:#fff;background:#151b26;border:0;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12);padding:6px 12px 6px 6px;min-height:70px;overflow:visible;min-width:0;max-width:100%;box-sizing:border-box}
 .herochip .hbg{position:absolute;inset:0;border-radius:12px;pointer-events:none}
 .herochip .hart{position:relative;flex:none;width:64px;height:64px;margin:-12px 0 -4px;display:flex;align-items:center;justify-content:center;font-size:36px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
 .herochip .hart img{width:100%;height:100%}
+.herochip .hart img.spr{object-fit:contain;transform:scale(1.15) translateY(-4%)}
 .herochip .hinfo{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.15}
 .herochip .hrole{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#cfd6e0;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .herochip .hname{font-size:22px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 2px 0 rgba(0,0,0,.45)}
@@ -182,11 +184,15 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- patch notes ----------
 // Newest first. Bump GAME_VERSION and add an entry for every player-facing update;
 // returning players see the notes once, new players only see the "What's New" button.
-const GAME_VERSION = '1.9';
+const GAME_VERSION = '1.9.1';
 // Playtest build: every hero is owned from the start so testers can try them all.
 // Set to false for release; heroes then unlock at their chapter (HEROES[id].unlock).
 const TESTER_ALL_HEROES = true;
 const PATCH_NOTES = [
+  { v: '1.9.1', title: 'New Look', date: 'Nov 2026', notes: [
+    ['🎨', '<b>New character art:</b> heroes, all 6 bosses, the guardians and every enemy type now have illustrated sprites.'],
+    ['🥷', 'Hero portraits on the home screen and in Heroes use the new art too.'],
+  ] },
   { v: '1.9', title: 'Regions', date: 'Nov 2026', notes: [
     ['🗺️', '<b>Regions:</b> every 10 chapters is a new land with its own look, rule and boss: ❄️ <b>Snow Pass</b> (ch 11), 🏯 <b>Night Castle</b> (ch 21) and 🌊 <b>Storm Coast</b> (ch 31). Past chapter 40 they come back tougher.'],
     ['❄️', '<b>Snow Pass:</b> icy footing makes your squad slide, and ice sheets before gates mean you line up early. Boss <b>Yuki-onna</b> freezes your lane.'],
@@ -2313,11 +2319,55 @@ function drawTorii(o, y) {
   cx.fillStyle = '#fff6c8'; cx.fillText(e.icon + ' ' + e.name.toUpperCase(), MID, y - 32);
 }
 
+// ---------- sprite art ----------
+// Character art lives in art/<id>.webp (generated with ComfyUI). Each sprite loads in the background; until it has
+// loaded (or if it's missing), the shapes drawn in code below are used instead, so the game never depends on it.
+const ART_IDS = ['hero_kage', 'hero_tsubaki', 'hero_goro', 'boss_oni', 'boss_tengu', 'boss_samurai', 'boss_yuki', 'boss_ghost',
+  'boss_raijin', 'mini_blade', 'mini_monk', 'mini_twins', 'enemy_grunt', 'enemy_brute', 'enemy_archer', 'enemy_shield'];
+const BOSS_ART = ['boss_oni', 'boss_tengu', 'boss_samurai', 'boss_yuki', 'boss_ghost', 'boss_raijin'];
+const MINI_ART = ['mini_blade', 'mini_monk', 'mini_twins'];
+const ART = {}; // id → { img, white, red } once loaded
+// a solid-colour silhouette of a sprite, for the hit flash and the guardian charge warning
+function artTint(img, col) {
+  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+  const x = c.getContext('2d'); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, c.width, c.height);
+  return c;
+}
+function loadArt() {
+  if (typeof Image === 'undefined') return; // headless tools: keep the drawn shapes
+  for (const id of ART_IDS) {
+    const img = new Image();
+    img.onload = () => { try { ART[id] = { img, white: artTint(img, '#ffffff'), red: artTint(img, '#ff3b3b') }; } catch (e) {} };
+    img.src = 'art/' + id + '.webp';
+  }
+}
+// Draw sprite `id` standing with its feet at (x, feet), `h` px tall (flash: see below). Returns false if it isn't loaded (caller draws shapes).
+function drawArt(id, x, feet, h, flash, warn, alpha = 1) {
+  const a = ART[id]; if (!a) return false;
+  const w = h * a.img.width / a.img.height, x0 = x - w / 2, y0 = feet - h;
+  cx.globalAlpha = alpha; cx.drawImage(a.img, x0, y0, w, h);
+  if (warn) { cx.globalAlpha = alpha * .55; cx.drawImage(a.red, x0, y0, w, h); }
+  // flash: true = full hit flash (small enemies); a number = a subtler one for bosses/guardians, who are hit almost constantly
+  if (flash) { cx.globalAlpha = alpha * (flash === true ? .6 : flash); cx.drawImage(a.white, x0, y0, w, h); }
+  cx.globalAlpha = 1;
+  return true;
+}
+
 function drawEnemy(o, y) {
   const bob = Math.sin(o.ph) * 1.5, flash = o.hitT > 0;
   cx.fillStyle = 'rgba(0,0,0,.25)'; cx.beginPath(); cx.ellipse(o.x, y + o.r * .8, o.r, o.r * .4, 0, 0, 7); cx.fill();
   const yy = y + bob, rr = o.r;
-  if (o.big) {
+  // sprite art when loaded: a shield bearer whose shield broke becomes a plain grunt
+  const artId = o.big ? 'enemy_brute' : o.archer ? 'enemy_archer' : o.smax && o.shield > 0 ? 'enemy_shield' : 'enemy_grunt';
+  const artH = rr * (o.big ? 3.1 : 3.3), feet = y + rr * .9;
+  let barY = y - o.r - 8;
+  if (drawArt(artId, o.x, feet + bob, artH, flash)) {
+    barY = feet - artH - 5;
+    if (o.shield > 0) {
+      cx.fillStyle = '#1b2a3a'; cx.fillRect(o.x - rr, barY - 6, rr * 2, 4);
+      cx.fillStyle = '#6fb0ff'; cx.fillRect(o.x - rr, barY - 6, rr * 2 * o.shield / o.smax, 4);
+    }
+  } else if (o.big) {
     // oni brute: purple skin, horns, club
     cx.fillStyle = '#4a3a2a'; cx.fillRect(o.x + rr * .6, yy - rr * 1.1, 6, rr * 1.4);
     cx.fillStyle = flash ? '#fff' : '#7d3cc0'; cx.beginPath(); cx.arc(o.x, yy, rr, 0, 7); cx.fill();
@@ -2347,8 +2397,8 @@ function drawEnemy(o, y) {
     }
   }
   if (o.hp < o.max) {
-    cx.fillStyle = '#300'; cx.fillRect(o.x - o.r, y - o.r - 8, o.r * 2, 4);
-    cx.fillStyle = '#ff4d4d'; cx.fillRect(o.x - o.r, y - o.r - 8, o.r * 2 * Math.max(0, o.hp) / o.max, 4);
+    cx.fillStyle = '#300'; cx.fillRect(o.x - o.r, barY, o.r * 2, 4);
+    cx.fillStyle = '#ff4d4d'; cx.fillRect(o.x - o.r, barY, o.r * 2 * Math.max(0, o.hp) / o.max, 4);
   }
 }
 
@@ -2379,7 +2429,9 @@ function drawBoss(o, y) {
     cx.fillStyle = gr; cx.beginPath(); cx.arc(o.x, y, o.r * 1.9, 0, 7); cx.fill();
   }
   cx.save(); cx.translate(o.x + wob, y);
-  if (o.bt >= 3) drawRegionBoss(o, flash);
+  // sprite art when loaded (the Ghost Shogun fades with its vanish)
+  if (drawArt(BOSS_ART[o.bt], 0, o.r * .95, o.r * 3.3, flash && .18, false, o.bt === 4 ? Math.max(0, o.alpha ?? 1) * .92 : 1)) { /* drawn */ }
+  else if (o.bt >= 3) drawRegionBoss(o, flash);
   else if (o.bt === 1) {
     // Tengu: black wings, red face, long nose
     const flap = Math.sin(o.ph * 3) * 10;
@@ -2476,6 +2528,16 @@ function drawMini(o, y) {
   if (o.t === 2) cx.globalAlpha = .85;
   cx.strokeStyle = 'rgba(255,216,77,.5)'; cx.lineWidth = 3; cx.beginPath(); cx.arc(o.x, yy, r + 5 + Math.sin(o.ph * 3) * 2, 0, 7); cx.stroke();
   const warn = o.charging || (o.hold !== undefined && o.hold <= CHARGE_WARN && Math.sin(performance.now() / 50) > 0);
+  // sprite art when loaded; the charge warning flashes the sprite red
+  const artH = r * 3.2, feet = y + r * .95;
+  if (drawArt(MINI_ART[o.t], o.x, feet + bob, artH, flash && .25, warn, o.t === 2 ? .9 : 1)) {
+    const bw = r * 2.4, top = feet - artH - 4;
+    cx.fillStyle = 'rgba(0,0,0,.6)'; cx.fillRect(o.x - bw / 2, top - 7, bw, 7);
+    cx.fillStyle = '#ffb020'; cx.fillRect(o.x - bw / 2, top - 7, bw * Math.max(0, o.hp) / o.max, 7);
+    cx.font = '800 10px system-ui,sans-serif'; cx.textAlign = 'center'; cx.fillStyle = '#fff';
+    cx.fillText(m.name, o.x, top - 11);
+    return;
+  }
   cx.fillStyle = flash ? '#fff' : warn ? '#ff3b3b' : m.col; cx.beginPath(); cx.arc(o.x, yy, r, 0, 7); cx.fill();
   if (o.t === 1) {
     cx.fillStyle = '#f1c27d'; cx.beginPath(); cx.arc(o.x, yy - 4, r * .55, 0, 7); cx.fill();
@@ -2769,16 +2831,19 @@ function heroArt(id) {
   } catch (e) { url = ''; }
   return heroArtCache[key] = typeof url === 'string' && url.startsWith('data:image') ? url : '';
 }
-const heroPortrait = (h, id = Object.keys(HEROES).find(k => HEROES[k] === h)) => {
-  const art = heroArt(id);
-  return `<span class="hp" style="background:${h.body};border-color:${h.col}">${art ? `<img src="${art}" alt="">` : h.icon}</span>`;
+// The hero's sprite (art/hero_<id>.webp); if it fails to load, the painted portrait (or the emoji) takes its place.
+const heroImg = id => {
+  const fb = heroArt(id), h = HEROES[id];
+  return `<img class="spr" src="art/hero_${id}.webp" alt="${h.icon}" data-fb="${fb}" onerror="this.onerror=null;if(this.dataset.fb){this.src=this.dataset.fb;this.className=''}else{this.replaceWith(this.alt)}">`;
 };
+const heroPortrait = (h, id = Object.keys(HEROES).find(k => HEROES[k] === h)) =>
+  `<span class="hp" style="background:${h.body};border-color:${h.col}">${heroImg(id)}</span>`;
 // hero banner above Play: the leader's portrait on their colour, name, role, weapon and mastery; a NEW badge after an unlock
 function heroChip() {
   const id = HEROES[save.hero] ? save.hero : 'kage', h = HEROES[id], w = SK[h.weapon], m = save.heroes[id] || 1;
-  const art = heroArt(id), stars = '✦'.repeat(m) + `<i>${'✦'.repeat(MASTERY_MAX - m)}</i>`;
+  const stars = '✦'.repeat(m) + `<i>${'✦'.repeat(MASTERY_MAX - m)}</i>`;
   return `<span class="hbg" style="background:linear-gradient(100deg,${h.col}66 0%,${h.body} 46%,#151b26 100%)"></span>`
-    + `<span class="hart" style="--hc:${h.col}">${art ? `<img src="${art}" alt="">` : h.icon}</span>`
+    + `<span class="hart" style="--hc:${h.col}">${heroImg(id)}</span>`
     + `<span class="hinfo"><span class="hrole">Leader · ${h.role.split(' · ')[0]}</span><span class="hrow"><b class="hname" style="color:${h.col}">${h.name}</b><span class="hstars" style="color:${h.trim}">${stars}</span></span>`
     + `<span class="hmeta">${w.icon} ${w.name}</span></span>`
     + `<span class="hchg">CHANGE<b>›</b></span>${save.heroNew ? '<span class="hnew">NEW</span>' : ''}`;
@@ -3203,6 +3268,7 @@ function frame(now) {
   draw();
   requestAnimationFrame(frame);
 }
+loadArt();
 home();
 requestAnimationFrame(frame);
 })();
