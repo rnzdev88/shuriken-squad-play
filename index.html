@@ -184,11 +184,15 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- patch notes ----------
 // Newest first. Bump GAME_VERSION and add an entry for every player-facing update;
 // returning players see the notes once, new players only see the "What's New" button.
-const GAME_VERSION = '1.9.2';
+const GAME_VERSION = '1.9.3';
 // Playtest build: every hero is owned from the start so testers can try them all.
 // Set to false for release; heroes then unlock at their chapter (HEROES[id].unlock).
 const TESTER_ALL_HEROES = true;
 const PATCH_NOTES = [
+  { v: '1.9.3', title: 'Fair Gates', date: 'Nov 2026', notes: [
+    ['🎯', '<b>Fixed:</b> enemies standing in a gate couldn\'t be hit. Your shots now reach anything touching a gate; only enemies properly behind a gate are shielded.'],
+    ['⚖️', 'Enemies have a bit more health to balance it out.'],
+  ] },
   { v: '1.9.2', title: 'Your Squad', date: 'Nov 2026', notes: [
     ['🥷', '<b>Your squad gets art:</b> your ninjas are now illustrated, seen from behind as they charge, in the colours of your skin.'],
     ['👑', 'Kage, Tsubaki and Goro lead from the front with their own sprites, and Smoke Clones look like shadow ninjas.'],
@@ -498,7 +502,7 @@ const Pw = lv => { const u = upExp(lv); return Math.max(1, (1 + .06 * u) * (1 + 
 const SR = s => .6 * Math.pow(2.0, s - 1);
 // gentle intro: tiers 1-15 ramp from 45% to full strength (new players start with only the starter kit)
 // HPK: global enemy-HP knob, retuned whenever in-run power changes (M3: choice gates + evolutions; M4: boons + set bonuses, 1.8 → 2.0)
-const HPK = 2.0;
+const HPK = 2.2; // 2.0 → 2.2 in 1.9.3: shots now reach enemies standing in a gate (GATE_REACH), which made ch10 too easy
 // BOSS_HPK: extra boss HP so the phased boss fight lasts ~20-40 s instead of a 5 s damage check (M4: 3 → 3.2)
 const BOSS_HPK = 2.6; // was 3.2 before gates absorbed stars (1.8.1)
 const Hm = (lv, s = 1) => HPK * Gs(lv) * (1 + 0.7 * Dr(lv)) * Pw(lv) * (0.45 + 0.55 * Math.min(1, (lv - 1) / 15)) * SR(s);
@@ -1460,21 +1464,24 @@ function spawnStream(dt) {
 // The check is swept over the move (y0 → y1) so a fast shot can't skip over the gate in a long frame.
 // Stage generation keeps gates out of the guardian / boss run-up (GATE_CLEAR), so a gate never shields them.
 let liveGates = [];
-const GATE_BAND = 22;
+// Shots stop where they cross the gate's FAR edge: its top beam (36 px above its centre) plus an enemy's radius. So an
+// enemy standing in or touching the gate can still be hit; only things properly behind it are shielded. (1.9.3 playtest:
+// when shots stopped at the near edge, enemies standing in a gate were unhittable.)
+const GATE_REACH = 46;
 function gateAbsorb(x, y0, y1) {
   for (const o of liveGates) {
     if (o.used) continue;
-    const oy = sy(o);
-    if (Math.min(y0, y1) > oy + GATE_BAND || Math.max(y0, y1) < oy - GATE_BAND) continue;
+    const line = sy(o) - GATE_REACH;
+    if (Math.min(y0, y1) > line || Math.max(y0, y1) < line) continue;
     const s = o.opts[laneOf(x, o.opts.length)];
     if (s.t === 'add') { s.acc += 1; if (s.acc >= 6) { s.acc = 0; s.v += Math.max(1, Math.round(g.G)); s.bump = .15; g.st.gateBumps++; } }
-    spark(x, clamp(y1, oy - GATE_BAND, oy + GATE_BAND), '#9be8ff', 1);
+    spark(x, line, '#9be8ff', 1);
     return true;
   }
   return false;
 }
 // an unused gate between screen height y and the squad (aimed weapons don't waste their shot into it)
-const gateBetween = y => liveGates.some(o => !o.used && sy(o) > y && sy(o) < SQY);
+const gateBetween = y => liveGates.some(o => !o.used && sy(o) - GATE_REACH > y && sy(o) < SQY);
 
 // ---------- weapons ----------
 function updateWeapons(dt, r) {
